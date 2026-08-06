@@ -20,7 +20,7 @@ import {
   Edit3
 } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
-import { formatDate, formatCurrency } from '../utils/dateUtils';
+import { formatDate, formatCurrency, parseISODate } from '../utils/dateUtils';
 import { PaydaySummary } from '../types';
 import { CategoryPieChart } from '../components/CategoryPieChart';
 import { getCategoryColor } from '../utils/categoryColors';
@@ -54,43 +54,50 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
     });
   };
 
-  const month = formatDate(dateStr, 'short').split('/')[0];
-  const day = String(dateStr || '').split('-')[2] || '';
+  const parsedDate = parseISODate(dateStr);
+  const monthAbbr = parsedDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+  const day = String(parsedDate.getDate());
+
+  const availStr = hasAmt ? `${formatCurrency(summaryItem.totalAvailable).replace(/\.00$/, '')} avail` : 'Est: Not set';
+  const billsTotalStr = formatCurrency(summaryItem.totalBills).replace(/\.00$/, '');
+  const billsCount = summaryItem.assignedBills.length;
 
   return (
     <div 
       onClick={() => setIsOpen(!isOpen)} 
-      className={`rounded-[20px] bg-[#121212] border border-[#2A2A2A] p-4 mb-3 w-full cursor-pointer select-none shadow-md transition-all min-h-0 ${
+      className={`rounded-[20px] bg-[#121212] border border-white/10 p-4 mb-3 w-full cursor-pointer select-none shadow-md transition-all min-h-0 ${
         isOpen ? 'overflow-visible border-[#7C3AED]/50' : 'overflow-hidden hover:border-violet-500/40'
       }`}
     >
-      <div className="flex items-center justify-between gap-3 leading-[1.4]">
-        <div className="flex items-center gap-3 leading-[1.4]">
-          {/* Purple Date Badge (8/29) */}
-          <div className="w-10 h-10 rounded-xl bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex flex-col items-center justify-center font-bold shrink-0">
-            <span className="text-[9px] uppercase font-bold text-[#C084FC] leading-[1.4]">
-              {month}
-            </span>
-            <span className="text-base font-extrabold text-white leading-[1.4]">
-              {day}
-            </span>
-          </div>
+      <div className="flex gap-3 items-center justify-between w-full overflow-hidden leading-[1.4]">
+        {/* Left badge = fixed 56px, don't shrink */}
+        <div className="flex flex-col items-center justify-center bg-[#1E1438] border border-[#7C3AED]/30 rounded-2xl w-[56px] h-[56px] shrink-0 leading-[1.4]">
+          <span className="text-[11px] text-[#B794F6] font-semibold uppercase tracking-wider leading-none mb-0.5">
+            {monthAbbr}
+          </span>
+          <span className="text-[22px] text-white font-bold leading-none">
+            {day}
+          </span>
+        </div>
 
-          <div className="leading-[1.4]">
-            <span className="text-xs font-bold text-white block leading-[1.4]">
-              Paycheck on {formatDate(dateStr, 'medium')}
-            </span>
-            <span className="text-[11px] text-white/50 block mt-0.5 leading-[1.4]">
-              {hasAmt ? `Available: ${formatCurrency(summaryItem.totalAvailable)}` : 'Est. check: Not set'} • {summaryItem.assignedBills.length} bills assigned ({formatCurrency(summaryItem.totalBills)})
-            </span>
+        {/* Middle content = flex-1 min-w-0 */}
+        <div className="flex-1 min-w-0 leading-[1.4]">
+          {/* Title: shortened to Date e.g. "Aug 15, 2026" */}
+          <div className="text-[15px] font-semibold text-white leading-tight truncate">
+            {formatDate(dateStr, 'medium')}
+          </div>
+          {/* Subtitle: shortened and responsive */}
+          <div className="text-[12px] text-white/50 leading-[1.3] mt-1 break-words line-clamp-2">
+            {availStr} • {billsCount} bill{billsCount === 1 ? '' : 's'} ({billsTotalStr})
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0 leading-[1.4]">
-          <span className="text-xs font-bold text-[#C084FC] leading-[1.4]">
+        {/* Right amount = fixed, text-right, shrink-0 */}
+        <div className="text-right shrink-0 flex items-center gap-1.5 leading-[1.4]">
+          <span className="text-[14px] text-[#B794F6] font-semibold leading-[1.4]">
             {hasAmt && summaryItem.leftOver !== null ? formatCurrency(summaryItem.leftOver) : 'TBD'}
           </span>
-          <ChevronDown className={`w-4 h-4 text-white/40 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`w-4 h-4 text-white/40 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
         </div>
       </div>
 
@@ -746,7 +753,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        <div className="space-y-3.5">
+        <div className="space-y-3.5 px-3 overflow-x-hidden">
           {summaries.map((summaryItem) => (
             <PaycheckCard
               key={summaryItem.payday.date}
