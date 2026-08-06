@@ -26,6 +26,148 @@ import { CategoryPieChart } from '../components/CategoryPieChart';
 import { getCategoryColor } from '../utils/categoryColors';
 import { BillCard } from '../components/BillCard';
 
+interface PaycheckCardProps {
+  summaryItem: PaydaySummary;
+  initialOpen?: boolean;
+  onOpenBillModal: (billToEdit?: any) => void;
+  onNavigateToTab: (tab: 'bills' | 'paydays' | 'expenses' | 'reports' | 'history') => void;
+  toggleBillPaid: (billId: string, date: string) => void;
+}
+
+const PaycheckCard: React.FC<PaycheckCardProps> = ({
+  summaryItem,
+  initialOpen = false,
+  onOpenBillModal,
+  onNavigateToTab,
+  toggleBillPaid,
+}) => {
+  const [isOpen, setIsOpen] = useState(initialOpen);
+  const dateStr = summaryItem.payday.date;
+  const hasAmt = summaryItem.estimatedCheck !== null;
+
+  const handleMarkAllPaid = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    summaryItem.assignedBills.forEach(b => {
+      if (!b.isPaid) {
+        toggleBillPaid(b.bill.id, dateStr);
+      }
+    });
+  };
+
+  const month = formatDate(dateStr, 'short').split('/')[0];
+  const day = String(dateStr || '').split('-')[2] || '';
+
+  return (
+    <div 
+      onClick={() => setIsOpen(!isOpen)} 
+      className={`rounded-[20px] bg-[#121212] border border-[#2A2A2A] p-4 mb-3 w-full cursor-pointer select-none shadow-md transition-all min-h-0 ${
+        isOpen ? 'overflow-visible border-[#7C3AED]/50' : 'overflow-hidden hover:border-violet-500/40'
+      }`}
+    >
+      <div className="flex items-center justify-between gap-3 leading-[1.4]">
+        <div className="flex items-center gap-3 leading-[1.4]">
+          {/* Purple Date Badge (8/29) */}
+          <div className="w-10 h-10 rounded-xl bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex flex-col items-center justify-center font-bold shrink-0">
+            <span className="text-[9px] uppercase font-bold text-[#C084FC] leading-[1.4]">
+              {month}
+            </span>
+            <span className="text-base font-extrabold text-white leading-[1.4]">
+              {day}
+            </span>
+          </div>
+
+          <div className="leading-[1.4]">
+            <span className="text-xs font-bold text-white block leading-[1.4]">
+              Paycheck on {formatDate(dateStr, 'medium')}
+            </span>
+            <span className="text-[11px] text-white/50 block mt-0.5 leading-[1.4]">
+              {hasAmt ? `Available: ${formatCurrency(summaryItem.totalAvailable)}` : 'Est. check: Not set'} • {summaryItem.assignedBills.length} bills assigned ({formatCurrency(summaryItem.totalBills)})
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5 shrink-0 leading-[1.4]">
+          <span className="text-xs font-bold text-[#C084FC] leading-[1.4]">
+            {hasAmt && summaryItem.leftOver !== null ? formatCurrency(summaryItem.leftOver) : 'TBD'}
+          </span>
+          <ChevronDown className={`w-4 h-4 text-white/40 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        </div>
+      </div>
+
+      {isOpen && (
+        <div 
+          onClick={(e) => e.stopPropagation()} 
+          className="mt-4 pt-4 border-t border-white/10 space-y-3 animate-in slide-in-from-top-2 duration-200 overflow-visible min-h-0"
+        >
+          <div className="text-xs text-white/50 uppercase tracking-wide leading-[1.4]">
+            Bills assigned to this check:
+          </div>
+
+          {summaryItem.assignedBills.length === 0 ? (
+            <div className="text-xs text-white/40 italic py-2 leading-[1.4]">
+              No bills assigned to this paycheck.
+            </div>
+          ) : (
+            <div className="space-y-3 overflow-visible min-h-0">
+              {summaryItem.assignedBills.map(assigned => {
+                const bill = assigned.bill;
+                const isSplit = !!bill.isSplit;
+                const myPortionStr = formatCurrency(assigned.effectiveAmount);
+                const totalStr = formatCurrency(bill.fullTotal || bill.amount);
+                const formattedDueDate = formatDate(assigned.dueFullDate, 'short');
+
+                return (
+                  <div key={bill.id} className="flex justify-between items-center bg-[#1A1A1A] rounded-xl p-3 leading-[1.4]">
+                    <div className="leading-[1.4]">
+                      <div className="text-white text-sm font-semibold leading-[1.4] flex items-center gap-1.5">
+                        {assigned.isPaid && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
+                        {bill.name}
+                      </div>
+                      <div className="text-white/40 text-xs leading-[1.4]">Due {formattedDueDate}</div>
+                    </div>
+                    <div className="text-right leading-[1.4]">
+                      <div className="text-white text-sm font-medium leading-[1.4]">
+                        {isSplit ? `${myPortionStr} of ${totalStr}` : myPortionStr}
+                      </div>
+                      {isSplit ? (
+                        <div className="text-[#B794F6] text-xs font-semibold leading-[1.4]">Split</div>
+                      ) : (
+                        <div className="text-[#A78BFA] text-xs font-semibold leading-[1.4]">Personal</div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="flex justify-between pt-2 text-sm leading-[1.4]">
+            <span className="text-white/60 leading-[1.4]">Total for this check:</span>
+            <span className="text-white font-semibold leading-[1.4]">
+              {formatCurrency(summaryItem.totalBills)}
+            </span>
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <button 
+              onClick={() => onNavigateToTab('bills')}
+              className="flex-1 bg-[#7C3AED] text-white rounded-xl py-2 text-sm font-semibold hover:bg-[#6D28D9] transition-colors leading-[1.4]"
+            >
+              Edit Bills
+            </button>
+            <button 
+              onClick={handleMarkAllPaid}
+              className="flex-1 bg-white/10 text-white rounded-xl py-2 text-sm font-semibold hover:bg-white/20 transition-colors leading-[1.4]"
+            >
+              Mark Paid
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface DashboardViewProps {
   onOpenBillModal: (billToEdit?: any) => void;
   onOpenExpenseModal: (paydayDate?: string) => void;
@@ -605,283 +747,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         <div className="space-y-3.5">
-          {summaries.map((summaryItem) => {
-            const dateStr = summaryItem.payday.date;
-            const isExpanded = !!expandedTimelineDates[dateStr];
-            const hasAmt = summaryItem.estimatedCheck !== null;
-
-            return (
-              <div 
-                key={dateStr}
-                className="rounded-[20px] bg-[#121212] border border-[#2A2A2A] overflow-hidden shadow-md transition-all"
-              >
-                {/* Collapsed Header Bar */}
-                <div 
-                  onClick={() => toggleTimelineRow(dateStr)}
-                  className="p-4 flex items-center justify-between gap-3 cursor-pointer hover:bg-[#1A1A1A] transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    {/* Month/Day Badge */}
-                    <div className="w-10 h-10 rounded-xl bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex flex-col items-center justify-center font-bold shrink-0">
-                      <span className="text-[9px] uppercase font-bold text-[#C084FC]">
-                        {formatDate(dateStr, 'short').split('/')[0]}
-                      </span>
-                      <span className="text-base font-extrabold text-white leading-none">
-                        {String(dateStr || '').split('-')[2] || ''}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-xs font-bold text-white block">
-                        Paycheck on {formatDate(dateStr, 'medium')}
-                      </span>
-                      <span className="text-[11px] text-white/50">
-                        {hasAmt ? `Available: ${formatCurrency(summaryItem.totalAvailable)}` : 'Est. check: Not set'} • {summaryItem.assignedBills.length} bills assigned ({formatCurrency(summaryItem.totalBills)})
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-xs font-bold text-[#C084FC]">
-                      {hasAmt && summaryItem.leftOver !== null ? formatCurrency(summaryItem.leftOver) : 'TBD'}
-                    </span>
-                    {isExpanded ? <ChevronUp className="w-4 h-4 text-white/40" /> : <ChevronDown className="w-4 h-4 text-white/40" />}
-                  </div>
-                </div>
-
-                {/* Expanded Details Sections */}
-                {isExpanded && (
-                  <div className="px-4 pb-5 pt-2 border-t border-[#2A2A2A]/80 bg-[#161616]/40 space-y-4">
-                    
-                    {/* 1. PAY PERIOD INCOME SUMMARY */}
-                    <div className="bg-[#13131F]/60 border border-[#2A2A2A]/50 rounded-2xl p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-white/40 uppercase tracking-wider">
-                          PAY PERIOD INCOME SUMMARY
-                        </span>
-                        <button
-                          onClick={() => onOpenIncomeModal(dateStr)}
-                          className="px-2.5 py-1 rounded-lg bg-[#1E1B2E] border border-[#3B236E] text-[#C084FC] text-[10px] font-bold hover:bg-[#3B236E]/30 transition-all cursor-pointer"
-                        >
-                          + Add Extra Cash
-                        </button>
-                      </div>
-
-                      <div className="space-y-2 text-xs">
-                        {/* Base Paycheck */}
-                        <div className="flex items-center justify-between py-1 border-b border-[#2A2A2A]/40">
-                          <span className="text-white/60">Base Paycheck</span>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => {
-                                setTempEstCheck(summaryItem.estimatedCheck !== null ? String(summaryItem.estimatedCheck) : '');
-                                setIsEditingEstCheck(true);
-                                updatePayday({
-                                  ...summaryItem.payday,
-                                  id: summaryItem.payday.id || `auto_${dateStr}`,
-                                  date: dateStr,
-                                  isManual: true,
-                                });
-                              }}
-                              className="text-[10px] text-[#A78BFA] hover:underline"
-                            >
-                              Edit
-                            </button>
-                            <span className="font-bold text-white">
-                              {summaryItem.estimatedCheck !== null ? formatCurrency(summaryItem.estimatedCheck) : 'TBD'}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Extra Cash */}
-                        <div className="flex items-center justify-between py-1">
-                          <span className="text-white/60">Extra Cash / Income</span>
-                          <span className={`font-bold ${summaryItem.totalExtraIncome > 0 ? 'text-emerald-400' : 'text-white/40'}`}>
-                            +{formatCurrency(summaryItem.totalExtraIncome)}
-                          </span>
-                        </div>
-
-                        {/* Total Available */}
-                        <div className="pt-2 border-t border-[#2A2A2A] flex items-center justify-between font-bold">
-                          <span className="text-white">TOTAL AVAILABLE</span>
-                          <span className="text-white text-sm font-extrabold">
-                            {formatCurrency(summaryItem.totalAvailable)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 2. Bills Due Checklist */}
-                    <div className="bg-[#13131F]/60 border border-[#2A2A2A]/50 rounded-2xl p-4 space-y-3">
-                      <div>
-                        <span className="text-[11px] font-bold text-white/40 uppercase tracking-wider block">
-                          Bills Due This Pay Period ({summaryItem.assignedBills.length})
-                        </span>
-                        <span className="text-[10px] text-white/40 mt-0.5 block">
-                          Check off paid bills or adjust variable amounts
-                        </span>
-                      </div>
-
-                      {summaryItem.assignedBills.length === 0 ? (
-                        <p className="text-xs text-white/40 italic py-1">No bills assigned.</p>
-                      ) : (
-                        <div className="space-y-2.5">
-                          {summaryItem.assignedBills.map(assigned => {
-                            const { bill, effectiveAmount, isPaid, dueFullDate } = assigned;
-                            return (
-                              <BillCard
-                                key={bill.id}
-                                bill={bill}
-                                viewMode="myShare"
-                                isPaid={isPaid}
-                                effectiveAmount={effectiveAmount}
-                                dueFullDate={dueFullDate}
-                                interactive={true}
-                                onTogglePaid={() => toggleBillPaid(bill.id, dateStr)}
-                                onAdjust={bill.type === 'variable' ? () => {
-                                  const inputVal = prompt(`Adjust variable amount for ${bill.name}:`, String(effectiveAmount));
-                                  if (inputVal !== null) {
-                                    const parsed = parseFloat(inputVal);
-                                    if (!isNaN(parsed) && parsed >= 0) {
-                                      setVariableOverride(bill.id, dateStr, parsed);
-                                    }
-                                  }
-                                } : undefined}
-                                onSkip={() => {
-                                  if (confirm(`Skip ${bill.name} for the pay period starting ${formatDate(dateStr, 'short')}?`)) {
-                                    deleteBillOccurrence(bill.id, dateStr);
-                                  }
-                                }}
-                              />
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 3. Tracked Spending */}
-                    <div className="bg-[#13131F]/60 border border-[#2A2A2A]/50 rounded-2xl p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-white/40 uppercase tracking-wider">
-                          Tracked Spending ({formatCurrency(summaryItem.totalExtraExpenses)})
-                        </span>
-                        <button
-                          onClick={() => onOpenExpenseModal(dateStr)}
-                          className="px-2.5 py-1 rounded-lg bg-[#1E1E1E] border border-[#2A2A2A] text-white text-[10px] font-bold hover:bg-[#2A2A2A] transition-all cursor-pointer"
-                        >
-                          + Add Expense
-                        </button>
-                      </div>
-
-                      {summaryItem.extraExpenses.length === 0 ? (
-                        <p className="text-xs text-white/40 italic py-1">No extra expenses logged for this pay period.</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {summaryItem.extraExpenses.map(exp => (
-                            <div key={exp.id} className="p-2.5 rounded-xl bg-[#121212]/60 border border-[#2A2A2A]/30 flex items-center justify-between text-xs">
-                              <div>
-                                <span className="font-bold text-white block">{exp.description}</span>
-                                <span className="text-[10px] text-white/40">{exp.category}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-extrabold text-rose-400">-{formatCurrency(exp.amount)}</span>
-                                <button
-                                  onClick={() => deleteExtraExpense(exp.id)}
-                                  className="p-1 text-white/30 hover:text-rose-400"
-                                >
-                                  ✕
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 4. Extra Cash Boosts */}
-                    <div className="bg-[#13131F]/60 border border-[#2A2A2A]/50 rounded-2xl p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-white/40 uppercase tracking-wider">
-                          Extra Cash Boosts (+{formatCurrency(summaryItem.totalExtraIncome)})
-                        </span>
-                        <button
-                          onClick={() => onOpenIncomeModal(dateStr)}
-                          className="px-2.5 py-1 rounded-lg bg-[#1E1B2E] border border-[#3B236E] text-[#C084FC] text-[10px] font-bold hover:bg-[#3B236E]/30 transition-all cursor-pointer"
-                        >
-                          + Add Cash
-                        </button>
-                      </div>
-
-                      {summaryItem.extraIncomes.length === 0 ? (
-                        <p className="text-xs text-white/40 italic py-1">No extra cash/income added for this pay period.</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {summaryItem.extraIncomes.map(inc => (
-                            <div key={inc.id} className="p-2.5 rounded-xl bg-[#121212]/60 border border-[#2A2A2A]/30 flex items-center justify-between text-xs">
-                              <div>
-                                <span className="font-bold text-white block">{inc.source}</span>
-                                <span className="text-[10px] text-white/40">{formatDate(inc.date || dateStr, 'short')}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-extrabold text-emerald-400">+{formatCurrency(inc.amount)}</span>
-                                <button
-                                  onClick={() => deleteExtraIncome(inc.id)}
-                                  className="p-1 text-white/30 hover:text-rose-400"
-                                >
-                                  ✕
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 5. PAYCHECK MATH BREAKDOWN */}
-                    <div className="bg-[#13131F]/80 border border-[#7C3AED]/20 rounded-2xl p-4 space-y-3">
-                      <span className="text-[11px] font-extrabold text-[#C084FC] uppercase tracking-wider block">
-                        PAYCHECK MATH BREAKDOWN
-                      </span>
-
-                      <div className="space-y-1.5 font-mono text-[11px]">
-                        <div className="flex justify-between text-white/70">
-                          <span>Base Estimated Check:</span>
-                          <span>+{formatCurrency(summaryItem.estimatedCheck || 0)}</span>
-                        </div>
-                        {summaryItem.totalExtraIncome > 0 && (
-                          <div className="flex justify-between text-emerald-400">
-                            <span>+ Extra Cash:</span>
-                            <span>+{formatCurrency(summaryItem.totalExtraIncome)}</span>
-                          </div>
-                        )}
-                        <div className="flex justify-between text-white border-t border-[#2A2A2A]/60 pt-1 font-bold">
-                          <span>= Total Available Income:</span>
-                          <span>{formatCurrency(summaryItem.totalAvailable)}</span>
-                        </div>
-                        <div className="flex justify-between text-[#C084FC]">
-                          <span>- Total Bills ({summaryItem.assignedBills.length}):</span>
-                          <span>-{formatCurrency(summaryItem.totalBills)}</span>
-                        </div>
-                        {summaryItem.totalExtraExpenses > 0 && (
-                          <div className="flex justify-between text-rose-400">
-                            <span>- Tracked Spending:</span>
-                            <span>-{formatCurrency(summaryItem.totalExtraExpenses)}</span>
-                          </div>
-                        )}
-                        <div className="flex justify-between text-white font-extrabold border-t border-[#2A2A2A]/80 pt-2 text-xs">
-                          <span>Left Over Amount:</span>
-                          <span className={summaryItem.status === 'positive' ? 'text-emerald-400' : 'text-rose-400'}>
-                            {formatCurrency(summaryItem.leftOver ?? 0)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          {summaries.map((summaryItem) => (
+            <PaycheckCard
+              key={summaryItem.payday.date}
+              summaryItem={summaryItem}
+              initialOpen={summaryItem.payday.date === activeSummary?.payday.date}
+              onOpenBillModal={onOpenBillModal}
+              onNavigateToTab={onNavigateToTab}
+              toggleBillPaid={toggleBillPaid}
+            />
+          ))}
         </div>
       </div>
 
