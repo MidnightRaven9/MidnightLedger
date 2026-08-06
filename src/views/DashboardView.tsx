@@ -208,7 +208,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* Title */}
         <h2 className="text-2xl font-extrabold text-white flex items-center gap-2 mb-4">
           <Calendar className="w-6 h-6 text-[#A78BFA]" />
-          {formatDate(payday.date, 'medium')}, {payday.date.slice(0, 4)}
+          {formatDate(payday.date, 'medium')}
         </h2>
 
         {/* Action Row 1 */}

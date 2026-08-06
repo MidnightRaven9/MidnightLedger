@@ -20,15 +20,10 @@ import { Bill } from './types';
 function MainApp() {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   
-  // Dark mode state - default to OLED Material Black theme
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('payday_theme') !== 'light';
-  });
-
   useEffect(() => {
     document.documentElement.classList.add('dark');
     localStorage.setItem('payday_theme', 'dark');
-  }, [isDarkMode]);
+  }, []);
 
   // Modal states
   const [isBillModalOpen, setIsBillModalOpen] = useState(false);
@@ -67,8 +62,6 @@ function MainApp() {
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        isDarkMode={isDarkMode}
-        toggleDarkMode={() => setIsDarkMode(prev => !prev)}
         onOpenBillModal={() => handleOpenBillModal(null)}
         onOpenExpenseModal={() => handleOpenExpenseModal()}
         onOpenAIModal={() => setIsAIModalOpen(true)}

@@ -22,8 +22,6 @@ export type TabType = 'dashboard' | 'bills' | 'paydays' | 'expenses' | 'reports'
 interface NavbarProps {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
-  isDarkMode: boolean;
-  toggleDarkMode: () => void;
   onOpenBillModal: () => void;
   onOpenExpenseModal: () => void;
   onOpenAIModal: () => void;
@@ -32,8 +30,6 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
-  isDarkMode,
-  toggleDarkMode,
   onOpenBillModal,
   onOpenExpenseModal,
   onOpenAIModal,
@@ -47,7 +43,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `payday_planner_backup_${new Date().toISOString().slice(0, 10)}.json`;
+    link.download = `midnight_ledger_backup_${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -188,12 +184,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Sparkles className="w-3.5 h-3.5 text-[#DDD6FE]" />
               <span className="hidden sm:inline">Raven Advisor</span>
             </button>
-
-            {/* Dark Mode Theme Badge */}
-            <div className="flex items-center gap-2 p-1.5 px-3 rounded-xl border border-[#2A2A2A] bg-[#121212] text-white/80 text-xs font-medium">
-              <span className="w-2 h-2 rounded-full bg-[#7C3AED] animate-pulse"></span>
-              <span className="text-[11px] font-semibold text-[#A78BFA]">OLED Theme</span>
-            </div>
 
             {/* Export & Import */}
             <div className="hidden lg:flex items-center gap-1 border-l border-[#2A2A2A] pl-2">
