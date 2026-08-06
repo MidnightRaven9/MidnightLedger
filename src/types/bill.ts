@@ -35,4 +35,5 @@ export interface Bill {
   splitCount?: number;
   mySharePercentage?: number;
   customMyShare?: number;
+  emoji?: string;
 }

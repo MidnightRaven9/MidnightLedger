@@ -3,15 +3,12 @@ import {
   Plus, 
   Receipt, 
   Search, 
-  Calendar, 
-  Edit2, 
-  Trash2, 
-  CheckCircle2,
   PieChart
 } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
 import { Bill } from '../types';
-import { formatCurrency, getOrdinalSuffix } from '../utils/dateUtils';
+import { formatCurrency } from '../utils/dateUtils';
+import { getCategoryEmoji } from '../utils/emojis';
 import { DeleteBillModal } from '../components/DeleteBillModal';
 import { BillCard } from '../components/BillCard';
 
@@ -20,7 +17,7 @@ interface BillsViewProps {
 }
 
 export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
-  const { bills, viewMode, setViewMode } = usePayday();
+  const { bills, viewMode, setViewMode, summaries, nextPaydaySummary, toggleBillPaid } = usePayday();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
@@ -63,59 +60,57 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
   const categories = Array.from(new Set(bills.map(b => b.category)));
 
   return (
-    <div className="space-y-4 pb-32">
+    <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-3 sm:p-6 pb-28 space-y-5">
       
-      {/* 1. Bill Management Hub Card */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-[#121212] border border-[#2A2A2A] shadow-lg space-y-3.5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex items-center justify-center shrink-0">
-              <Receipt className="w-5 h-5 text-[#C084FC]" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-white">Bill Management Hub</h2>
-              <p className="text-[11px] text-white/50 mt-0.5 leading-tight">
-                Manage your monthly fixed & variable bills. Automatically mapped to upcoming paychecks.
-              </p>
-            </div>
+      {/* 1. Bill Management Hub Hero Card */}
+      <div className="rounded-[28px] sm:rounded-[32px] border border-zinc-800/50 bg-[#121212] p-6 sm:p-7 space-y-5">
+        <div className="flex gap-4 items-start">
+          <div className="w-14 h-14 rounded-2xl bg-[#7C3AED]/20 flex items-center justify-center shrink-0">
+            <Receipt className="w-7 h-7 text-[#A78BFA]" />
           </div>
-        </div>
-
-        <div className="flex items-center justify-between pt-2 border-t border-[#2A2A2A] flex-wrap gap-3">
           <div>
-            <span className="text-[10px] text-white/50 uppercase tracking-wider font-semibold block">
-              {viewMode === 'myShare' ? 'Total Base Monthly (My Share)' : 'Total Base Monthly (Full Totals)'}
-            </span>
-            <div className="flex items-baseline gap-2 flex-wrap">
-              <span className={`text-2xl font-black transition-colors ${viewMode === 'myShare' ? 'text-white' : 'text-[#F59E0B]'}`}>
-                {formatCurrency(totalBaseMonthly)}
-              </span>
-              {viewMode === 'fullTotal' && (
-                <span className="text-[11px] text-[#A78BFA] font-semibold">
-                  • Calculations always use your share
-                </span>
-              )}
-            </div>
+            <h1 className="text-[28px] sm:text-[30px] font-black leading-tight tracking-tight text-white">
+              Bill<br/>Management Hub
+            </h1>
+            <p className="text-[14px] leading-snug text-zinc-400 mt-2 max-w-[280px]">
+              Manage fixed & variable bills. Mapped to paychecks.
+            </p>
           </div>
-
-          <button
-            onClick={() => onOpenBillModal(null)}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold text-xs shadow-lg shadow-violet-950/50 transition-all cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            Add New Bill
-          </button>
         </div>
+
+        <div className="pt-2 border-t border-zinc-800/50">
+          <span className="text-xs text-zinc-400 uppercase tracking-wider font-semibold block">
+            {viewMode === 'myShare' ? 'Total Base Monthly (My Share)' : 'Total Base Monthly (Full Totals)'}
+          </span>
+          <div className="flex items-baseline gap-2 flex-wrap mt-1">
+            <span className="text-3xl font-black text-white">
+              {formatCurrency(totalBaseMonthly)}
+            </span>
+            {viewMode === 'fullTotal' && (
+              <span className="text-[11px] text-[#A78BFA] font-semibold">
+                • Calculations always use your share
+              </span>
+            )}
+          </div>
+        </div>
+
+        <button
+          onClick={() => onOpenBillModal(null)}
+          className="w-full h-[56px] flex items-center justify-center gap-2 rounded-2xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-[16px] mt-2 shadow-[0_8px_20px_rgba(124,58,237,0.3)] transition-all cursor-pointer"
+        >
+          <Plus className="w-5 h-5" />
+          Add New Bill
+        </button>
       </div>
 
       {/* 2. Monthly Category Allocation Card */}
-      <div className="p-3.5 sm:p-4 rounded-2xl bg-[#121212] border border-[#2A2A2A] shadow-lg space-y-3">
+      <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs font-bold text-white flex items-center gap-2">
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <PieChart className="w-4 h-4 text-[#A78BFA]" />
             Monthly Category Allocation
           </h3>
-          <span className="text-[11px] text-white/50 font-semibold">{bills.length} Total Bills</span>
+          <span className="text-xs text-white/50 font-semibold">{bills.length} Total Bills</span>
         </div>
 
         {/* Multi-color Allocation Bar (12px tall) */}
@@ -136,17 +131,22 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
           </div>
         )}
 
-        {/* Legend (2 columns, tight 6px gap) */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pt-1">
+        {/* Legend (grid-cols-1 sm:grid-cols-2 gap-3) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
           {Object.entries(categoryTotals).map(([cat, amt]) => {
             const colorClass = categoryColors[cat] || 'bg-violet-500';
+            const emoji = getCategoryEmoji(cat);
             return (
-              <div key={cat} className="flex items-center justify-between text-[13px]">
-                <div className="flex items-center gap-2 truncate">
-                  <span className={`w-2.5 h-2.5 rounded-full ${colorClass} shrink-0`} />
-                  <span className="text-white/70 truncate">{cat}:</span>
+              <div 
+                key={cat} 
+                title={cat}
+                className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/50 min-w-0"
+              >
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span className={`w-3 h-3 rounded-full shrink-0 ${colorClass}`} />
+                  <span className="text-sm text-zinc-300 whitespace-normal break-words">{emoji} {cat}:</span>
                 </div>
-                <span className="font-bold text-white ml-2">{formatCurrency(amt)}</span>
+                <span className="font-bold text-white ml-2 shrink-0">{formatCurrency(amt)}</span>
               </div>
             );
           })}
@@ -154,62 +154,59 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
       </div>
 
       {/* 3. Search & Dropdown Filters Card */}
-      <div className="p-3.5 rounded-2xl bg-[#121212] border border-[#2A2A2A] shadow-lg space-y-2.5">
-        <div className="flex flex-col md:flex-row gap-2.5 items-stretch md:items-center justify-between">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
-            <input
-              type="text"
-              placeholder="Search bills..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#2A2A2A] bg-[#1A1A1A] text-white text-xs focus:outline-none focus:border-[#7C3AED]"
-            />
-          </div>
-
-          {/* Toggle pill segmented control */}
-          <div className="bg-[#1E1E1E] h-9 rounded-full p-1 flex items-center shrink-0 w-fit self-center md:self-auto border border-[#2A2A2A]/40">
-            <button
-              onClick={() => setViewMode('myShare')}
-              className={`px-3 py-1 text-[13px] font-bold rounded-full transition-all cursor-pointer whitespace-nowrap ${
-                viewMode === 'myShare'
-                  ? 'bg-[#7C3AED] text-white shadow-md'
-                  : 'bg-transparent text-[#888] hover:text-white/80'
-              }`}
-            >
-              My Share ({formatCurrency(sumMyShare)})
-            </button>
-            <button
-              onClick={() => setViewMode('fullTotal')}
-              className={`px-3 py-1 text-[13px] font-bold rounded-full transition-all cursor-pointer whitespace-nowrap ${
-                viewMode === 'fullTotal'
-                  ? 'bg-[#7C3AED] text-white shadow-md'
-                  : 'bg-transparent text-[#888] hover:text-white/80'
-              }`}
-            >
-              Full Totals ({formatCurrency(sumFullTotal)})
-            </button>
-          </div>
+      <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 space-y-4">
+        <div className="relative">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
+          <input
+            type="text"
+            placeholder="🔍 Search bills..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-white text-sm focus:outline-none focus:border-purple-600"
+          />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3 w-full">
+          <button
+            onClick={() => setViewMode('myShare')}
+            className={`w-full h-[46px] rounded-full text-[14px] font-bold flex items-center justify-center gap-1.5 whitespace-nowrap transition-all cursor-pointer ${
+              viewMode === 'myShare'
+                ? 'bg-[#7C3AED] text-white shadow-lg shadow-purple-600/20'
+                : 'bg-[#1a1a1a] border border-zinc-800 text-zinc-400 hover:text-white'
+            }`}
+          >
+            🙋 My Share
+          </button>
+          <button
+            onClick={() => setViewMode('fullTotal')}
+            className={`w-full h-[46px] rounded-full text-[14px] font-bold flex items-center justify-center gap-1.5 whitespace-nowrap transition-all cursor-pointer ${
+              viewMode === 'fullTotal'
+                ? 'bg-[#7C3AED] text-white shadow-lg shadow-purple-600/20'
+                : 'bg-[#1a1a1a] border border-zinc-800 text-zinc-400 hover:text-white'
+            }`}
+          >
+            👥 Full Totals
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 w-full mt-3 overflow-hidden">
           <select
             value={selectedCategory}
             onChange={e => setSelectedCategory(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] text-white text-xs focus:outline-none focus:border-[#7C3AED]"
+            className="w-full h-[44px] rounded-full bg-[#1a1a1a] border border-zinc-800 px-3 text-[13px] sm:text-[14px] text-white focus:outline-none focus:border-purple-600 whitespace-nowrap overflow-hidden text-ellipsis min-w-0 cursor-pointer"
           >
-            <option value="ALL">All Categories</option>
-            {categories.map(c => (
-              <option key={c} value={c}>{c}</option>
+            <option value="ALL">🏷️ All Categories</option>
+            {(categories as string[]).map(c => (
+              <option key={c} value={c}>{getCategoryEmoji(c)} {c}</option>
             ))}
           </select>
 
           <select
             value={selectedType}
             onChange={e => setSelectedType(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] text-white text-xs focus:outline-none focus:border-[#7C3AED]"
+            className="w-full h-[44px] rounded-full bg-[#1a1a1a] border border-zinc-800 px-3 text-[13px] sm:text-[14px] text-white focus:outline-none focus:border-purple-600 whitespace-nowrap overflow-hidden text-ellipsis min-w-0 cursor-pointer"
           >
-            <option value="ALL">All Types</option>
+            <option value="ALL">💳 All Types</option>
             <option value="fixed">Fixed</option>
             <option value="variable">Variable</option>
           </select>
@@ -223,15 +220,24 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredBills.map(bill => (
-            <BillCard
-              key={bill.id}
-              bill={bill}
-              viewMode={viewMode}
-              onEdit={() => onOpenBillModal(bill)}
-              onDelete={() => setDeletingBill(bill)}
-            />
-          ))}
+          {filteredBills.map(bill => {
+            const assignedSummary = summaries.find(s => s.assignedBills.some(ab => ab.bill.id === bill.id)) || nextPaydaySummary;
+            const paydayDate = assignedSummary ? assignedSummary.payday.date : '';
+            const assignedItem = assignedSummary?.assignedBills.find(ab => ab.bill.id === bill.id);
+            const isPaid = assignedItem ? assignedItem.isPaid : false;
+
+            return (
+              <BillCard
+                key={bill.id}
+                bill={bill}
+                viewMode={viewMode}
+                isPaid={isPaid}
+                onTogglePaid={() => toggleBillPaid(bill.id, paydayDate)}
+                onEdit={() => onOpenBillModal(bill)}
+                onDelete={() => setDeletingBill(bill)}
+              />
+            );
+          })}
         </div>
       )}
 

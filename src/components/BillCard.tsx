@@ -1,8 +1,9 @@
 import React from 'react';
-import { Edit2, Trash2, CheckCircle2, Circle, EyeOff, AlertCircle } from 'lucide-react';
+import { Edit2, Trash2, CheckCircle2, Circle, EyeOff, Heart } from 'lucide-react';
 import { Bill } from '../types';
 import { formatCurrency, getOrdinalSuffix, formatDate } from '../utils/formatters';
 import { getMyShare, getFullTotal } from '../utils/calculations';
+import { getCategoryEmoji } from '../utils/emojis';
 import { SplitBadge } from './SplitBadge';
 import { FullTotalPill } from './FullTotalPill';
 
@@ -45,6 +46,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
   const myShareVal = getMyShare(bill);
   const fullTotalVal = getFullTotal(bill);
   const splitWays = bill.splitWays || bill.splitCount || 2;
+  const billEmoji = bill.emoji || getCategoryEmoji(bill.category);
 
   // Category badge color mapping
   const categoryColors: Record<string, string> = {
@@ -69,7 +71,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
       <div 
         className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
           isPaid 
-            ? 'bg-[#121212]/30 border-[#2A2A2A]/40 opacity-55' 
+            ? 'bg-[#121212]/50 border-purple-900/40' 
             : 'bg-[#1E1E1E]/80 border-[#2A2A2A] hover:border-[#7C3AED]/40'
         } ${className}`}
       >
@@ -81,16 +83,16 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
               title={isPaid ? "Mark as Unpaid" : "Mark as Paid"}
             >
               {isPaid ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                <span className="text-lg inline-block animate-pulse">💜</span>
               ) : (
-                <Circle className="w-5 h-5 text-white/30" />
+                <Circle className="w-5 h-5 text-white/30 hover:text-purple-400 transition-colors" />
               )}
             </button>
           )}
 
           <div className="min-w-0 flex-1">
             <span className={`text-xs font-bold block truncate ${isPaid ? 'line-through text-white/50' : 'text-white'}`}>
-              {bill.name}
+              {isPaid ? '💜 ' : `${billEmoji} `}{bill.name}
             </span>
             
             {/* Display correct split math in interactive mode */}
@@ -101,12 +103,20 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
             )}
 
             <span className="text-[10px] text-white/50 block mt-0.5">
-              Due {dueFullDate ? formatDate(dueFullDate, 'short') : `on the ${getOrdinalSuffix(bill.dueDay || bill.dueDate)}`} &bull; {bill.category}
+              Due {dueFullDate ? formatDate(dueFullDate, 'short') : `on the ${getOrdinalSuffix(bill.dueDay || bill.dueDate)}`} &bull; {billEmoji} {bill.category}
             </span>
 
-            <span className="text-[10px] text-white/50 block mt-0.5">
-              Status: <span className={isPaid ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>{isPaid ? 'Paid' : 'Unpaid'}</span>
-            </span>
+            <div className="mt-1 flex items-center gap-1.5">
+              {isPaid ? (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-950/80 text-purple-300 border border-purple-500/40 inline-flex items-center gap-1">
+                  <span className="animate-pulse">💜</span> Paid
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-950/40 text-amber-400 border border-amber-900/50">
+                  Unpaid
+                </span>
+              )}
+            </div>
 
             {bill.notes && (
               <span className="text-[10px] text-white/40 italic mt-0.5 block truncate">
@@ -118,7 +128,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
 
         <div className="flex items-center gap-3 shrink-0">
           <div className="text-right">
-            <span className={`text-xs font-extrabold block ${isPaid ? 'text-white/50' : 'text-white'}`}>
+            <span className={`text-xs font-extrabold block ${isPaid ? 'line-through text-white/40' : 'text-white'}`}>
               {formatCurrency(displayAmt)}
             </span>
             {bill.type === 'variable' && onAdjust && !isPaid && (
@@ -152,14 +162,34 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
 
   return (
     <div 
-      className={`p-3.5 sm:p-4 rounded-2xl bg-[#121212] border border-[#2A2A2A] shadow-lg space-y-3 relative hover:border-[#7C3AED]/40 transition-all ${className}`}
+      id={`bill-${bill.id}`}
+      className={`p-3.5 sm:p-4 rounded-2xl border shadow-lg space-y-3 relative hover:border-[#7C3AED]/40 transition-all ${
+        isPaid 
+          ? 'paid-bill bg-purple-600/10 border-purple-600/30' 
+          : 'bg-[#121212] border-[#2A2A2A]'
+      } ${className}`}
     >
-      {/* Top Row: Name + Tags & Amount (Right) */}
+      {/* Top Row: Left Checkbox + Name + Tags & Amount (Right) */}
       <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1.5 flex-1">
+        {onTogglePaid && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onTogglePaid();
+            }}
+            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all cursor-pointer ${
+              isPaid ? 'bg-purple-600 border-purple-600' : 'border-zinc-600 hover:border-zinc-400'
+            }`}
+            title={isPaid ? "Mark as Unpaid" : "Mark as Paid"}
+          >
+            {isPaid && <span className="text-white text-xs font-bold">✓</span>}
+          </button>
+        )}
+
+        <div className="space-y-1.5 flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-extrabold text-white text-base">
-              {bill.name}
+            <h3 className={`bill-name font-extrabold text-base ${isPaid ? 'line-through text-zinc-400' : 'text-white'}`}>
+              {isPaid ? '💜 ' : `${billEmoji} `}{bill.name}
             </h3>
             <span className={`px-2.5 py-0.5 rounded-full border text-[11px] font-semibold ${catColorClass}`}>
               {bill.category}
@@ -168,6 +198,11 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
               {bill.type === 'fixed' || bill.type === 'Fixed' ? 'Fixed' : 'Variable'}
             </span>
             {bill.isSplit && <SplitBadge ways={splitWays} />}
+            {isPaid && (
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-950/80 text-purple-300 border border-purple-500/40 inline-flex items-center gap-1">
+                <span className="animate-pulse">💜</span> Paid
+              </span>
+            )}
           </div>
 
           {/* Amount and Sub-Pills */}
@@ -176,7 +211,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
               {viewMode === 'myShare' ? (
                 <>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-[18px] font-bold text-white">
+                    <span className={`text-[18px] font-bold ${isPaid ? 'line-through text-zinc-400' : 'text-white'}`}>
                       {formatCurrency(myShareVal)}
                     </span>
                     <span className="text-xs text-white/60 font-semibold">My Share</span>
@@ -191,7 +226,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
               ) : (
                 <>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-[18px] font-bold text-[#F59E0B]">
+                    <span className={`text-[18px] font-bold ${isPaid ? 'line-through text-zinc-400' : 'text-[#F59E0B]'}`}>
                       {formatCurrency(fullTotalVal)}
                     </span>
                     <span className="text-xs text-white/60 font-semibold">Full Total</span>
@@ -212,7 +247,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
             </div>
           ) : (
             <div className="space-y-1 pt-1">
-              <div className="text-[18px] font-bold text-white">
+              <div className={`text-[18px] font-bold ${isPaid ? 'line-through text-zinc-400' : 'text-white'}`}>
                 {formatCurrency(displayAmt)}
                 {viewMode === 'fullTotal' && (
                   <span className="text-xs text-white/60 font-semibold ml-2">Full Total</span>
@@ -228,7 +263,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
         {/* Right side simple overview info */}
         <div className="text-right shrink-0">
           <div className="space-y-0.5">
-            <span className="text-base font-black text-white block">
+            <span className={`text-base font-black block ${isPaid ? 'line-through text-zinc-400' : 'text-white'}`}>
               {formatCurrency(displayAmt)}
             </span>
             {bill.isSplit && (

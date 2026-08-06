@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Receipt, Save, Users, Percent, DollarSign, Info, CreditCard } from 'lucide-react';
+import { X, Receipt, Save, Users, CreditCard, Smile } from 'lucide-react';
 import { Bill, BillCategory, BillType, SplitType } from '../types';
 import { usePayday } from '../context/PaydayContext';
-import { calculateSplitShare } from '../utils/splitUtils';
+import { suggestEmoji, getCategoryEmoji } from '../utils/emojis';
 import { formatCurrency } from '../utils/dateUtils';
 
 interface BillModalProps {
@@ -24,6 +24,8 @@ const CATEGORIES: BillCategory[] = [
   'Other',
 ];
 
+const QUICK_EMOJIS = ['🏠', '⚡', '🛡️', '📱', '🎬', '🍔', '⛽', '🛒', '🐾', '🎮', '💳', '🏦', '💸', '☕'];
+
 export const BillModal: React.FC<BillModalProps> = ({
   isOpen,
   onClose,
@@ -32,6 +34,7 @@ export const BillModal: React.FC<BillModalProps> = ({
   const { addBill, updateBill } = usePayday();
 
   const [name, setName] = useState('');
+  const [customEmoji, setCustomEmoji] = useState('');
   const [dueDate, setDueDate] = useState('1');
   const [type, setType] = useState<BillType>('fixed');
   const [category, setCategory] = useState<BillCategory>('Housing');
@@ -56,6 +59,7 @@ export const BillModal: React.FC<BillModalProps> = ({
   useEffect(() => {
     if (billToEdit) {
       setName(billToEdit.name);
+      setCustomEmoji(billToEdit.emoji || suggestEmoji(billToEdit.name) || getCategoryEmoji(billToEdit.category));
       setDueDate(String(billToEdit.dueDate));
       setType(billToEdit.type);
       setCategory(billToEdit.category);
@@ -85,6 +89,7 @@ export const BillModal: React.FC<BillModalProps> = ({
       }
     } else {
       setName('');
+      setCustomEmoji('');
       setDueDate('1');
       setType('fixed');
       setCategory('Housing');
@@ -113,6 +118,14 @@ export const BillModal: React.FC<BillModalProps> = ({
   const calculatedMyShare = isSplit
     ? Math.round((fullTotalNum / splitCountNum) * 100) / 100
     : parseFloat(amount) || 0;
+
+  const handleNameChange = (val: string) => {
+    setName(val);
+    const suggested = suggestEmoji(val);
+    if (suggested) {
+      setCustomEmoji(suggested);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,11 +162,13 @@ export const BillModal: React.FC<BillModalProps> = ({
     const isDebtActive = isDebt || category === 'Debt & Credit';
     const parsedTotalBalance = totalBalance ? parseFloat(totalBalance) : undefined;
     const parsedInterestRate = interestRate ? parseFloat(interestRate) : undefined;
+    const finalEmoji = customEmoji.trim() || suggestEmoji(name) || getCategoryEmoji(category);
 
     if (billToEdit) {
       updateBill({
         ...billToEdit,
         name: name.trim(),
+        emoji: finalEmoji,
         amount: finalMyShare,
         dueDate: Math.min(31, Math.max(1, numDueDate)),
         type,
@@ -172,6 +187,7 @@ export const BillModal: React.FC<BillModalProps> = ({
     } else {
       addBill({
         name: name.trim(),
+        emoji: finalEmoji,
         amount: finalMyShare,
         dueDate: Math.min(31, Math.max(1, numDueDate)),
         type,
@@ -195,7 +211,7 @@ export const BillModal: React.FC<BillModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-[#121212] rounded-3xl shadow-2xl border border-[#2A2A2A] overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="w-full max-w-lg bg-[#121212] rounded-3xl shadow-2xl border border-[#2A2A2A] overflow-hidden max-h-[90vh] flex flex-col edit-bill-modal">
         
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#2A2A2A] bg-[#121212] shrink-0">
@@ -205,10 +221,10 @@ export const BillModal: React.FC<BillModalProps> = ({
             </div>
             <div>
               <h3 className="text-lg font-bold text-white">
-                {billToEdit ? 'Edit Bill Settings' : 'Add New Bill'}
+                {billToEdit ? 'Edit Bill' : 'Add New Bill'}
               </h3>
               <p className="text-xs text-white/60">
-                Configure monthly bill details, due date & split rules
+                Update bill details & due date
               </p>
             </div>
           </div>
@@ -222,31 +238,64 @@ export const BillModal: React.FC<BillModalProps> = ({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1 modal-content scrollbar-hide w-full max-w-full overflow-x-hidden box-border">
           
-          {/* Bill Name */}
-          <div>
-            <label className="block text-xs font-semibold text-white/80 mb-1">
-              Bill Name <span className="text-rose-400">*</span>
+          {/* Bill Name & Custom Emoji */}
+          <div className="space-y-2 w-full max-w-full overflow-hidden box-border">
+            <label className="block text-xs font-semibold text-white/80">
+              Bill Name & Emoji <span className="text-rose-400">*</span>
             </label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Electric Utility, Rent, Netflix"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#2A2A2A] bg-[#1E1E1E] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
-            />
+            <div className="flex items-center gap-3 w-full max-w-full overflow-hidden box-border">
+              <input
+                type="text"
+                value={customEmoji}
+                onChange={e => setCustomEmoji(e.target.value)}
+                placeholder="🏠"
+                className="w-[56px] h-[56px] min-w-[56px] shrink-0 rounded-2xl bg-[#1a1a1a] border border-zinc-800 text-center text-[28px] focus:outline-none focus:border-[#7C3AED] text-white box-border"
+                maxLength={2}
+                title="Custom Emoji"
+              />
+              <div className="flex-1 min-w-0 w-full">
+                <input
+                  type="text"
+                  required
+                  placeholder="Movie"
+                  value={name}
+                  onChange={e => handleNameChange(e.target.value)}
+                  className="w-full max-w-full min-w-0 h-[56px] rounded-2xl bg-[#1a1a1a] border border-zinc-800 px-4 text-white text-[16px] focus:outline-none focus:border-[#7C3AED] box-border"
+                />
+              </div>
+            </div>
+            
+            {/* Quick Emoji Pickers */}
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-2 pt-1">
+              <span className="text-[10px] text-white/40 shrink-0 font-semibold flex items-center gap-1">
+                <Smile className="w-3 h-3 text-[#A78BFA]" /> Pick:
+              </span>
+              {QUICK_EMOJIS.map(e => (
+                <button
+                  key={e}
+                  type="button"
+                  onClick={() => setCustomEmoji(e)}
+                  className={`p-1 rounded-lg text-sm hover:bg-[#2A2A2A] transition-all cursor-pointer ${
+                    customEmoji === e ? 'bg-[#7C3AED]/40 ring-1 ring-[#7C3AED]' : 'bg-[#1E1E1E]'
+                  }`}
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Due Date & Type Row */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Due Date & Category Row */}
+          <div className="grid grid-cols-2 gap-4 w-full min-w-0">
             
-            {/* Due Date (Day of Month) */}
-            <div>
-              <label className="block text-xs font-semibold text-white/80 mb-1">
-                Due Date (Day of Month) <span className="text-rose-400">*</span>
+            {/* Due Date */}
+            <div className="min-w-0">
+              <label className="block text-[13px] font-medium text-white/80 whitespace-nowrap">
+                Due Date <span className="text-rose-400">*</span>
               </label>
+              <p className="text-[11px] text-zinc-500">Day of month</p>
               <input
                 type="number"
                 min="1"
@@ -255,19 +304,20 @@ export const BillModal: React.FC<BillModalProps> = ({
                 placeholder="1 - 31"
                 value={dueDate}
                 onChange={e => setDueDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#2A2A2A] bg-[#1E1E1E] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
+                className="w-full mt-1.5 px-3.5 py-2.5 h-[48px] rounded-2xl border border-[#2A2A2A] bg-[#1E1E1E] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
               />
             </div>
 
             {/* Category */}
-            <div>
-              <label className="block text-xs font-semibold text-white/80 mb-1">
+            <div className="min-w-0">
+              <label className="block text-[13px] font-medium text-white/80">
                 Category
               </label>
+              <p className="text-[11px] text-transparent select-none">&nbsp;</p>
               <select
                 value={category}
                 onChange={e => setCategory(e.target.value as BillCategory)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#2A2A2A] bg-[#1E1E1E] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
+                className="w-full mt-1.5 px-3.5 py-2.5 h-[48px] rounded-2xl border border-[#2A2A2A] bg-[#1E1E1E] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
               >
                 {CATEGORIES.map(cat => (
                   <option key={cat} value={cat} className="bg-[#121212] text-white">

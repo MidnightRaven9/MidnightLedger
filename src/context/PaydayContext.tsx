@@ -7,8 +7,9 @@ import {
   ExtraIncome,
   PaydaySummary 
 } from '../types';
-import { toISODateString } from '../utils/dateUtils';
+import { toISODateString, formatDate } from '../utils/dateUtils';
 import { generatePaydaysFromSchedule, calculatePaydaySummaries } from '../utils/paydayLogic';
+import { triggerConfetti } from '../utils/emojis';
 
 const STORAGE_KEY = 'midnightledger_v1';
 
@@ -192,7 +193,9 @@ interface PaydayContextType {
   
   updateSchedule: (schedule: PaydaySchedule) => void;
   setVariableOverride: (billId: string, paydayDate: string, amount: number, fullTotalOverride?: number) => void;
-  toggleBillPaid: (billId: string, paydayDate: string) => void;
+  toggleBillPaid: (billId: string, paydayDate?: string) => void;
+  markAllBillsPaidInPayday: (paydayDate: string) => void;
+  unmarkAllBillsPaidInPayday: (paydayDate: string) => void;
   
   clearAllData: () => void;
   exportData: () => string;
@@ -462,16 +465,17 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   };
 
-  const toggleBillPaid = (billId: string, paydayDate: string) => {
-    const key = `${billId}_${paydayDate}`;
-    setPaidStatuses(prev => {
-      const nextStatus = !prev[key];
-      const updated = {
-        ...prev,
-        [key]: nextStatus,
-      };
+  const markAllBillsPaidInPayday = (paydayDate: string) => {
+    const targetSummary = summaries.find(s => s.payday.date === paydayDate);
+    if (!targetSummary || targetSummary.assignedBills.length === 0) return;
 
-      // Also persist to midnightledger_paid_history
+    setPaidStatuses(prev => {
+      const updated = { ...prev };
+      targetSummary.assignedBills.forEach(ab => {
+        const key = `${ab.bill.id}_${paydayDate}`;
+        updated[key] = true;
+      });
+
       try {
         const historyList: Array<{ billId: string; paydayDate: string; paidAt: string }> = [];
         Object.entries(updated).forEach(([k, isPaid]) => {
@@ -491,6 +495,155 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         localStorage.setItem('midnightledger_paid_history', JSON.stringify(historyList));
       } catch (err) {
         console.error('Error syncing midnightledger_paid_history:', err);
+      }
+
+      setTimeout(() => {
+        triggerConfetti();
+        showToast(`🎉 Paycheck cleared! All bills marked paid 💜`);
+      }, 50);
+
+      return updated;
+    });
+  };
+
+  const unmarkAllBillsPaidInPayday = (paydayDate: string) => {
+    const targetSummary = summaries.find(s => s.payday.date === paydayDate);
+    if (!targetSummary || targetSummary.assignedBills.length === 0) return;
+
+    setPaidStatuses(prev => {
+      const updated = { ...prev };
+      targetSummary.assignedBills.forEach(ab => {
+        const key = `${ab.bill.id}_${paydayDate}`;
+        updated[key] = false;
+      });
+
+      try {
+        const historyList: Array<{ billId: string; paydayDate: string; paidAt: string }> = [];
+        Object.entries(updated).forEach(([k, isPaid]) => {
+          if (isPaid) {
+            const parts = k.split('_');
+            const bId = parts[0];
+            const pDate = parts.slice(1).join('_');
+            if (bId && pDate) {
+              historyList.push({
+                billId: bId,
+                paydayDate: pDate,
+                paidAt: new Date().toISOString(),
+              });
+            }
+          }
+        });
+        localStorage.setItem('midnightledger_paid_history', JSON.stringify(historyList));
+      } catch (err) {
+        console.error('Error syncing midnightledger_paid_history:', err);
+      }
+
+      showToast(`↩️ All bills unmarked`);
+
+      return updated;
+    });
+  };
+
+  const toggleBillPaid = (billId: string, paydayDate?: string) => {
+    let targetPaydayDate = paydayDate;
+    if (!targetPaydayDate) {
+      const summaryWithBill = summaries.find(s => 
+        s.assignedBills.some(ab => {
+          const b = ab.bill as any;
+          return b.id === billId || b.originalBillId === billId || b.billId === billId;
+        })
+      );
+      targetPaydayDate = summaryWithBill ? summaryWithBill.payday.date : (nextPaydaySummary?.payday.date || '');
+    }
+
+    if (!targetPaydayDate) return;
+
+    const targetSummary = summaries.find(s => s.payday.date === targetPaydayDate);
+    const assignedItem = targetSummary?.assignedBills.find(ab => {
+      const b = ab.bill as any;
+      return b.id === billId || b.originalBillId === billId || b.billId === billId;
+    });
+
+    const canonicalBillId = assignedItem ? assignedItem.bill.id : billId;
+    const billObj = bills.find(b => {
+      const item = b as any;
+      return item.id === canonicalBillId || item.id === billId || item.originalBillId === billId || item.billId === billId;
+    });
+    const billName = assignedItem?.bill.name || billObj?.name || 'Bill';
+
+    const key = `${canonicalBillId}_${targetPaydayDate}`;
+    const altKey = `${billId}_${targetPaydayDate}`;
+
+    const currentPaid = !!(paidStatuses[key] ?? paidStatuses[altKey] ?? assignedItem?.isPaid);
+    const nextStatus = !currentPaid;
+
+    // Synchronize isPaid flag on bills list template
+    setBills(prev => {
+      const updatedBills = prev.map(b => {
+        if (b.id === billId || b.id === canonicalBillId) {
+          return { ...b, isPaid: nextStatus };
+        }
+        return b;
+      });
+      try {
+        localStorage.setItem('midnightledger_bills', JSON.stringify(updatedBills));
+      } catch (_) {}
+      return updatedBills;
+    });
+
+    setPaidStatuses(prev => {
+      const updated = {
+        ...prev,
+        [key]: nextStatus,
+        [altKey]: nextStatus,
+      };
+
+      try {
+        const historyList: Array<{ billId: string; paydayDate: string; paidAt: string }> = [];
+        Object.entries(updated).forEach(([k, isPaid]) => {
+          if (isPaid) {
+            const parts = k.split('_');
+            const bId = parts[0];
+            const pDate = parts.slice(1).join('_');
+            if (bId && pDate) {
+              historyList.push({
+                billId: bId,
+                paydayDate: pDate,
+                paidAt: new Date().toISOString(),
+              });
+            }
+          }
+        });
+        localStorage.setItem('midnightledger_paid_history', JSON.stringify(historyList));
+      } catch (err) {
+        console.error('Error syncing midnightledger_paid_history:', err);
+      }
+
+      if (nextStatus) {
+        const totalBillsCount = targetSummary ? targetSummary.assignedBills.length : bills.length;
+        if (targetSummary && targetSummary.assignedBills.length > 0) {
+          const allPaidNow = targetSummary.assignedBills.every(ab => {
+            const item = ab.bill as any;
+            const isMatch = item.id === billId || item.originalBillId === billId || item.billId === billId || item.id === canonicalBillId;
+            if (isMatch) return true;
+            const k1 = `${ab.bill.id}_${targetPaydayDate}`;
+            const k2 = `${item.originalBillId || ab.bill.id}_${targetPaydayDate}`;
+            return !!(updated[k1] || updated[k2]);
+          });
+
+          if (allPaidNow) {
+            setTimeout(() => {
+              triggerConfetti();
+            }, 100);
+            showToast(`🎉 All bills paid! ${totalBillsCount} cleared 💜`);
+          } else {
+            showToast(`💜 ${billName} marked paid`);
+          }
+        } else {
+          showToast(`💜 ${billName} marked paid`);
+        }
+      } else {
+        showToast(`↩️ ${billName} unmarked`);
       }
 
       return updated;
@@ -648,6 +801,8 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         updateSchedule,
         setVariableOverride,
         toggleBillPaid,
+        markAllBillsPaidInPayday,
+        unmarkAllBillsPaidInPayday,
         clearAllData,
         exportData,
         importData,

@@ -152,55 +152,55 @@ export const HistoryView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-32">
+    <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-3 sm:p-6 pb-28 space-y-5">
       
-      {/* 1. Compact Backup & Header Row */}
-      <div className="p-3.5 rounded-3xl bg-[#121212] border border-[#2A2A2A] shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex items-center justify-center font-bold shrink-0">
-            <History className="w-5 h-5 text-[#C084FC]" />
+      {/* 1. Hero Card */}
+      <div className="rounded-[28px] sm:rounded-[32px] border border-zinc-800/50 bg-[#121212] p-6 sm:p-7 space-y-5">
+        <div className="flex gap-4 items-start">
+          <div className="w-14 h-14 rounded-2xl bg-[#7C3AED]/20 flex items-center justify-center shrink-0">
+            <History className="w-7 h-7 text-[#A78BFA]" />
           </div>
           <div>
-            <h2 className="text-base font-extrabold text-white flex items-center gap-2">
+            <h1 className="text-[30px] leading-[1.1] font-black tracking-tight text-white">
               History & Allocations
-            </h2>
-            <p className="text-[13px] text-white/60">
+            </h1>
+            <p className="text-[15px] leading-6 text-zinc-400 mt-3 max-w-[90%]">
               Past paycheck breakdown, payment timeline, and JSON backup.
             </p>
           </div>
         </div>
 
-        {/* Compact Export / Import Buttons */}
-        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+        {/* Export / Import Buttons */}
+        <div className="flex items-center gap-3 pt-2">
           <button
             onClick={handleExport}
-            className="h-10 px-4 flex items-center justify-center gap-1.5 rounded-xl bg-[#1E1E1E] hover:bg-[#2A2A2A] text-white/90 font-bold text-xs border border-[#2A2A2A] transition-colors cursor-pointer"
+            className="flex-1 h-[48px] flex items-center justify-center gap-2 rounded-2xl bg-[#1E1E1E] hover:bg-[#2A2A2A] text-white font-bold text-xs border border-zinc-800 transition-colors cursor-pointer"
             title="Export full budget backup as JSON file"
           >
-            <Download className="w-3.5 h-3.5 text-[#C084FC]" />
+            <Download className="w-4 h-4 text-[#C084FC]" />
             Export JSON
           </button>
 
           <label 
-            className="h-10 px-4 flex items-center justify-center gap-1.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-xs cursor-pointer transition-all shadow-md shadow-violet-900/30"
+            className="flex-1 h-[48px] flex items-center justify-center gap-2 rounded-2xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-xs cursor-pointer transition-all shadow-[0_4px_16px_rgba(124,58,237,0.3)]"
             title="Import budget backup JSON file"
           >
-            <Upload className="w-3.5 h-3.5 text-white" />
-            Import
+            <Upload className="w-4 h-4 text-white" />
+            Import Backup
             <input type="file" accept=".json" onChange={handleImport} className="hidden" />
           </label>
         </div>
       </div>
 
-      {/* 2. Time Control Bar */}
-      <div className="h-[70px] flex items-center justify-between px-4 rounded-3xl bg-[#121212] border border-[#2A2A2A] shadow-md">
+      {/* 2. Time Control Bar Card */}
+      <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 space-y-3">
         <div className="flex items-center gap-2 text-xs font-bold text-white/70">
           <Filter className="w-4 h-4 text-[#A78BFA]" />
           Filter History:
         </div>
 
         {/* Segmented Controls */}
-        <div className="flex items-center p-1 rounded-2xl bg-[#1E1E1E] border border-[#2A2A2A]">
+        <div className="flex items-center p-1 rounded-2xl bg-[#1E1E1E] border border-zinc-800 flex-wrap gap-1">
           <button
             onClick={() => setFilterMode('all')}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -301,7 +301,7 @@ export const HistoryView: React.FC = () => {
               return (
                 <div 
                   key={paydayId}
-                  className="rounded-[24px] bg-[#121212] border border-white/10 p-4 mb-3 w-full overflow-visible transition-all hover:border-[#3B236E]/60 allocation-card"
+                  className="rounded-[24px] bg-[#121212] border border-zinc-800/50 p-5 sm:p-6 mb-3 w-full overflow-visible transition-all hover:border-[#3B236E]/60 allocation-card"
                 >
                   {/* Card Header clickable to toggle expansion */}
                   <div 
@@ -570,7 +570,7 @@ export const HistoryView: React.FC = () => {
 
       {/* 5. Danger Zone - Factory Reset */}
       <div 
-        className="p-3.5 rounded-3xl bg-[#1A1010] border border-[#EF444440] shadow-xl space-y-4 mt-8"
+        className="p-5 sm:p-6 rounded-[24px] bg-[#1A1010] border border-[#EF444440] shadow-xl space-y-4 mt-8"
         style={{ backgroundColor: '#1A1010', border: '1px solid #EF444440' }}
       >
         <div>

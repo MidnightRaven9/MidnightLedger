@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
 import { formatDate, formatCurrency } from '../utils/dateUtils';
+import { getCategoryEmoji } from '../utils/emojis';
 import { PaydaySummary } from '../types';
 
 interface PaydaysViewProps {
@@ -22,11 +23,31 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
   onOpenScheduleModal,
   onOpenPaydayModal,
 }) => {
-  const { schedule, summaries, deletePayday, updatePayday, updatePaydays, showToast } = usePayday();
+  const { 
+    schedule, 
+    summaries, 
+    deletePayday, 
+    updatePayday, 
+    updatePaydays, 
+    showToast,
+    toggleBillPaid,
+    markAllBillsPaidInPayday,
+    unmarkAllBillsPaidInPayday
+  } = usePayday();
   
   const [estimateModalPayday, setEstimateModalPayday] = useState<PaydaySummary | null>(null);
   const [estimateModalInput, setEstimateModalInput] = useState<string>('');
   const [showAllPaydays, setShowAllPaydays] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (summaries.length > 0 && !expandedId) {
+      const current = summaries[0]?.payday?.id || summaries[0]?.payday?.date;
+      if (current) {
+        setExpandedId(current);
+      }
+    }
+  }, [summaries, expandedId]);
 
   const [useTax, setUseTax] = useState(false);
   const [grossInput, setGrossInput] = useState('');
@@ -68,37 +89,39 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
   const displayedSummaries = showAllPaydays ? summaries : summaries.slice(0, 5);
 
   return (
-    <div className="space-y-5 pb-32">
+    <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-3 sm:p-6 pb-28 space-y-5">
       
-      {/* Top Card: Payday Schedule & Projections */}
-      <div className="p-5 sm:p-6 rounded-2xl bg-[#121212] border border-[#2A2A2A] shadow-lg space-y-4">
-        <div className="flex items-start gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex items-center justify-center shrink-0">
-            <Calendar className="w-5 h-5 text-[#C084FC]" />
+      {/* Top Hero Card: Payday Schedule & Projections */}
+      <div className="rounded-[28px] sm:rounded-[32px] border border-zinc-800/50 bg-[#121212] p-6 sm:p-7 space-y-5">
+        <div className="flex gap-4 items-start">
+          <div className="w-14 h-14 rounded-2xl bg-[#7C3AED]/20 flex items-center justify-center shrink-0">
+            <Calendar className="w-7 h-7 text-[#A78BFA]" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-white">Payday Schedule & Projections</h2>
-            <p className="text-xs text-white/60 mt-0.5">
-              Current Schedule Rule: <span className="font-semibold text-[#A78BFA]">{getScheduleLabel()}</span>
+            <h1 className="text-[30px] leading-[1.1] font-black tracking-tight text-white">
+              Payday Schedule
+            </h1>
+            <p className="text-[15px] leading-6 text-zinc-400 mt-3 max-w-[90%]">
+              Current Rule: <span className="font-semibold text-[#A78BFA]">{getScheduleLabel()}</span>
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 pt-1 flex-wrap">
+        <div className="flex items-center gap-3 pt-2 flex-wrap">
           <button
             onClick={onOpenPaydayModal}
-            className="flex-1 min-w-[140px] px-4 py-2.5 rounded-xl bg-[#1A1A1A] hover:bg-[#252525] border border-[#2A2A2A] text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+            className="flex-1 min-w-[140px] px-4 py-3 rounded-2xl bg-[#1A1A1A] hover:bg-[#252525] border border-zinc-800 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 text-[#A78BFA]" />
+            <Plus className="w-4 h-4 text-[#A78BFA]" />
             Add Custom Date
           </button>
           
           <button
             onClick={onOpenScheduleModal}
-            className="flex-1 min-w-[160px] px-4 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-violet-900/30 cursor-pointer"
+            className="flex-1 min-w-[160px] px-4 py-3 rounded-2xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-[0_8px_20px_rgba(124,58,237,0.3)] cursor-pointer"
           >
-            <Settings className="w-3.5 h-3.5 text-[#DDD6FE]" />
-            Change Schedule Rule
+            <Settings className="w-4 h-4 text-[#DDD6FE]" />
+            Change Rule
           </button>
         </div>
       </div>
@@ -113,7 +136,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
 
       {/* Payday Cards Grid / Stack */}
       {summaries.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl bg-[#121212] border border-[#2A2A2A] text-white space-y-3">
+        <div className="p-8 text-center rounded-[24px] border border-zinc-800/50 bg-[#121212] text-white space-y-3">
           <div className="w-12 h-12 rounded-xl bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex items-center justify-center mx-auto">
             <Calendar className="w-6 h-6" />
           </div>
@@ -121,16 +144,19 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
           <p className="text-xs text-white/60">Configure your schedule above to see projected paydays.</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-5">
           {displayedSummaries.map((summary) => {
             const { payday, assignedBills, totalBills, estimatedCheck, leftOver, status } = summary;
             const hasAmount = estimatedCheck !== null && estimatedCheck > 0;
             const isUserAdded = payday.isManual && payday.id.startsWith('payday_');
+            const paydayId = payday.id || payday.date;
+            const isExpanded = expandedId === paydayId;
+            const paidCount = assignedBills.filter(b => b.isPaid).length;
 
             return (
               <div 
                 key={payday.date}
-                className="p-4 sm:p-5 rounded-2xl bg-[#121212] border border-[#2A2A2A] shadow-lg space-y-3.5 hover:border-[#7C3AED]/40 transition-all"
+                className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 space-y-3.5 hover:border-[#7C3AED]/40 transition-all"
               >
                 {/* Top Row: Date Badge + Title/Bills */}
                 <div className="flex items-center justify-between gap-3">
@@ -236,6 +262,121 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                     )}
                   </div>
 
+                </div>
+
+                {/* Collapsible Assigned Bills Section */}
+                <div className="mt-4 border-t border-zinc-800/60 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(isExpanded ? null : paydayId)}
+                    className="w-full flex items-center justify-between py-2 group cursor-pointer"
+                  >
+                    <span className="text-[12px] font-black tracking-widest text-zinc-400 group-hover:text-white flex items-center flex-wrap gap-1">
+                      BILLS ASSIGNED TO THIS CHECK ({assignedBills.length}):
+                      <span className="ml-2 text-zinc-500 font-medium normal-case">
+                        {assignedBills.length > 0 ? `${paidCount} of ${assignedBills.length} paid` : ''}
+                      </span>
+                    </span>
+                    <span className={`text-zinc-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>⌄</span>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="mt-3 animate-in slide-in-from-top-1">
+                      {assignedBills.length === 0 ? (
+                        <div className="rounded-2xl border border-dashed border-zinc-800 bg-[#0f0f12] p-4 text-center">
+                          <p className="text-zinc-500 text-[13px]">No bills assigned to this paycheck period.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {assignedBills.map(assigned => {
+                            const { bill, effectiveAmount, isPaid, dueFullDate } = assigned;
+                            const billEmoji = bill.emoji || getCategoryEmoji(bill.category);
+
+                            return (
+                              <div
+                                key={bill.id}
+                                id={`bill-${bill.id}`}
+                                onClick={() => toggleBillPaid(bill.id, payday.date)}
+                                className={`flex items-center justify-between p-3.5 rounded-2xl border cursor-pointer transition-all ${
+                                  isPaid ? 'paid-bill bg-purple-600/10 border-purple-600/30' : 'bg-zinc-900/50 border-zinc-800 hover:border-zinc-700'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleBillPaid(bill.id, payday.date);
+                                    }}
+                                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                                      isPaid ? 'bg-purple-600 border-purple-600' : 'border-zinc-600 hover:border-zinc-400'
+                                    }`}
+                                    title={isPaid ? "Mark Unpaid" : "Mark Paid"}
+                                  >
+                                    {isPaid && <span className="text-white text-xs font-bold">✓</span>}
+                                  </button>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className={`bill-name font-semibold text-sm truncate ${isPaid ? 'line-through text-zinc-500' : 'text-white'}`}>
+                                        {isPaid ? '💜 ' : `${billEmoji} `}{bill.name}
+                                      </span>
+                                    </div>
+                                    <span className="text-xs text-zinc-500 block">
+                                      Due {formatDate(dueFullDate, 'short')}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="text-right shrink-0 ml-3">
+                                  <div className={`font-bold text-sm ${isPaid ? 'text-zinc-500 line-through' : 'text-white'}`}>
+                                    {formatCurrency(effectiveAmount)}
+                                  </div>
+                                  <div className="text-[11px] text-purple-400 capitalize">
+                                    {bill.type || 'fixed'}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Dynamic Action Buttons */}
+                      {(() => {
+                        const allPaid = assignedBills.length > 0 && assignedBills.every(b => b.isPaid);
+                        return (
+                          <div className="grid grid-cols-2 gap-3 mt-4">
+                            <button
+                              onClick={() => openModal(summary)}
+                              className="h-[48px] rounded-full bg-[#7C3AED] hover:bg-purple-700 text-white font-bold text-[14px] transition-all cursor-pointer shadow-md"
+                            >
+                              Edit Bills
+                            </button>
+                            {allPaid ? (
+                              <button
+                                onClick={() => unmarkAllBillsPaidInPayday(payday.date)}
+                                className="h-[48px] rounded-full bg-[#1e1e1e] hover:bg-zinc-700 border border-zinc-700 text-white font-bold text-[14px] flex items-center justify-center gap-1 transition-all cursor-pointer"
+                              >
+                                ↩️ Unmark All Paid
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => markAllBillsPaidInPayday(payday.date)}
+                                className="h-[48px] rounded-full bg-[#1e1e1e] hover:bg-zinc-700 border border-zinc-700 text-white font-bold text-[14px] flex items-center justify-center gap-1 transition-all cursor-pointer"
+                              >
+                                ✅ Mark All Paid
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+
+                  {!isExpanded && assignedBills.length > 0 && (
+                    <div className="mt-2 text-[12px] text-zinc-500">
+                      {assignedBills.length} bills • Due total: {formatCurrency(totalBills)} • Tap to expand
+                    </div>
+                  )}
                 </div>
 
               </div>

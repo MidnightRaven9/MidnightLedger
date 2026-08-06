@@ -248,32 +248,32 @@ export const ReportsView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 pb-16">
+    <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-3 sm:p-6 pb-28 space-y-5">
       
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-[#121212] border border-[#2A2A2A] shadow-md">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-8 h-8 rounded-xl bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex items-center justify-center font-bold">
-              <BarChart2 className="w-4 h-4" />
-            </span>
-            <h2 className="text-xl font-extrabold text-white">
-              Budget Analytics & Reports
-            </h2>
+      {/* 1. Page Hero Card */}
+      <div className="rounded-[28px] sm:rounded-[32px] border border-zinc-800/50 bg-[#121212] p-6 sm:p-7 space-y-5">
+        <div className="flex gap-4 items-start">
+          <div className="w-14 h-14 rounded-2xl bg-[#7C3AED]/20 flex items-center justify-center shrink-0">
+            <BarChart2 className="w-7 h-7 text-[#A78BFA]" />
           </div>
-          <p className="text-xs text-white/60">
-            Visual breakdown of your category allocations, income vs expense balance, and projected net left over.
-          </p>
+          <div>
+            <h1 className="text-[30px] leading-[1.1] font-black tracking-tight text-white">
+              Budget Analytics
+            </h1>
+            <p className="text-[15px] leading-6 text-zinc-400 mt-3 max-w-[90%]">
+              Visual breakdown of your category allocations, income vs expense balance, and projected net left over.
+            </p>
+          </div>
         </div>
 
-        {/* Global Category Filter for Reports */}
-        <div className="flex items-center gap-2 bg-[#1E1E1E] p-2 rounded-2xl border border-[#2A2A2A]">
+        {/* Category Filter inside hero */}
+        <div className="flex items-center gap-2 bg-[#1E1E1E] p-2 rounded-2xl border border-zinc-800">
           <Filter className="w-4 h-4 text-[#A78BFA]" />
-          <span className="text-xs font-semibold text-white/70 hidden sm:inline">Category Filter:</span>
+          <span className="text-xs font-semibold text-white/70">Category Filter:</span>
           <select
             value={selectedCategory}
             onChange={e => setSelectedCategory(e.target.value)}
-            className="px-3 py-1.5 rounded-xl border border-[#2A2A2A] bg-[#121212] text-white text-xs font-medium focus:outline-none focus:border-[#7C3AED]"
+            className="flex-1 px-3 py-1.5 rounded-xl border border-[#2A2A2A] bg-[#121212] text-white text-xs font-medium focus:outline-none focus:border-[#7C3AED]"
           >
             <option value="ALL">All Categories</option>
             {CATEGORIES_LIST.map(cat => (
@@ -286,21 +286,21 @@ export const ReportsView: React.FC = () => {
       </div>
 
       {/* CHART A SECTION */}
-      <div className="p-6 rounded-3xl bg-[#121212] border border-[#2A2A2A] space-y-4">
+      <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2A2A2A] pb-4">
           <div>
             <div className="flex items-center gap-2 text-white font-extrabold text-base">
               <PieChartIcon className="w-5 h-5 text-[#A78BFA]" />
-              Chart A — Category Allocation (Current Pay Period)
+              Chart A — Category Allocation
             </div>
             <p className="text-xs text-white/60">
-              Interactive percentage & dollar breakdown of bills for the selected paycheck.
+              Interactive percentage & dollar breakdown of bills for selected check.
             </p>
           </div>
 
           {/* Payday Selector dropdown */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-white/50">Select Check:</span>
+            <span className="text-xs text-white/50">Check:</span>
             <select
               value={selectedPaydayDate}
               onChange={e => setSelectedPaydayDate(e.target.value)}
@@ -354,14 +354,14 @@ export const ReportsView: React.FC = () => {
       </div>
 
       {/* CHART B SECTION */}
-      <div className="p-6 rounded-3xl bg-[#121212] border border-[#2A2A2A] space-y-4">
+      <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 space-y-4">
         <div className="border-b border-[#2A2A2A] pb-4">
           <div className="flex items-center gap-2 text-white font-extrabold text-base">
             <BarChart2 className="w-5 h-5 text-[#A78BFA]" />
-            Chart B — Income vs Expenses Comparison
+            Chart B — Income vs Expenses
           </div>
           <p className="text-xs text-white/60">
-            Compare expected paycheck income against total obligations (bills + extra expenses) across upcoming pay periods.
+            Compare expected paycheck income against total obligations across upcoming pay periods.
           </p>
         </div>
 
@@ -396,14 +396,14 @@ export const ReportsView: React.FC = () => {
       </div>
 
       {/* CHART C SECTION */}
-      <div className="p-6 rounded-3xl bg-[#0A0A0A] border border-[#2A2A2A] space-y-4">
+      <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 space-y-4">
         <div className="border-b border-[#2A2A2A] pb-4">
           <div className="flex items-center gap-2 text-white font-extrabold text-base">
             <TrendingUp className="w-5 h-5 text-[#C084FC]" />
-            Chart C — Future Projection: Net Left Over
+            Chart C — Future Net Left Over
           </div>
           <p className="text-xs text-white/60">
-            Projection of remaining net funds (Projected Income - Projected Outflow) and cumulative savings buffer across future paydays.
+            Projection of remaining net funds and cumulative savings buffer across future paydays.
           </p>
         </div>
 

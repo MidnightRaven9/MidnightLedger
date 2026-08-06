@@ -13,7 +13,6 @@ import { ExpenseModal } from './components/ExpenseModal';
 import { PaydayModal } from './components/PaydayModal';
 import { ScheduleModal } from './components/ScheduleModal';
 import { AddExtraIncomeModal } from './components/AddExtraIncomeModal';
-import { AIAdvisorModal, RavenFAB } from './components/AIAdvisorModal';
 import { Toast } from './components/Toast';
 import { Bill } from './types';
 
@@ -37,7 +36,6 @@ function MainApp() {
 
   const [isPaydayModalOpen, setIsPaydayModalOpen] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
-  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   // Modal helpers
   const handleOpenBillModal = (bill?: Bill | null) => {
@@ -64,11 +62,10 @@ function MainApp() {
         setActiveTab={setActiveTab}
         onOpenBillModal={() => handleOpenBillModal(null)}
         onOpenExpenseModal={() => handleOpenExpenseModal()}
-        onOpenAIModal={() => setIsAIModalOpen(true)}
       />
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <main className="w-full px-3 sm:px-6 lg:px-8 pt-4 pb-28">
         {activeTab === 'dashboard' && (
           <DashboardView
             onOpenBillModal={handleOpenBillModal}
@@ -131,14 +128,6 @@ function MainApp() {
         isOpen={isScheduleModalOpen}
         onClose={() => setIsScheduleModalOpen(false)}
       />
-
-      <AIAdvisorModal
-        isOpen={isAIModalOpen}
-        onClose={() => setIsAIModalOpen(false)}
-      />
-
-      {/* Floating Action Button for Raven AI Advisor */}
-      <RavenFAB onClick={() => setIsAIModalOpen(true)} />
 
       {/* Global Toast Notification */}
       <Toast />

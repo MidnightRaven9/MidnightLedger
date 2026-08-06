@@ -108,43 +108,43 @@ export const NextPaydayHero: React.FC<NextPaydayHeroProps> = ({
         </div>
 
         {/* Quick actions on Hero */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="grid grid-cols-2 gap-3 w-full">
           {onOpenIncomeModal && (
             <button
               id="btn-hero-add-income"
               onClick={() => onOpenIncomeModal(payday.date)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#1E1B2E] hover:bg-[#2B2245] text-[#C084FC] border border-dashed border-[#A78BFA]/60 transition-all shadow-xs"
+              className="min-w-0 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold bg-[#1E1B2E] hover:bg-[#2B2245] text-[#C084FC] border border-dashed border-[#A78BFA]/60 transition-all shadow-xs cursor-pointer"
             >
-              <PlusCircle className="w-3.5 h-3.5 text-[#A78BFA]" />
-              + Add Extra Cash
+              <PlusCircle className="w-3.5 h-3.5 text-[#A78BFA] shrink-0" />
+              <span className="truncate">+ Add Extra Cash</span>
             </button>
           )}
 
           <button
             id="btn-hero-add-expense"
             onClick={() => onOpenExpenseModal(payday.date)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#1E1E1E] hover:bg-[#2A2A2A] text-white/90 border border-[#2A2A2A] transition-all"
+            className="min-w-0 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold bg-[#1E1E1E] hover:bg-[#2A2A2A] text-white/90 border border-[#2A2A2A] transition-all cursor-pointer"
           >
-            <PlusCircle className="w-3.5 h-3.5 text-[#A78BFA]" />
-            Add Expense
+            <PlusCircle className="w-3.5 h-3.5 text-[#A78BFA] shrink-0" />
+            <span className="truncate">Add Expense</span>
           </button>
 
           <button
             id="btn-hero-add-bill"
             onClick={onOpenBillModal}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#1E1E1E] hover:bg-[#2A2A2A] text-white/90 border border-[#2A2A2A] transition-all"
+            className="min-w-0 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold bg-[#1E1E1E] hover:bg-[#2A2A2A] text-white/90 border border-[#2A2A2A] transition-all cursor-pointer"
           >
-            <Receipt className="w-3.5 h-3.5 text-[#C084FC]" />
-            New Bill
+            <Receipt className="w-4 h-4 text-[#C084FC] shrink-0" />
+            <span className="truncate">New Bill</span>
           </button>
 
           {assignedBills.length > 0 && !allBillsPaid && (
             <button
               onClick={handleMarkAllPaid}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#7C3AED] hover:bg-[#6D28D9] text-white shadow-md shadow-violet-900/30 transition-all"
+              className="min-w-0 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold bg-[#7C3AED] hover:bg-[#6D28D9] text-white shadow-md shadow-violet-900/30 transition-all cursor-pointer"
             >
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#DDD6FE]" />
-              Mark All Paid
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#DDD6FE] shrink-0" />
+              <span className="truncate">Mark All Paid</span>
             </button>
           )}
         </div>

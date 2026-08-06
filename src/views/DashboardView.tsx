@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
 import { formatDate, formatCurrency, parseISODate } from '../utils/dateUtils';
+import { getCategoryEmoji } from '../utils/emojis';
 import { PaydaySummary } from '../types';
 import { CategoryPieChart } from '../components/CategoryPieChart';
 import { getCategoryColor } from '../utils/categoryColors';
@@ -41,18 +42,10 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
   onNavigateToTab,
   toggleBillPaid,
 }) => {
+  const { markAllBillsPaidInPayday, unmarkAllBillsPaidInPayday } = usePayday();
   const [isOpen, setIsOpen] = useState(initialOpen);
   const dateStr = summaryItem.payday.date;
   const hasAmt = summaryItem.estimatedCheck !== null;
-
-  const handleMarkAllPaid = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    summaryItem.assignedBills.forEach(b => {
-      if (!b.isPaid) {
-        toggleBillPaid(b.bill.id, dateStr);
-      }
-    });
-  };
 
   const parsedDate = parseISODate(dateStr);
   const monthAbbr = parsedDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
@@ -61,6 +54,7 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
   const availStr = hasAmt ? `${formatCurrency(summaryItem.totalAvailable).replace(/\.00$/, '')} avail` : 'Est: Not set';
   const billsTotalStr = formatCurrency(summaryItem.totalBills).replace(/\.00$/, '');
   const billsCount = summaryItem.assignedBills.length;
+  const allPaid = billsCount > 0 && summaryItem.assignedBills.every(b => b.isPaid);
 
   return (
     <div 
@@ -106,8 +100,13 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
           onClick={(e) => e.stopPropagation()} 
           className="mt-4 pt-4 border-t border-white/10 space-y-3 animate-in slide-in-from-top-2 duration-200 overflow-visible min-h-0"
         >
-          <div className="text-xs text-white/50 uppercase tracking-wide leading-[1.4]">
-            Bills assigned to this check:
+          <div className="text-xs text-white/50 uppercase tracking-wide leading-[1.4] flex items-center justify-between">
+            <span>Bills assigned to this check ({billsCount}):</span>
+            {billsCount > 0 && (
+              <span className="text-zinc-400 font-medium normal-case">
+                {summaryItem.assignedBills.filter(b => b.isPaid).length} of {billsCount} paid
+              </span>
+            )}
           </div>
 
           {summaryItem.assignedBills.length === 0 ? (
@@ -115,31 +114,56 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
               No bills assigned to this paycheck.
             </div>
           ) : (
-            <div className="space-y-3 overflow-visible min-h-0">
+            <div className="space-y-2.5 overflow-visible min-h-0">
               {summaryItem.assignedBills.map(assigned => {
                 const bill = assigned.bill;
+                const isPaid = assigned.isPaid;
                 const isSplit = !!bill.isSplit;
                 const myPortionStr = formatCurrency(assigned.effectiveAmount);
                 const totalStr = formatCurrency(bill.fullTotal || bill.amount);
                 const formattedDueDate = formatDate(assigned.dueFullDate, 'short');
+                const billEmoji = bill.emoji || getCategoryEmoji(bill.category);
 
                 return (
-                  <div key={bill.id} className="flex justify-between items-center bg-[#1A1A1A] rounded-xl p-3 leading-[1.4]">
-                    <div className="leading-[1.4]">
-                      <div className="text-white text-sm font-semibold leading-[1.4] flex items-center gap-1.5">
-                        {assigned.isPaid && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
-                        {bill.name}
+                  <div 
+                    key={bill.id} 
+                    id={`bill-${bill.id}`}
+                    onClick={() => toggleBillPaid(bill.id, dateStr)}
+                    className={`flex justify-between items-center rounded-2xl p-3 border cursor-pointer transition-all ${
+                      isPaid ? 'paid-bill bg-purple-600/10 border-purple-600/30' : 'bg-[#1A1A1A] border-zinc-800 hover:border-zinc-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleBillPaid(bill.id, dateStr);
+                        }}
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                          isPaid ? 'bg-purple-600 border-purple-600' : 'border-zinc-600 hover:border-zinc-400'
+                        }`}
+                        title={isPaid ? "Mark as Unpaid" : "Mark as Paid"}
+                      >
+                        {isPaid && <span className="text-white text-xs font-bold">✓</span>}
+                      </button>
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold flex items-center gap-1.5">
+                          <span className={`bill-name truncate ${isPaid ? 'line-through text-zinc-500' : 'text-white'}`}>
+                            {isPaid ? '💜 ' : `${billEmoji} `}{bill.name}
+                          </span>
+                        </div>
+                        <div className="text-zinc-500 text-xs">Due {formattedDueDate}</div>
                       </div>
-                      <div className="text-white/40 text-xs leading-[1.4]">Due {formattedDueDate}</div>
                     </div>
-                    <div className="text-right leading-[1.4]">
-                      <div className="text-white text-sm font-medium leading-[1.4]">
+
+                    <div className="text-right shrink-0 ml-3">
+                      <div className={`text-sm font-bold ${isPaid ? 'line-through text-zinc-500' : 'text-white'}`}>
                         {isSplit ? `${myPortionStr} of ${totalStr}` : myPortionStr}
                       </div>
                       {isSplit ? (
-                        <div className="text-[#B794F6] text-xs font-semibold leading-[1.4]">Split</div>
+                        <div className="text-[#B794F6] text-xs font-semibold">Split</div>
                       ) : (
-                        <div className="text-[#A78BFA] text-xs font-semibold leading-[1.4]">Personal</div>
+                        <div className="text-[#A78BFA] text-xs font-semibold">Personal</div>
                       )}
                     </div>
                   </div>
@@ -158,16 +182,31 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
           <div className="flex gap-2 pt-2">
             <button 
               onClick={() => onNavigateToTab('bills')}
-              className="flex-1 bg-[#7C3AED] text-white rounded-xl py-2 text-sm font-semibold hover:bg-[#6D28D9] transition-colors leading-[1.4]"
+              className="flex-1 bg-[#7C3AED] text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-[#6D28D9] transition-colors leading-[1.4]"
             >
               Edit Bills
             </button>
-            <button 
-              onClick={handleMarkAllPaid}
-              className="flex-1 bg-white/10 text-white rounded-xl py-2 text-sm font-semibold hover:bg-white/20 transition-colors leading-[1.4]"
-            >
-              Mark Paid
-            </button>
+            {allPaid ? (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  unmarkAllBillsPaidInPayday(dateStr);
+                }}
+                className="flex-1 bg-zinc-800 border border-zinc-700 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-zinc-700 transition-colors flex items-center justify-center gap-1.5 leading-[1.4]"
+              >
+                ↩️ Unmark All
+              </button>
+            ) : (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  markAllBillsPaidInPayday(dateStr);
+                }}
+                className="flex-1 bg-zinc-800 border border-zinc-700 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-zinc-700 transition-colors flex items-center justify-center gap-1.5 leading-[1.4]"
+              >
+                ✅ Mark All Paid
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -334,293 +373,212 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   }).sort((a, b) => b.amount - a.amount);
 
   return (
-    <div className="space-y-6 pb-32">
+    <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-3 sm:p-6 pb-32 space-y-6">
       
-      {/* 1. HERO CARD - Current Pay Period Only */}
-      <div className="relative overflow-hidden rounded-[20px] bg-gradient-to-br from-[#121212] to-[#1E1B4B] text-white p-4 shadow-xl border border-[#7C3AED]/30 shadow-[0_0_20px_rgba(124,58,237,0.12)]">
-        {/* Glow */}
-        <div className="absolute -top-20 -right-20 w-64 h-64 bg-violet-600/10 rounded-full blur-3xl pointer-events-none" />
-
-        {/* Header */}
-        <div className="flex flex-row items-center justify-between gap-3 border-b border-[#2A2A2A]/60 pb-3 mb-3">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black bg-[#7C3AED]/20 text-[#C084FC] border border-[#7C3AED]/40 tracking-wider">
-              <Sparkles className="w-3 h-3 text-[#C084FC]" />
-              UPCOMING PAYDAY
-            </span>
-            <span className="text-xs text-white/55">
-              Covers {formatDate(payday.date, 'short')} – {formatDate(nextPaydayDate, 'short')}
-            </span>
+      {/* 1. UPCOMING PAYDAY HEADER CARD */}
+      <div className="w-full max-w-full rounded-[28px] bg-gradient-to-br from-[#1a1033] to-[#0f0f1a] border border-purple-900/30 p-4 sm:p-5 space-y-5 overflow-hidden shadow-2xl">
+        
+        {/* Top Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 w-full">
+          <div className="inline-flex items-center gap-1.5 bg-purple-600/20 border border-purple-500/30 px-3 py-1.5 rounded-full w-fit shrink-0">
+            <span className="text-purple-300 text-[10px] font-black tracking-widest uppercase">✨ UPCOMING PAYDAY</span>
           </div>
+          <span className="text-zinc-400 text-[12px] sm:text-[13px] whitespace-nowrap sm:ml-auto pl-1 font-medium">
+            Covers {formatDate(payday.date, 'short')} – {formatDate(nextPaydayDate, 'short')}
+          </span>
         </div>
 
-        {/* Title */}
-        <h2 className="text-2xl font-extrabold text-white flex items-center gap-2 mb-4">
-          <Calendar className="w-6 h-6 text-[#A78BFA]" />
-          {formatDate(payday.date, 'medium')}
-        </h2>
+        {/* Title Date */}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-purple-600/20 flex items-center justify-center text-lg shrink-0">
+            📅
+          </div>
+          <h1 className="text-[28px] sm:text-[32px] font-black tracking-tight text-white leading-tight">
+            {formatDate(payday.date, 'medium')}
+          </h1>
+        </div>
 
-        {/* Action Row 1 */}
-        <div className="flex items-center gap-3 mb-2">
+        {/* Action Grid - NO TRUNCATION */}
+        <div className="grid grid-cols-2 gap-3 w-full">
           <button
             onClick={() => onOpenIncomeModal(payday.date)}
-            className="flex-1 py-2 text-xs font-bold rounded-full bg-[#1E1B2E]/50 border border-[#7C3AED] text-[#C084FC] hover:bg-[#7C3AED]/20 transition-all text-center flex items-center justify-center gap-1 cursor-pointer"
+            className="w-full h-[48px] rounded-full bg-transparent border border-purple-500 text-purple-400 font-bold text-[13px] sm:text-[14px] flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer hover:bg-purple-500/10 transition-colors"
           >
-            <Plus className="w-3 h-3" /> Add Extra Cash
+            + Add Extra Cash
           </button>
           <button
             onClick={() => onOpenExpenseModal(payday.date)}
-            className="flex-1 py-2 text-xs font-bold rounded-full bg-[#1F1F1F]/70 border border-[#2A2A2A] text-white/80 hover:bg-[#2A2A2A] transition-all text-center flex items-center justify-center gap-1 cursor-pointer"
+            className="w-full h-[48px] rounded-full bg-zinc-800/80 border border-zinc-700 text-white font-bold text-[13px] sm:text-[14px] flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer hover:bg-zinc-700/80 transition-colors"
           >
-            <Plus className="w-3 h-3" /> Add Expense
+            + Add Expense
           </button>
-        </div>
-
-        {/* Action Row 2 */}
-        <div className="flex items-center gap-3 mb-4">
           <button
             onClick={() => onOpenBillModal()}
-            className="flex-1 py-2 text-xs font-bold rounded-full bg-[#1F1F1F]/70 border border-[#2A2A2A] text-white/80 hover:bg-[#2A2A2A] transition-all text-center flex items-center justify-center gap-1 cursor-pointer"
+            className="w-full h-[48px] rounded-full bg-zinc-800/80 border border-zinc-700 text-white font-bold text-[13px] sm:text-[14px] flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer hover:bg-zinc-700/80 transition-colors"
           >
-            <Receipt className="w-3 h-3 text-white/60" /> New Bill
+            🧾 New Bill
           </button>
           <button
             onClick={handleMarkAllPaid}
-            className="flex-1 py-2 text-xs font-bold rounded-full bg-[#7C3AED] text-white hover:bg-[#6D28D9] shadow-lg shadow-violet-900/40 transition-all text-center flex items-center justify-center gap-1 cursor-pointer"
+            className="w-full h-[48px] rounded-full bg-[#7C3AED] text-white font-bold text-[13px] sm:text-[14px] flex items-center justify-center gap-1.5 whitespace-nowrap shadow-lg shadow-purple-600/20 cursor-pointer hover:bg-[#6D28D9] transition-colors"
           >
-            <CheckCircle2 className="w-3.5 h-3.5" /> Mark All Paid
+            ✓ Mark All Paid
           </button>
         </div>
 
-        <hr className="border-[#2A2A2A]/60 my-3" />
+        {/* Divider */}
+        <div className="h-px bg-white/10 w-full" />
 
-        {/* Vertical Stack Sections inside the card */}
-        <div className="space-y-2 mb-4">
-          
+        {/* Stats Grid - 4 Cards */}
+        <div className="grid grid-cols-2 gap-3 w-full min-w-0">
           {/* Estimated Check */}
           <div 
             onClick={() => {
               setTempEstCheck(estimatedCheck !== null ? String(estimatedCheck) : '');
               setIsEditingEstCheck(true);
             }}
-            className="bg-[#13131F]/60 border border-[#2A2A2A]/50 rounded-2xl p-4 flex items-center justify-between cursor-pointer hover:border-[#7C3AED]/40 transition-all group"
+            className="rounded-[20px] bg-[#12121a]/80 border border-white/5 p-4 space-y-2 w-full min-w-0 overflow-hidden cursor-pointer hover:border-purple-500/40 transition-all"
           >
-            <div className="space-y-0.5">
-              <span className="text-xs text-white/50 font-medium">Estimated Check</span>
-              {isEditingEstCheck ? (
-                <div className="flex items-center gap-2 mt-1" onClick={e => e.stopPropagation()}>
-                  <div className="relative">
-                    <span className="absolute left-2.5 top-1.5 text-white/40 text-xs">$</span>
-                    <input
-                      type="number"
-                      value={tempEstCheck}
-                      onChange={e => setTempEstCheck(e.target.value)}
-                      placeholder="0.00"
-                      className="w-32 pl-6 pr-2 py-1 rounded-lg bg-[#121212] border border-[#7C3AED] text-white text-sm focus:outline-none"
-                      autoFocus
-                    />
-                  </div>
-                  <button
-                    onClick={handleSaveEstCheck}
-                    className="px-2.5 py-1 rounded-lg bg-[#7C3AED] text-white font-bold text-xs shrink-0"
-                  >
-                    Save
-                  </button>
-                </div>
-              ) : (
-                <div className="text-2xl font-black text-white flex items-center gap-1.5 group-hover:text-[#C084FC] transition-colors">
-                  {estimatedCheck !== null ? formatCurrency(estimatedCheck) : 'TBD'}
-                  <Edit3 className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-[#A78BFA] transition-opacity" />
-                </div>
-              )}
-              <span className="text-[10px] text-white/40 block">Expected deposit</span>
-            </div>
+            <p className="text-zinc-400 text-[13px] font-medium whitespace-nowrap">Estimated Check</p>
+            {isEditingEstCheck ? (
+              <div className="flex items-center gap-1 mt-1" onClick={e => e.stopPropagation()}>
+                <input
+                  type="number"
+                  value={tempEstCheck}
+                  onChange={e => setTempEstCheck(e.target.value)}
+                  placeholder="0.00"
+                  className="w-20 pl-2 pr-1 py-0.5 rounded bg-[#121212] border border-[#7C3AED] text-white text-xs focus:outline-none"
+                  autoFocus
+                />
+                <button onClick={handleSaveEstCheck} className="px-2 py-0.5 rounded bg-[#7C3AED] text-white text-xs font-bold">
+                  Save
+                </button>
+              </div>
+            ) : (
+              <p className="text-white text-[24px] sm:text-[26px] font-black leading-none pt-1">
+                {estimatedCheck !== null ? formatCurrency(estimatedCheck) : 'TBD'}
+              </p>
+            )}
+            <p className="text-zinc-500 text-[11px]">Expected deposit</p>
           </div>
 
-          {/* Bills Due This Period */}
-          <div className="group relative bg-[#13131F]/60 border border-[#2A2A2A]/50 rounded-2xl p-4 flex items-center justify-between cursor-help">
-            <div className="space-y-0.5 w-full">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-white/50 font-medium">
-                  {viewMode === 'myShare' ? 'Bills Due This Period' : 'Bills Due This Period (Full)'}
-                </span>
-                <span className="inline-flex text-[10px] font-bold bg-[#7C3AED]/20 text-[#C084FC] px-1.5 py-0.5 rounded-md">
-                  {assignedBills.length} Bills
-                </span>
-              </div>
-              <div className={`text-2xl font-black ${viewMode === 'myShare' ? 'text-[#C084FC]' : 'text-[#F59E0B]'}`}>
-                {formatCurrency(displayTotalBills)}
-              </div>
-              <div className="flex items-center justify-between text-[10px] text-white/40">
-                <span>{paidBillsCount} of {assignedBills.length} marked paid</span>
-                {viewMode === 'fullTotal' && (
-                  <span className="text-[#A78BFA] font-semibold">Calculations always use your share</span>
-                )}
-              </div>
+          {/* Bills Due */}
+          <div className="rounded-[20px] bg-[#12121a]/80 border border-white/5 p-4 space-y-2 w-full min-w-0 overflow-hidden">
+            <div className="flex flex-col items-start gap-1.5 w-full min-w-0">
+              <p className="text-zinc-400 text-[13px] font-medium whitespace-nowrap">Bills Due</p>
+              <span className="bg-purple-600/20 text-purple-300 text-[10px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap">
+                {assignedBills.length} Bills
+              </span>
             </div>
-
-            {/* Hover Breakdown Tooltip */}
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2.5 hidden group-hover:flex flex-col bg-[#161616] border border-[#2A2A2A] text-white text-[11px] p-3 rounded-xl shadow-xl w-72 z-50 pointer-events-none space-y-1.5">
-              <div className="font-bold border-b border-[#2A2A2A] pb-1 flex justify-between">
-                <span>Bills Due Breakdown ({viewMode === 'myShare' ? 'My Share' : 'Full Totals'})</span>
-                <span className={viewMode === 'myShare' ? 'text-[#C084FC]' : 'text-[#F59E0B]'}>
-                  {formatCurrency(displayTotalBills)}
-                </span>
-              </div>
-              <div className="text-white/70 font-semibold text-[10px] uppercase tracking-wider">
-                For {formatDate(payday.date, 'short')} ({assignedBills.length} Bills):
-              </div>
-              <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
-                {assignedBills.map(assigned => {
-                  const { bill, effectiveAmount } = assigned;
-                  const amtToDisplay = viewMode === 'myShare' ? effectiveAmount : (bill.isSplit ? (bill.fullTotal || bill.amount) : effectiveAmount);
-                  return (
-                    <div key={bill.id} className="flex justify-between items-center gap-2">
-                      <span className="truncate text-white/80">{bill.name}</span>
-                      <span className="font-bold shrink-0 text-white">
-                        {formatCurrency(amtToDisplay)}
-                        {bill.isSplit && viewMode === 'myShare' && (
-                          <span className="text-[9px] text-[#A78BFA] font-normal ml-1">
-                            (of {formatCurrency(bill.fullTotal || bill.amount)})
-                          </span>
-                        )}
-                        {bill.isSplit && viewMode === 'fullTotal' && (
-                          <span className="text-[9px] text-[#A78BFA] font-normal ml-1">
-                            (share: {formatCurrency(effectiveAmount)})
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-              {viewMode === 'fullTotal' && (
-                <div className="text-[9px] text-[#A78BFA] border-t border-[#2A2A2A] pt-1 text-center font-medium">
-                  Left over calculations always use your share
-                </div>
-              )}
-            </div>
+            <p className="text-[#C084FC] text-[24px] sm:text-[26px] font-black leading-none pt-1">
+              {formatCurrency(displayTotalBills)}
+            </p>
+            <p className="text-zinc-500 text-[11px]">
+              {paidBillsCount} of {assignedBills.length} marked paid
+            </p>
           </div>
 
           {/* Extra Expenses */}
-          <div className="bg-[#13131F]/60 border border-[#2A2A2A]/50 rounded-2xl p-4 flex items-center justify-between">
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-white/50 font-medium">Extra Expenses</span>
-                <span className="inline-flex text-[10px] font-bold bg-rose-500/10 text-rose-400 px-1.5 py-0.5 rounded-md">
-                  {extraExpenses.length} Item{extraExpenses.length !== 1 ? 's' : ''}
-                </span>
-              </div>
-              <div className="text-2xl font-black text-rose-400">
-                {formatCurrency(totalExtraExpenses)}
-              </div>
-              <span className="text-[10px] text-white/40 block">Non-recurring expenses</span>
+          <div className="rounded-[20px] bg-[#12121a]/80 border border-white/5 p-4 space-y-2 w-full min-w-0 overflow-hidden">
+            <div className="flex flex-col items-start gap-1.5 w-full min-w-0">
+              <p className="text-zinc-400 text-[13px] font-medium whitespace-nowrap">Extra Expenses</p>
+              <span className="bg-red-500/20 text-red-400 text-[10px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap">
+                {extraExpenses.length} Items
+              </span>
             </div>
+            <p className="text-[#FB7185] text-[24px] sm:text-[26px] font-black leading-none pt-1">
+              {formatCurrency(totalExtraExpenses)}
+            </p>
+            <p className="text-zinc-500 text-[11px]">Non-recurring</p>
           </div>
 
           {/* MONEY LEFT OVER */}
-          <div className="bg-[#13131F]/90 border border-[#7C3AED]/30 rounded-2xl p-4 flex items-center justify-between shadow-[0_0_15px_rgba(124,58,237,0.12)]">
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-[#C084FC] font-extrabold tracking-wider uppercase">MONEY LEFT OVER</span>
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              </div>
-              <div className="text-2xl font-black text-white drop-shadow-[0_0_8px_rgba(167,139,250,0.3)]">
-                {leftOver !== null ? formatCurrency(leftOver) : 'TBD'}
-              </div>
-              <span className="text-[10px] text-white/40 block">Safe spending / savings buffer</span>
-            </div>
+          <div className="rounded-[20px] bg-[#1a1033]/80 border border-purple-900/40 p-4 space-y-2 w-full min-w-0 overflow-hidden">
+            <p className="text-[#C084FC] text-[11px] sm:text-[12px] font-black tracking-wider flex items-center gap-1 uppercase">
+              MONEY LEFT OVER ✓
+            </p>
+            <p className="text-white text-[24px] sm:text-[26px] font-black leading-none pt-1">
+              {leftOver !== null ? formatCurrency(leftOver) : 'TBD'}
+            </p>
+            <p className="text-zinc-500 text-[11px]">Safe to spend</p>
           </div>
-
         </div>
 
-        {/* Footer info & progress */}
-        <div className="mt-4 space-y-1">
-          <div className="flex items-center justify-between text-[11px] text-white/50">
+        {/* Allocation Progress */}
+        <div className="space-y-2">
+          <div className="flex justify-between text-[11px] text-zinc-400">
             <span>Paycheck Allocation</span>
-            <span className="font-semibold text-[#A78BFA]">
+            <span className="text-purple-400 font-semibold">
               {estimatedCheck && estimatedCheck > 0 ? Math.min(100, Math.round((totalOutflow / estimatedCheck) * 100)) : 0}% allocated
             </span>
           </div>
-          <div className="w-full h-1.5 bg-[#1E1E1E] rounded-full overflow-hidden flex border border-[#2A2A2A]/40">
-            {estimatedCheck && estimatedCheck > 0 ? (
-              <>
-                <div 
-                  style={{ width: `${Math.min(100, (totalBills / estimatedCheck) * 100)}%` }}
-                  className="bg-[#7C3AED] h-full"
-                />
-                <div 
-                  style={{ width: `${Math.min(100, (totalExtraExpenses / estimatedCheck) * 100)}%` }}
-                  className="bg-rose-500 h-full"
-                />
-              </>
-            ) : (
-              <div className="w-0 bg-transparent h-full" />
-            )}
-          </div>
-          <div className="pt-3 border-t border-[#2A2A2A]/40 flex items-center justify-between mt-3">
-            <button
-              onClick={() => {
-                setExpandedTimelineDates({ [payday.date]: true });
-                const el = document.getElementById('timeline-section');
-                if (el) {
-                  el.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}
-              className="text-xs font-bold text-[#A78BFA] hover:text-[#C084FC] flex items-center gap-1 cursor-pointer transition-colors"
-            >
-              View Checklist & Breakdown <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+          <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-purple-600 rounded-full transition-all"
+              style={{ width: `${estimatedCheck && estimatedCheck > 0 ? Math.min(100, Math.round((totalOutflow / estimatedCheck) * 100)) : 0}%` }}
+            />
           </div>
         </div>
 
+        {/* Checklist View Button */}
+        <button
+          onClick={() => {
+            setExpandedTimelineDates({ [payday.date]: true });
+            const el = document.getElementById('timeline-section');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+          className="text-purple-400 text-[14px] font-bold flex items-center gap-1 hover:text-purple-300 transition-colors cursor-pointer"
+        >
+          View Checklist & Breakdown →
+        </button>
+
       </div>
 
-      {/* Spending by Category & Stats Column */}
+      {/* 2. SPENDING BY CATEGORY & STATS COLUMN */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        {/* Spending by Category This Check */}
-        <div className="bg-[#121212] border border-[#2A2A2A] rounded-2xl p-4 space-y-4">
+        {/* Spending by Category This Check Card */}
+        <div className="bg-[#121212] border border-zinc-800 rounded-[24px] p-5 space-y-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-lg bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex items-center justify-center font-bold">
-                <svg className="w-3 h-3 text-[#C084FC]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="w-6 h-6 rounded-lg bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex items-center justify-center font-bold shrink-0">
+                <svg className="w-3.5 h-3.5 text-[#C084FC]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
                 </svg>
               </span>
               <h3 className="text-sm font-bold text-white">Spending by Category This Check</h3>
             </div>
-            <span className="text-[11px] text-white/50 block mt-0.5">
+            <span className="text-[11px] text-zinc-400 block mt-1">
               Category breakdown for paycheck on {formatDate(payday.date, 'medium')}
             </span>
           </div>
 
           <button
             onClick={() => onNavigateToTab('reports')}
-            className="w-full py-2.5 text-xs font-bold rounded-xl bg-[#1E1E1E] border border-[#2A2A2A] text-white flex items-center justify-center gap-2 cursor-pointer hover:bg-[#2A2A2A] transition-all"
+            className="w-full h-12 rounded-full bg-zinc-800/80 hover:bg-zinc-700/80 border border-zinc-700 text-white font-bold text-[13px] sm:text-[14px] flex items-center justify-center gap-2 cursor-pointer transition-all whitespace-nowrap"
           >
-            <svg className="w-3.5 h-3.5 text-[#A78BFA]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4 text-[#A78BFA] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
             </svg>
             View Full Analytics Reports
           </button>
 
           <div>
-            <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider block mb-2">
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-2">
               Category Allocation List
             </span>
             <div className="space-y-2">
               {categoriesList.length === 0 ? (
-                <p className="text-xs text-white/50 italic">No spending in this period.</p>
+                <p className="text-xs text-zinc-500 italic">No spending in this period.</p>
               ) : (
                 categoriesList.map(cat => (
-                  <div key={cat.name} className="p-3 rounded-xl bg-[#1A1A1A]/70 border border-[#2A2A2A]/40 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                  <div key={cat.name} className="p-3 rounded-2xl bg-[#1A1A1A]/70 border border-[#2A2A2A]/40 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
                       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
                       <div>
                         <span className="text-xs font-bold text-white block">{cat.name}</span>
-                        <span className="text-[10px] text-white/50 block">
+                        <span className="text-[10px] text-zinc-400 block">
                           {cat.count} bill{cat.count !== 1 ? 's' : ''} ({cat.percentage}%)
                         </span>
                       </div>
@@ -628,7 +586,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <div className="text-right flex flex-col">
                       <span className="text-sm font-extrabold text-white">{formatCurrency(cat.amount)}</span>
                       {cat.fullAmount > cat.amount && (
-                        <span className="text-[10px] text-white/40 font-semibold">(Full {formatCurrency(cat.fullAmount)})</span>
+                        <span className="text-[10px] text-zinc-500 font-semibold">(Full {formatCurrency(cat.fullAmount)})</span>
                       )}
                     </div>
                   </div>
@@ -637,88 +595,96 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </div>
 
-          {/* Visual Donut Allocation Card inside it */}
-          <div className="p-4 rounded-xl bg-[#13131F]/60 border border-[#7C3AED]/20 shadow-[inset_0_0_12px_rgba(124,58,237,0.05)]">
+          {/* Visual Donut Allocation Card inside */}
+          <div className="rounded-[20px] border border-dashed border-zinc-700/80 p-4 sm:p-6 text-center bg-[#13131F]/40">
             <span className="text-[10px] font-bold text-[#C084FC] uppercase tracking-wider block text-center mb-3">
               Visual Donut Allocation
             </span>
-            <CategoryPieChart
-              assignedBills={assignedBills}
-              extraExpenses={extraExpenses}
-              height={220}
-            />
+            {categoriesList.length === 0 ? (
+              <div className="py-4 text-center space-y-1">
+                <p className="text-zinc-500 text-[13px]">No bills or tracked expenses for this pay period.</p>
+              </div>
+            ) : (
+              <CategoryPieChart
+                assignedBills={assignedBills}
+                extraExpenses={extraExpenses}
+                height={220}
+              />
+            )}
           </div>
         </div>
 
-        {/* Dashboard Stats Column (stacked) */}
+        {/* Dashboard Stats Column (4 clean vertical stack cards) */}
         <div className="space-y-3">
+          
           {/* Total Monthly Bills */}
-          <div className="p-4 rounded-2xl bg-[#121212] border border-[#2A2A2A] shadow-md flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex items-center justify-center shrink-0">
-              <Receipt className="w-5 h-5 text-[#C084FC]" />
+          <div className="flex items-center gap-4 p-5 rounded-[24px] bg-[#141414] border border-zinc-800/80 w-full shadow-md">
+            <div className="w-14 h-14 rounded-2xl bg-purple-600/20 flex items-center justify-center text-purple-400 shrink-0">
+              <Receipt className="w-6 h-6 text-[#C084FC]" />
             </div>
             <div>
-              <span className="text-xs text-white/50 block font-medium">Total Monthly Bills</span>
-              <div className="text-xl font-extrabold text-white mt-0.5">
+              <p className="text-zinc-400 text-xs font-medium">Total Monthly Bills</p>
+              <p className="text-white text-2xl font-black mt-0.5">
                 {formatCurrency(bills.filter(b => b.isActive).reduce((sum, b) => sum + b.amount, 0))}
-              </div>
-              <span className="text-[10px] text-white/40 block mt-0.5">
+              </p>
+              <p className="text-zinc-500 text-xs mt-0.5">
                 {bills.filter(b => b.isActive).length} active recurring bills
-              </span>
+              </p>
             </div>
           </div>
 
           {/* Upcoming Paydays */}
-          <div className="p-4 rounded-2xl bg-[#121212] border border-[#2A2A2A] shadow-md flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex items-center justify-center shrink-0">
-              <Calendar className="w-5 h-5 text-[#C084FC]" />
+          <div className="flex items-center gap-4 p-5 rounded-[24px] bg-[#141414] border border-zinc-800/80 w-full shadow-md">
+            <div className="w-14 h-14 rounded-2xl bg-purple-600/20 flex items-center justify-center text-purple-400 shrink-0">
+              <Calendar className="w-6 h-6 text-[#C084FC]" />
             </div>
             <div>
-              <span className="text-xs text-white/50 block font-medium">Upcoming Paydays</span>
-              <div className="text-xl font-extrabold text-white mt-0.5">
+              <p className="text-zinc-400 text-xs font-medium">Upcoming Paydays</p>
+              <p className="text-white text-2xl font-black mt-0.5">
                 {summaries.length}
-              </div>
-              <span className="text-[10px] text-white/40 block mt-0.5">
+              </p>
+              <p className="text-zinc-500 text-xs mt-0.5">
                 Projected in schedule
-              </span>
+              </p>
             </div>
           </div>
 
           {/* Bill Mix */}
-          <div className="p-4 rounded-2xl bg-[#121212] border border-[#2A2A2A] shadow-md flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex items-center justify-center shrink-0">
-              <svg className="w-5 h-5 text-[#C084FC]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="flex items-center gap-4 p-5 rounded-[24px] bg-[#141414] border border-zinc-800/80 w-full shadow-md">
+            <div className="w-14 h-14 rounded-2xl bg-purple-600/20 flex items-center justify-center text-purple-400 shrink-0">
+              <svg className="w-6 h-6 text-[#C084FC]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
             <div>
-              <span className="text-xs text-white/50 block font-medium">Bill Mix</span>
-              <div className="text-xl font-extrabold text-white mt-0.5">
+              <p className="text-zinc-400 text-xs font-medium">Bill Mix</p>
+              <p className="text-white text-2xl font-black mt-0.5">
                 {bills.filter(b => b.isActive && b.type === 'fixed').length} Fixed / {bills.filter(b => b.isActive && b.type === 'variable').length} Var
-              </div>
-              <span className="text-[10px] text-white/40 block mt-0.5">
+              </p>
+              <p className="text-zinc-500 text-xs mt-0.5">
                 Variable bills auto-prompt amounts
-              </span>
+              </p>
             </div>
           </div>
 
           {/* Extra Expenses */}
-          <div className="p-4 rounded-2xl bg-[#121212] border border-[#2A2A2A] shadow-md flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex items-center justify-center shrink-0">
-              <svg className="w-5 h-5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="flex items-center gap-4 p-5 rounded-[24px] bg-[#141414] border border-zinc-800/80 w-full shadow-md">
+            <div className="w-14 h-14 rounded-2xl bg-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
+              <svg className="w-6 h-6 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <span className="text-xs text-white/50 block font-medium">Extra Expenses</span>
-              <div className="text-xl font-extrabold text-white mt-0.5">
+              <p className="text-zinc-400 text-xs font-medium">Extra Expenses</p>
+              <p className="text-white text-2xl font-black mt-0.5">
                 {extraExpenses.length}
-              </div>
-              <span className="text-[10px] text-white/40 block mt-0.5">
+              </p>
+              <p className="text-zinc-500 text-xs mt-0.5">
                 One-time non-recurring items
-              </span>
+              </p>
             </div>
           </div>
+
         </div>
 
       </div>

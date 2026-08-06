@@ -67,26 +67,27 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
     });
 
   return (
-    <div className="space-y-6 pb-32 max-w-2xl mx-auto">
+    <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-3 sm:p-6 pb-28 space-y-5">
       
-      {/* 1. Live Expense Tracker Card */}
-      <div className="p-6 rounded-[24px] bg-[#121212] border border-[#2A2A2A] shadow-md space-y-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-[16px] bg-[#1E1B4B]/80 border border-[#3730A3]/30 text-[#A78BFA] flex items-center justify-center shrink-0">
-            <ShoppingBag className="w-6 h-6 text-[#A78BFA]" />
+      {/* 1. Live Expense Tracker Hero Card */}
+      <div className="rounded-[28px] sm:rounded-[32px] border border-zinc-800/50 bg-[#121212] p-6 sm:p-7 space-y-5">
+        <div className="flex gap-4 items-start">
+          <div className="w-14 h-14 rounded-2xl bg-[#7C3AED]/20 flex items-center justify-center shrink-0">
+            <ShoppingBag className="w-7 h-7 text-[#A78BFA]" />
           </div>
-          <h1 className="text-[28px] font-bold text-white tracking-tight leading-none">
-            Live Expense Tracker
-          </h1>
+          <div>
+            <h1 className="text-[30px] leading-[1.1] font-black tracking-tight text-white">
+              Live Expense Tracker
+            </h1>
+            <p className="text-[15px] leading-6 text-zinc-400 mt-3 max-w-[90%]">
+              Log daily purchases and out-of-pocket spending deducted straight from your paycheck left over balance.
+            </p>
+          </div>
         </div>
-        
-        <p className="text-sm text-zinc-400 leading-relaxed">
-          Log daily purchases and out-of-pocket spending deducted straight from your paycheck left over balance.
-        </p>
 
         <button
           onClick={onOpenExpenseModal}
-          className="w-full h-[56px] flex items-center justify-center gap-2 rounded-[16px] bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-extrabold text-[15px] shadow-[0_4px_20px_rgba(124,58,237,0.3)] transition-all cursor-pointer"
+          className="w-full h-[56px] flex items-center justify-center gap-2 rounded-2xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-[16px] mt-2 shadow-[0_8px_20px_rgba(124,58,237,0.3)] transition-all cursor-pointer"
         >
           <PlusCircle className="w-5 h-5" />
           Add Expense
@@ -94,10 +95,10 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
       </div>
 
       {/* 3 Stat Cards Stacked */}
-      <div className="space-y-4">
+      <div className="space-y-5">
         
         {/* Card 1: Spent This Check */}
-        <div className="p-5 rounded-[20px] bg-[#121212] border border-[#2A2A2A] flex items-center justify-between">
+        <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs font-semibold text-white/50 block">
               Spent This Check
@@ -115,7 +116,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
         </div>
 
         {/* Card 2: Spent This Month */}
-        <div className="p-5 rounded-[20px] bg-[#121212] border border-[#2A2A2A] flex items-center justify-between">
+        <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs font-semibold text-white/50 block">
               Spent This Month
@@ -133,7 +134,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
         </div>
 
         {/* Card 3: Biggest Expense */}
-        <div className="p-5 rounded-[20px] bg-[#121212] border border-[#2A2A2A] flex items-center justify-between">
+        <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs font-semibold text-white/50 block">
               Biggest Expense
@@ -153,7 +154,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
       </div>
 
       {/* Search & Filter Card */}
-      <div className="p-4 rounded-[24px] bg-[#121212] border border-[#2A2A2A] space-y-4">
+      <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 space-y-4">
         {/* Search bar */}
         <div className="relative w-full h-11 bg-[#1E1E1E] rounded-xl flex items-center px-3.5">
           <Search className="w-5 h-5 text-white/40 shrink-0" />
@@ -201,7 +202,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
       </div>
 
       {/* Running Expenses Card */}
-      <div className="p-6 rounded-[24px] bg-[#121212] border border-[#2A2A2A] space-y-4">
+      <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-[#1E1B4B]/80 border border-[#3730A3]/30 text-[#A78BFA] flex items-center justify-center shrink-0">

@@ -146,17 +146,20 @@ export const PaydayCard: React.FC<PaydayCardProps> = ({
           </div>
 
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-white">
-                Paycheck on {formatDate(payday.date, 'medium')}
-              </h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-2.5 py-0.5 rounded-full bg-purple-950/80 border border-purple-500/40 text-purple-300 text-[11px] font-bold">
+                💜 {formatDate(payday.date, 'medium').toUpperCase()}
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full bg-violet-950/40 border border-violet-900/50 text-[#C084FC] text-[11px] font-semibold">
+                🧾 {assignedBills.length} bills assigned
+              </span>
               {payday.notes && (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-[#1E1E1E] text-white/60 border border-[#2A2A2A]">
                   {payday.notes}
                 </span>
               )}
             </div>
-            <p className="text-xs text-white/60 mt-0.5">
+            <p className="text-xs text-white/60 mt-1">
               Covers bills due {formatDate(payday.date, 'short')} – {formatDate(nextPaydayDate, 'short')}
             </p>
           </div>
@@ -166,7 +169,7 @@ export const PaydayCard: React.FC<PaydayCardProps> = ({
         <div className="flex items-center justify-between md:justify-end gap-3 flex-wrap">
           
           <div className="text-right">
-            <span className="text-[11px] font-medium text-white/50 block">Available</span>
+            <span className="text-[11px] font-medium text-[#A78BFA] block flex items-center gap-1">✨ Available</span>
             <span className="text-sm font-semibold text-white">
               {totalAvailable !== null ? formatCurrency(totalAvailable) : 'Not set'}
             </span>

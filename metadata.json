@@ -1,6 +1,6 @@
 {
   "name": "MidnightLedger",
-  "description": "A paycheck-to-paycheck bill and budget optimizer with Raven AI Financial Advisor.",
+  "description": "A paycheck-to-paycheck bill and budget optimizer.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
