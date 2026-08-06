@@ -287,7 +287,7 @@ export const HistoryView: React.FC = () => {
             <p className="text-xs font-semibold">No paycheck history yet - your past paydays will appear here after your first pay period</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="flex flex-col gap-3 pb-24 overflow-visible">
             {filteredSummaries.slice(0, visibleCount).map(summary => {
               const paydayId = summary.payday.id;
               const isExpanded = expandedPaydayIds[paydayId] ?? false;
@@ -301,64 +301,60 @@ export const HistoryView: React.FC = () => {
               return (
                 <div 
                   key={paydayId}
-                  className="rounded-3xl bg-[#121212] border border-[#2A2A2A] overflow-hidden shadow-md transition-all hover:border-[#3B236E]"
+                  className="rounded-[24px] bg-[#121212] border border-white/10 p-4 mb-3 w-full overflow-visible transition-all hover:border-[#3B236E]/60 allocation-card"
                 >
-                  {/* Card Header */}
+                  {/* Card Header clickable to toggle expansion */}
                   <div 
                     onClick={() => togglePaydayExpand(paydayId)}
-                    className="h-[72px] flex items-center justify-between px-4 sm:px-5 cursor-pointer select-none hover:bg-[#181818] transition-colors"
+                    className="cursor-pointer select-none"
                   >
-                    {/* Left: One line info */}
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
-                      <span className="font-extrabold text-white">
-                        {formatDate(summary.payday.date)}
-                      </span>
-                      <span className="text-white/40">&bull;</span>
-                      {summary.payday.estimatedAmount === 0 ? (
-                        <span className="font-bold text-zinc-500">
-                          Check: TBD
-                        </span>
-                      ) : (
-                        <span className="font-bold text-[#A78BFA]">
-                          Check: {formatCurrency(summary.payday.estimatedAmount)}
-                        </span>
-                      )}
-                      <span className="text-white/40">&bull;</span>
-                      <span className="text-white/60 font-medium">
-                        {totalAssigned} Bill{totalAssigned === 1 ? '' : 's'} ({formatCurrency(summary.totalBills)})
-                      </span>
-                      {summary.totalExtraExpenses > 0 && (
-                        <>
-                          <span className="text-white/40">&bull;</span>
-                          <span className="text-white/60 font-medium">
-                            Extras: {formatCurrency(summary.totalExtraExpenses)}
-                          </span>
-                        </>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-3 shrink-0">
-                      {/* Status Badge */}
-                      {totalAssigned === 0 ? (
-                        <span className="h-7 px-3 rounded-full bg-[#1E1E1E] text-white/50 text-xs font-bold border border-[#2A2A2A] flex items-center whitespace-nowrap">
-                          No Bills Due
-                        </span>
-                      ) : isAllPaid ? (
-                        <span className="h-7 px-3 rounded-full bg-emerald-950/60 border border-emerald-800 text-emerald-400 text-xs font-extrabold flex items-center gap-1.5 shadow-sm whitespace-nowrap">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          All {paidCount} Paid
-                          {summary.leftOver !== null && (
-                            <span className="text-emerald-300 font-normal">({formatCurrency(summary.leftOver)})</span>
+                    <div className="flex justify-between items-start">
+                      <div className="flex flex-col gap-1 leading-normal">
+                        {/* Date */}
+                        <div className="text-sm text-white/60 leading-[1.5]">
+                          {formatDate(summary.payday.date)}
+                        </div>
+                        {/* Check info & status badge */}
+                        <div className="flex items-center gap-2 flex-wrap leading-[1.4]">
+                          {summary.payday.estimatedAmount === 0 ? (
+                            <span className="text-zinc-500 font-semibold text-[16px] leading-[1.4]">
+                              Check: TBD
+                            </span>
+                          ) : (
+                            <span className="text-[#B794F6] font-semibold text-[16px] leading-[1.4]">
+                              Check: {formatCurrency(summary.payday.estimatedAmount)}
+                            </span>
                           )}
-                        </span>
-                      ) : (
-                        <span className="h-7 px-3 rounded-full bg-[#F59E0B]/20 border border-[#F59E0B]/40 text-[#F59E0B] text-xs font-extrabold flex items-center gap-1.5 shadow-sm whitespace-nowrap">
-                          <AlertCircle className="w-3.5 h-3.5 text-[#F59E0B]" />
-                          {unpaidCount} Unpaid ({paidCount}/{totalAssigned})
-                        </span>
-                      )}
+                          <span className="w-1 h-1 bg-white/30 rounded-full"></span>
+                          
+                          {totalAssigned === 0 ? (
+                            <span className="bg-[#1E1E1E] text-white/50 text-xs px-2 py-1 rounded-full border border-[#2A2A2A]">
+                              No Bills
+                            </span>
+                          ) : isAllPaid ? (
+                            <span className="bg-emerald-950/40 text-emerald-400 text-xs px-2 py-1 rounded-full border border-emerald-800/40 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" />
+                              All Paid
+                            </span>
+                          ) : (
+                            <span className="bg-amber-900/40 text-amber-500 text-xs px-2 py-1 rounded-full">
+                              {unpaidCount} Unpaid ({paidCount}/{totalAssigned})
+                            </span>
+                          )}
+                        </div>
+                        {/* Bill counts */}
+                        <div className="text-[14px] text-white/50 leading-[1.5]">
+                          {totalAssigned} Bill{totalAssigned === 1 ? '' : 's'}
+                        </div>
+                        {/* Total bills amount or leftover */}
+                        <div className="text-[13px] text-white/40 leading-[1.5]">
+                          ({formatCurrency(summary.totalBills)})
+                          {summary.totalExtraExpenses > 0 && ` + Extras: ${formatCurrency(summary.totalExtraExpenses)}`}
+                        </div>
+                      </div>
 
-                      <button className="p-1.5 rounded-xl bg-[#1E1E1E] text-white/60 hover:text-white transition-colors">
+                      {/* Dropdown chevron button */}
+                      <button className="p-1.5 rounded-xl bg-[#1E1E1E] text-white/60 hover:text-white transition-colors shrink-0">
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </button>
                     </div>
@@ -366,7 +362,7 @@ export const HistoryView: React.FC = () => {
 
                   {/* Expanded Content Drawer */}
                   {isExpanded && (
-                    <div className="px-4 pb-5 sm:px-5 border-t border-[#2A2A2A] bg-[#0A0A0A] space-y-4 pt-4">
+                    <div className="border-t border-[#2A2A2A]/60 bg-[#0A0A0A] space-y-4 pt-4 mt-4 rounded-2xl p-3 overflow-visible">
                       
                       {/* Bills Assigned Table */}
                       <div>

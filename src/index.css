@@ -63,3 +63,7 @@
   background: #7C3AED;
 }
 
+/* WebView Safety Styles */
+* { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+.allocation-card { min-height: auto; overflow: visible; line-height: 1.5; }
+
