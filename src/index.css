@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  
+  html, body {
+    background-color: #000000 !important;
+    color: rgba(255, 255, 255, 0.87);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+/* Material Black & Purple Card & Input Utilities */
+.material-card {
+  background-color: #121212;
+  border: 1px solid #2A2A2A;
+  border-radius: 1.25rem; /* 20px */
+  transition: all 0.2s ease-in-out;
+}
+
+.material-card:hover {
+  border-color: rgba(124, 58, 237, 0.4);
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.12);
+}
+
+.material-card-surface {
+  background-color: #1E1E1E;
+  border: 1px solid #2A2A2A;
+  border-radius: 1rem; /* 16px */
+}
+
+.material-input {
+  background-color: #1E1E1E;
+  border: 1px solid #2A2A2A;
+  color: rgba(255, 255, 255, 0.9);
+  transition: all 0.15s ease-in-out;
+}
+
+.material-input:focus {
+  outline: none;
+  border-color: #7C3AED;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.25);
+}
+
+/* Custom sleek scrollbar styling for Material Black & Purple theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2A2A2A;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #7C3AED;
+}
+
