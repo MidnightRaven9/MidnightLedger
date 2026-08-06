@@ -5,6 +5,11 @@ Dark-mode budget app for paycheck-to-paycheck planning 🌃 Built for split bill
 ### 🚀 Live Demo
 → 💻 https://ai.studio/apps/7f0453b7-b342-442b-94e5-33cdef6ada62 ✨
 
+### 📲 Download 📱💜
+- 🤖 **Android APK:** [Download from Releases](https://github.com/MidnightMarie9/midnight-ledger/releases) 📦✨
+- 💾 Backup Link: [Google Drive](https://drive.google.com/file/d/1fGyyvMCUy5Hf2MXfFOUH8xbhFRzJArkR/view?usp=drivesdk) 🌙
+- 📱 **iPhone/Android PWA:** Open https://ai.studio/apps/7f0453b7-b342-442b-94e5-33cdef6ada62 → Add to Home Screen 💜
+
 ---
 
 ### 🌟 Features
