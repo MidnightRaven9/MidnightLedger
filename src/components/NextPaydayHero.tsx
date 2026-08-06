@@ -151,7 +151,7 @@ export const NextPaydayHero: React.FC<NextPaydayHeroProps> = ({
       </div>
 
       {/* Main Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 w-full max-w-full">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-6 w-full max-w-full [&>*]:min-w-0">
         
         {/* Estimated Check / Total Available Card */}
         <div className="w-full min-w-0 p-3.5 rounded-[18px] bg-[#1E1E1E] border border-[#2A2A2A] flex flex-col justify-between overflow-hidden box-border">
@@ -190,7 +190,7 @@ export const NextPaydayHero: React.FC<NextPaydayHeroProps> = ({
             </div>
           ) : (
             <div className="min-w-0">
-              <div className="text-xl sm:text-2xl font-black text-white tracking-tight truncate">
+              <div className="text-[clamp(18px,5.5vw,24px)] font-black text-white tracking-tight truncate">
                 {totalAvailable !== null ? formatCurrency(totalAvailable) : '$0.00'}
               </div>
               {totalExtraIncome > 0 ? (
@@ -215,7 +215,7 @@ export const NextPaydayHero: React.FC<NextPaydayHeroProps> = ({
             </span>
           </div>
           <div className="min-w-0">
-            <div className="text-xl sm:text-2xl font-black text-[#C084FC] tracking-tight truncate">
+            <div className="text-[clamp(18px,5.5vw,24px)] font-black text-[#C084FC] tracking-tight truncate">
               {formatCurrency(totalBills)}
             </div>
             <p className="text-[10px] text-zinc-500 mt-0.5 truncate">
@@ -233,7 +233,7 @@ export const NextPaydayHero: React.FC<NextPaydayHeroProps> = ({
             </span>
           </div>
           <div className="min-w-0">
-            <div className="text-xl sm:text-2xl font-black text-[#F43F5E] tracking-tight truncate">
+            <div className="text-[clamp(18px,5.5vw,24px)] font-black text-[#F43F5E] tracking-tight truncate">
               {formatCurrency(totalExtraExpenses)}
             </div>
             <p className="text-[10px] text-zinc-500 mt-0.5 truncate">
@@ -265,7 +265,7 @@ export const NextPaydayHero: React.FC<NextPaydayHeroProps> = ({
               <div className="min-w-0">
                 {hasValidAvailable && leftOver !== null ? (
                   <>
-                    <div className={`text-xl sm:text-2xl font-black tracking-tight truncate ${
+                    <div className={`text-[clamp(18px,5.5vw,24px)] font-black tracking-tight truncate ${
                       status === 'positive'
                         ? 'text-[#A78BFA]'
                         : status === 'negative'
