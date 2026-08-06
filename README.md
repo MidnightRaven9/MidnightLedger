@@ -1,6 +1,6 @@
 # MidnightLedger
 
-Dark-mode paycheck budget app for different pay period. Built because most budget apps can't handle split bills.
+Dark-mode paycheck budget app with adjustable periods. Built because most budget apps can't handle split bills.
 
 ## What it does
 
