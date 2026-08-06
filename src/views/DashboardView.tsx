@@ -373,54 +373,54 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   }).sort((a, b) => b.amount - a.amount);
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-3 sm:p-6 pb-32 space-y-6">
+    <div className="w-full max-w-[100vw] overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-3 box-border pb-32 space-y-5">
       
       {/* 1. UPCOMING PAYDAY HEADER CARD */}
-      <div className="w-full max-w-full rounded-[28px] bg-gradient-to-br from-[#1a1033] to-[#0f0f1a] border border-purple-900/30 p-4 sm:p-5 space-y-5 overflow-hidden shadow-2xl">
+      <div className="w-full max-w-full rounded-[28px] bg-gradient-to-br from-[#1a1033] to-[#0f0f1a] border border-purple-900/30 p-3.5 sm:p-5 space-y-4 overflow-hidden shadow-2xl box-border">
         
         {/* Top Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 w-full">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 w-full max-w-full overflow-hidden">
           <div className="inline-flex items-center gap-1.5 bg-purple-600/20 border border-purple-500/30 px-3 py-1.5 rounded-full w-fit shrink-0">
             <span className="text-purple-300 text-[10px] font-black tracking-widest uppercase">✨ UPCOMING PAYDAY</span>
           </div>
-          <span className="text-zinc-400 text-[12px] sm:text-[13px] whitespace-nowrap sm:ml-auto pl-1 font-medium">
+          <span className="text-zinc-400 text-[12px] sm:text-[13px] truncate sm:ml-auto pl-1 font-medium">
             Covers {formatDate(payday.date, 'short')} – {formatDate(nextPaydayDate, 'short')}
           </span>
         </div>
 
         {/* Title Date */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-600/20 flex items-center justify-center text-lg shrink-0">
+        <div className="flex items-center gap-2.5 min-w-0 w-full overflow-hidden">
+          <div className="w-9 h-9 rounded-xl bg-purple-600/20 flex items-center justify-center text-base shrink-0">
             📅
           </div>
-          <h1 className="text-[28px] sm:text-[32px] font-black tracking-tight text-white leading-tight">
+          <h1 className="text-[clamp(22px,6.5vw,30px)] font-black tracking-tight text-white leading-tight truncate">
             {formatDate(payday.date, 'medium')}
           </h1>
         </div>
 
-        {/* Action Grid - NO TRUNCATION */}
-        <div className="grid grid-cols-2 gap-3 w-full">
+        {/* Action Grid - 2x2 with shrink & gap-2 */}
+        <div className="grid grid-cols-2 gap-2 w-full max-w-full">
           <button
             onClick={() => onOpenIncomeModal(payday.date)}
-            className="w-full h-[48px] rounded-full bg-transparent border border-purple-500 text-purple-400 font-bold text-[13px] sm:text-[14px] flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer hover:bg-purple-500/10 transition-colors"
+            className="w-full min-w-0 h-[46px] rounded-full bg-transparent border border-purple-500 text-purple-400 font-bold text-[12px] sm:text-[13px] flex items-center justify-center gap-1 px-2 whitespace-nowrap overflow-hidden truncate cursor-pointer hover:bg-purple-500/10 transition-colors"
           >
             + Add Extra Cash
           </button>
           <button
             onClick={() => onOpenExpenseModal(payday.date)}
-            className="w-full h-[48px] rounded-full bg-zinc-800/80 border border-zinc-700 text-white font-bold text-[13px] sm:text-[14px] flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer hover:bg-zinc-700/80 transition-colors"
+            className="w-full min-w-0 h-[46px] rounded-full bg-zinc-800/80 border border-zinc-700 text-white font-bold text-[12px] sm:text-[13px] flex items-center justify-center gap-1 px-2 whitespace-nowrap overflow-hidden truncate cursor-pointer hover:bg-zinc-700/80 transition-colors"
           >
             + Add Expense
           </button>
           <button
             onClick={() => onOpenBillModal()}
-            className="w-full h-[48px] rounded-full bg-zinc-800/80 border border-zinc-700 text-white font-bold text-[13px] sm:text-[14px] flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer hover:bg-zinc-700/80 transition-colors"
+            className="w-full min-w-0 h-[46px] rounded-full bg-zinc-800/80 border border-zinc-700 text-white font-bold text-[12px] sm:text-[13px] flex items-center justify-center gap-1 px-2 whitespace-nowrap overflow-hidden truncate cursor-pointer hover:bg-zinc-700/80 transition-colors"
           >
             🧾 New Bill
           </button>
           <button
             onClick={handleMarkAllPaid}
-            className="w-full h-[48px] rounded-full bg-[#7C3AED] text-white font-bold text-[13px] sm:text-[14px] flex items-center justify-center gap-1.5 whitespace-nowrap shadow-lg shadow-purple-600/20 cursor-pointer hover:bg-[#6D28D9] transition-colors"
+            className="w-full min-w-0 h-[46px] rounded-full bg-[#7C3AED] text-white font-bold text-[12px] sm:text-[13px] flex items-center justify-center gap-1 px-2 whitespace-nowrap overflow-hidden truncate shadow-lg shadow-purple-600/20 cursor-pointer hover:bg-[#6D28D9] transition-colors"
           >
             ✓ Mark All Paid
           </button>
@@ -429,17 +429,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* Divider */}
         <div className="h-px bg-white/10 w-full" />
 
-        {/* Stats Grid - 4 Cards */}
-        <div className="grid grid-cols-2 gap-3 w-full min-w-0">
+        {/* Stats Grid - 4 Cards using gap-2 & min-w-0 w-full overflow-hidden */}
+        <div className="grid grid-cols-2 gap-2 w-full max-w-full [&>*]:min-w-0">
           {/* Estimated Check */}
           <div 
             onClick={() => {
               setTempEstCheck(estimatedCheck !== null ? String(estimatedCheck) : '');
               setIsEditingEstCheck(true);
             }}
-            className="rounded-[20px] bg-[#12121a]/80 border border-white/5 p-4 space-y-2 w-full min-w-0 overflow-hidden cursor-pointer hover:border-purple-500/40 transition-all"
+            className="rounded-[18px] bg-[#12121a]/80 border border-white/5 p-3 space-y-1.5 w-full min-w-0 overflow-hidden cursor-pointer hover:border-purple-500/40 transition-all box-border"
           >
-            <p className="text-zinc-400 text-[13px] font-medium whitespace-nowrap">Estimated Check</p>
+            <p className="text-zinc-400 text-[11px] sm:text-[12px] font-medium truncate">Estimated Check</p>
             {isEditingEstCheck ? (
               <div className="flex items-center gap-1 mt-1" onClick={e => e.stopPropagation()}>
                 <input
@@ -447,60 +447,60 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   value={tempEstCheck}
                   onChange={e => setTempEstCheck(e.target.value)}
                   placeholder="0.00"
-                  className="w-20 pl-2 pr-1 py-0.5 rounded bg-[#121212] border border-[#7C3AED] text-white text-xs focus:outline-none"
+                  className="w-16 pl-1.5 pr-1 py-0.5 rounded bg-[#121212] border border-[#7C3AED] text-white text-xs focus:outline-none"
                   autoFocus
                 />
-                <button onClick={handleSaveEstCheck} className="px-2 py-0.5 rounded bg-[#7C3AED] text-white text-xs font-bold">
+                <button onClick={handleSaveEstCheck} className="px-2 py-0.5 rounded bg-[#7C3AED] text-white text-xs font-bold shrink-0">
                   Save
                 </button>
               </div>
             ) : (
-              <p className="text-white text-[24px] sm:text-[26px] font-black leading-none pt-1">
+              <p className="text-white text-[20px] sm:text-[24px] font-black leading-none pt-0.5 truncate">
                 {estimatedCheck !== null ? formatCurrency(estimatedCheck) : 'TBD'}
               </p>
             )}
-            <p className="text-zinc-500 text-[11px]">Expected deposit</p>
+            <p className="text-zinc-500 text-[10px] truncate">Expected deposit</p>
           </div>
 
           {/* Bills Due */}
-          <div className="rounded-[20px] bg-[#12121a]/80 border border-white/5 p-4 space-y-2 w-full min-w-0 overflow-hidden">
-            <div className="flex flex-col items-start gap-1.5 w-full min-w-0">
-              <p className="text-zinc-400 text-[13px] font-medium whitespace-nowrap">Bills Due</p>
-              <span className="bg-purple-600/20 text-purple-300 text-[10px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap">
+          <div className="rounded-[18px] bg-[#12121a]/80 border border-white/5 p-3 space-y-1.5 w-full min-w-0 overflow-hidden box-border">
+            <div className="flex flex-col items-start gap-1 w-full min-w-0">
+              <p className="text-zinc-400 text-[11px] sm:text-[12px] font-medium truncate">Bills Due</p>
+              <span className="bg-purple-600/20 text-purple-300 text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full truncate">
                 {assignedBills.length} Bills
               </span>
             </div>
-            <p className="text-[#C084FC] text-[24px] sm:text-[26px] font-black leading-none pt-1">
+            <p className="text-[#C084FC] text-[20px] sm:text-[24px] font-black leading-none pt-0.5 truncate">
               {formatCurrency(displayTotalBills)}
             </p>
-            <p className="text-zinc-500 text-[11px]">
+            <p className="text-zinc-500 text-[10px] truncate">
               {paidBillsCount} of {assignedBills.length} marked paid
             </p>
           </div>
 
           {/* Extra Expenses */}
-          <div className="rounded-[20px] bg-[#12121a]/80 border border-white/5 p-4 space-y-2 w-full min-w-0 overflow-hidden">
-            <div className="flex flex-col items-start gap-1.5 w-full min-w-0">
-              <p className="text-zinc-400 text-[13px] font-medium whitespace-nowrap">Extra Expenses</p>
-              <span className="bg-red-500/20 text-red-400 text-[10px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap">
+          <div className="rounded-[18px] bg-[#12121a]/80 border border-white/5 p-3 space-y-1.5 w-full min-w-0 overflow-hidden box-border">
+            <div className="flex flex-col items-start gap-1 w-full min-w-0">
+              <p className="text-zinc-400 text-[11px] sm:text-[12px] font-medium truncate">Extra Expenses</p>
+              <span className="bg-red-500/20 text-red-400 text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full truncate">
                 {extraExpenses.length} Items
               </span>
             </div>
-            <p className="text-[#FB7185] text-[24px] sm:text-[26px] font-black leading-none pt-1">
+            <p className="text-[#FB7185] text-[20px] sm:text-[24px] font-black leading-none pt-0.5 truncate">
               {formatCurrency(totalExtraExpenses)}
             </p>
-            <p className="text-zinc-500 text-[11px]">Non-recurring</p>
+            <p className="text-zinc-500 text-[10px] truncate">Non-recurring</p>
           </div>
 
           {/* MONEY LEFT OVER */}
-          <div className="rounded-[20px] bg-[#1a1033]/80 border border-purple-900/40 p-4 space-y-2 w-full min-w-0 overflow-hidden">
-            <p className="text-[#C084FC] text-[11px] sm:text-[12px] font-black tracking-wider flex items-center gap-1 uppercase">
+          <div className="rounded-[18px] bg-[#1a1033]/80 border border-purple-900/40 p-3 space-y-1.5 w-full min-w-0 overflow-hidden box-border">
+            <p className="text-[#C084FC] text-[10px] sm:text-[11px] font-black tracking-wider uppercase truncate">
               MONEY LEFT OVER ✓
             </p>
-            <p className="text-white text-[24px] sm:text-[26px] font-black leading-none pt-1">
+            <p className="text-white text-[20px] sm:text-[24px] font-black leading-none pt-0.5 truncate">
               {leftOver !== null ? formatCurrency(leftOver) : 'TBD'}
             </p>
-            <p className="text-zinc-500 text-[11px]">Safe to spend</p>
+            <p className="text-zinc-500 text-[10px] truncate">Safe to spend</p>
           </div>
         </div>
 
