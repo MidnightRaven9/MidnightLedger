@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="./midnight_ledger_v3_security.png" alt="MidnightLedger v3.0 Security Edition" width="100%">
-</p>
-
 # 🌙 MidnightLedger ✨💜
 
 Dark-mode budget app for paycheck-to-paycheck planning 🌃 Built for split bills, irregular paydays, and tax estimates 💸📊
@@ -12,6 +8,18 @@ Dark-mode budget app for paycheck-to-paycheck planning 🌃 Built for split bill
 ### 📲 Download
 - 🤖 Android APK: [v3.0 Security Edition](https://github.com/MidnightMarie9/MidnightLedger/releases/tag/v3.0) 🔒✨
 - 📱 PWA: Open live demo → Add to Home Screen
+
+---
+
+### 🗑️ How to Remove Sample Data
+
+If you see sample bills after installing:
+
+1. Open the app → Go to **History** and **Allocations**
+2. Scroll to the **very bottom** of the page
+3. Tap **Wipe All Data** → Confirm
+
+This clears all sample/demo bills and gives you a fresh start. Your real bills will still save to the cloud after this.
 
 ---
 
