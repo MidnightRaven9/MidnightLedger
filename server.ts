@@ -142,12 +142,12 @@ export default {
             return withCors(Response.json({ error: 'invalid amount' }, { status: 400 }));
           }
           
-          const id = body.id && /^[a-zA-Z0-9-_]{5,100}$/.test(body.id) ? body.id : crypto.randomUUID();
+          const billId = body.id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.id) ? body.id : crypto.randomUUID();
           const dueDay = Math.min(31, Math.max(1, parseInt(body.due_day || body.dueDate || 1)));
           
           await env.DB.prepare('INSERT INTO bills (id, user_id, name, amount, due_day, category) VALUES (?, ?, ?, ?, ?, ?)')
-            .bind(id, userId, body.name.trim().slice(0,100), body.amount, dueDay, (body.category || 'Other').toString().slice(0,50)).run();
-          return withCors(Response.json({ ok: true, id }));
+            .bind(billId, userId, body.name.trim().slice(0,100), body.amount, dueDay, (body.category || 'Other').toString().slice(0,50)).run();
+          return withCors(Response.json({ ok: true, id: billId }));
         }
         if (url.pathname === '/api/paychecks' && request.method === 'GET') {
           const { results } = await env.DB.prepare('SELECT * FROM paychecks WHERE user_id = ? ORDER BY date DESC').bind(userId).all();
@@ -158,13 +158,13 @@ export default {
           if (!body.date || typeof body.date !== 'string') {
             return withCors(Response.json({ error: 'invalid date' }, { status: 400 }));
           }
-          const id = body.id && /^[a-zA-Z0-9-_]{5,100}$/.test(body.id) ? id : crypto.randomUUID();
+          const payId = body.id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.id) ? body.id : crypto.randomUUID();
           const amount = typeof body.amount === 'number' ? body.amount : (body.estimatedAmount || 0);
           if (amount < 0 || amount > 1000000) return withCors(Response.json({error: 'invalid amount'}, {status: 400}));
           
           await env.DB.prepare('INSERT INTO paychecks (id, user_id, date, amount, allocated) VALUES (?, ?, ?, ?, ?)')
-            .bind(id, userId, body.date.slice(0,20), amount, body.allocated || 0).run();
-          return withCors(Response.json({ ok: true, id }));
+            .bind(payId, userId, body.date.slice(0,20), amount, body.allocated || 0).run();
+          return withCors(Response.json({ ok: true, id: payId }));
         }
         if (url.pathname === '/api/allocations' && request.method === 'GET') {
           const { results } = await env.DB.prepare('SELECT * FROM allocations WHERE user_id = ?').bind(userId).all();
@@ -175,10 +175,10 @@ export default {
           const amount = typeof body.amount === 'number' ? body.amount : 0;
           if (amount < 0 || amount > 1000000) return withCors(Response.json({ error: 'invalid amount' }, { status: 400 }));
           
-          const id = body.id && /^[a-zA-Z0-9-_]{5,100}$/.test(id) ? id : crypto.randomUUID();
+          const allocId = body.id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.id) ? body.id : crypto.randomUUID();
           await env.DB.prepare('INSERT INTO allocations (id, user_id, paycheck_id, bill_id, amount, paid, paid_date) VALUES (?, ?, ?, ?, ?, ?, ?)')
-            .bind(id, userId, body.paycheck_id, body.bill_id, amount, body.paid ? 1 : 0, body.paid_date || null).run();
-          return withCors(Response.json({ ok: true, id }));
+            .bind(allocId, userId, body.paycheck_id, body.bill_id, amount, body.paid ? 1 : 0, body.paid_date || null).run();
+          return withCors(Response.json({ ok: true, id: allocId }));
         }
 
         return withCors(Response.json({ error: 'not found' }, { status: 404 }));
