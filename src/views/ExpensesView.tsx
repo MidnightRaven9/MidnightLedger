@@ -154,51 +154,46 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
       </div>
 
       {/* Search & Filter Card */}
-      <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 space-y-4">
-        {/* Search bar */}
-        <div className="relative w-full h-11 bg-[#1E1E1E] rounded-xl flex items-center px-3.5">
-          <Search className="w-5 h-5 text-white/40 shrink-0" />
+      <div className="w-full min-w-0 max-w-full px-4 py-3.5 bg-[#111111] rounded-[24px] border border-zinc-800/50 space-y-2.5">
+        {/* Search */}
+        <div className="relative w-full min-w-0 max-w-full">
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none">🔍</span>
           <input
             type="text"
-            placeholder="Search merchant, gas, coffee..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full bg-transparent pl-3 text-sm text-white focus:outline-none placeholder:text-white/30"
+            placeholder="Search merchant, gas, coffee..."
+            className="w-full min-w-0 h-11 rounded-2xl bg-[#1e1e1e] border border-zinc-800 pl-10 pr-4 text-[14px] text-white placeholder-zinc-500 truncate focus:outline-none focus:border-[#7C3AED]"
           />
         </div>
 
-        {/* Filter dropdown */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 shrink-0">
-            <Filter className="w-5 h-5 text-[#A78BFA]" />
-            <span className="text-xs font-semibold text-white/60">Paycheck Filter:</span>
-          </div>
-          
-          <div className="relative flex-1 sm:flex-initial">
+        {/* Paycheck Filter */}
+        <div className="flex items-center gap-2 w-full min-w-0 max-w-full overflow-hidden">
+          <span className="shrink-0 text-[12px] font-bold text-zinc-400 whitespace-nowrap">
+            <span className="text-purple-500">▽</span> Filter:
+          </span>
+          <div className="flex-1 min-w-0 max-w-full relative">
             <select
               value={selectedPaydayFilter}
               onChange={e => setSelectedPaydayFilter(e.target.value)}
-              className="w-full appearance-none bg-[#1E1E1E] text-white text-xs font-bold py-2.5 pl-4 pr-10 rounded-full focus:outline-none cursor-pointer border border-transparent hover:border-[#2A2A2A] transition-colors"
+              className="w-full min-w-0 max-w-full h-9 rounded-full bg-[#1e1e1e] border border-zinc-800 pl-3 pr-8 text-[13px] font-bold text-white truncate appearance-none focus:outline-none cursor-pointer"
             >
-              <option value="CURRENT">
-                Current Check ({currentPaydayDate ? formatDate(currentPaydayDate, 'short') : '8/15'})
-              </option>
-              <option value="ALL">
-                All Paychecks
-              </option>
+              <option value="CURRENT">Current Check</option>
+              <option value="ALL">All Checks</option>
               {summaries.map(s => (
                 <option key={s.payday.date} value={s.payday.date}>
-                  Check on {formatDate(s.payday.date, 'medium')}
+                  Check ({formatDate(s.payday.date, 'short')})
                 </option>
               ))}
             </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3.5 text-white/60">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none text-[12px]">⌄</span>
           </div>
         </div>
+        {selectedPaydayFilter === 'CURRENT' && currentPaydayDate && (
+          <p className="text-[11px] text-zinc-500 px-1 pt-0.5 truncate">
+            Showing check: {formatDate(currentPaydayDate, 'medium')}
+          </p>
+        )}
       </div>
 
       {/* Running Expenses Card */}

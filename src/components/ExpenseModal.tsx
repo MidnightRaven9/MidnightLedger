@@ -78,8 +78,8 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-[#121212] rounded-3xl shadow-2xl border border-[#2A2A2A] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="w-full min-w-0 max-w-lg bg-[#121212] rounded-[24px] shadow-2xl border border-[#2A2A2A] overflow-hidden mx-2 sm:mx-auto">
         
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-[#2A2A2A] bg-[#121212]">
@@ -105,23 +105,27 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
           </button>
         </div>
 
-        {/* Quick Presets Row */}
-        <div className="px-5 py-3 bg-[#181818] border-b border-[#2A2A2A] flex items-center gap-2 overflow-x-auto no-scrollbar text-xs">
-          <span className="text-[11px] font-bold text-white/40 uppercase shrink-0">Quick Fill:</span>
-          {PRESET_MERCHANTS.map((p, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => handleApplyPreset(p)}
-              className="px-2.5 py-1 rounded-full bg-[#1E1E1E] border border-[#2A2A2A] hover:border-[#7C3AED] hover:text-[#A78BFA] text-white/80 font-medium shrink-0 transition-colors"
-            >
-              {p.label}
-            </button>
-          ))}
+        {/* Quick Fill Row */}
+        <div className="w-full min-w-0 max-w-full overflow-hidden border-y border-zinc-800/50 py-2.5 px-4 flex items-center gap-2 bg-[#181818]">
+          <span className="shrink-0 text-[11px] font-bold tracking-widest text-zinc-500">QUICK FILL:</span>
+          <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide">
+            <div className="flex gap-2 w-max pr-4">
+              {PRESET_MERCHANTS.map((p, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleApplyPreset(p)}
+                  className="shrink-0 h-8 px-3 rounded-full bg-[#1f1f1f] border border-zinc-800 text-[13px] text-white hover:border-[#7C3AED] hover:text-[#A78BFA] transition-colors whitespace-nowrap cursor-pointer"
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4">
           
           {/* Amount & Description */}
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
@@ -205,27 +209,28 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
           </div>
 
           {/* Pay Period Selection (Auto-Assigned) */}
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-semibold text-white/80">
-                Pay Period <span className="text-rose-400">*</span>
-              </label>
-              <span className="text-[10px] text-[#A78BFA] font-semibold">
-                ⚡ Auto-matched by date
-              </span>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-white/80 block">
+              Pay Period <span className="text-rose-400">*</span>
+            </label>
+            <div className="relative w-full min-w-0 max-w-full">
+              <select
+                required
+                value={paydayDate}
+                onChange={e => setPaydayDate(e.target.value)}
+                className="w-full min-w-0 max-w-full h-12 rounded-2xl bg-[#1a1a1a] border border-zinc-800 px-4 pr-10 text-[14px] text-white truncate appearance-none focus:outline-none focus:border-[#7C3AED]"
+              >
+                {summaries.map(s => (
+                  <option key={s.payday.date} value={s.payday.date} className="bg-[#121212] text-white">
+                    Paycheck on {formatDate(s.payday.date, 'medium')}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none">⌄</span>
             </div>
-            <select
-              required
-              value={paydayDate}
-              onChange={e => setPaydayDate(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#2A2A2A] bg-[#1E1E1E] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
-            >
-              {summaries.map(s => (
-                <option key={s.payday.date} value={s.payday.date} className="bg-[#121212] text-white">
-                  Paycheck on {formatDate(s.payday.date, 'medium')}
-                </option>
-              ))}
-            </select>
+            <div className="flex justify-end">
+              <span className="text-[11px] text-purple-400 truncate">⚡ Auto-matched by date</span>
+            </div>
           </div>
 
           {/* Payment Method Optional Choice */}
