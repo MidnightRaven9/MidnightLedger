@@ -618,68 +618,68 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="space-y-3">
           
           {/* Total Monthly Bills */}
-          <div className="flex items-center gap-4 p-5 rounded-[24px] bg-[#141414] border border-zinc-800/80 w-full shadow-md">
-            <div className="w-14 h-14 rounded-2xl bg-purple-600/20 flex items-center justify-center text-purple-400 shrink-0">
-              <Receipt className="w-6 h-6 text-[#C084FC]" />
+          <div className="flex items-center gap-3 p-4 rounded-[24px] bg-[#141414] border border-zinc-800/80 w-full min-w-0 max-w-full overflow-hidden shadow-md">
+            <div className="w-11 h-11 rounded-2xl bg-purple-600/20 flex items-center justify-center text-purple-400 shrink-0">
+              <Receipt className="w-5 h-5 text-[#C084FC]" />
             </div>
-            <div>
-              <p className="text-zinc-400 text-xs font-medium">Total Monthly Bills</p>
-              <p className="text-white text-2xl font-black mt-0.5">
+            <div className="min-w-0 flex-1 overflow-hidden">
+              <p className="text-zinc-400 text-[12px] font-medium truncate">Total Monthly Bills</p>
+              <p className="text-white text-[26px] font-black leading-tight truncate mt-0.5">
                 {formatCurrency(bills.filter(b => b.isActive).reduce((sum, b) => sum + b.amount, 0))}
               </p>
-              <p className="text-zinc-500 text-xs mt-0.5">
+              <p className="text-zinc-500 text-[10px] truncate mt-0.5">
                 {bills.filter(b => b.isActive).length} active recurring bills
               </p>
             </div>
           </div>
 
           {/* Upcoming Paydays */}
-          <div className="flex items-center gap-4 p-5 rounded-[24px] bg-[#141414] border border-zinc-800/80 w-full shadow-md">
-            <div className="w-14 h-14 rounded-2xl bg-purple-600/20 flex items-center justify-center text-purple-400 shrink-0">
-              <Calendar className="w-6 h-6 text-[#C084FC]" />
+          <div className="flex items-center gap-3 p-4 rounded-[24px] bg-[#141414] border border-zinc-800/80 w-full min-w-0 max-w-full overflow-hidden shadow-md">
+            <div className="w-11 h-11 rounded-2xl bg-purple-600/20 flex items-center justify-center text-purple-400 shrink-0">
+              <Calendar className="w-5 h-5 text-[#C084FC]" />
             </div>
-            <div>
-              <p className="text-zinc-400 text-xs font-medium">Upcoming Paydays</p>
-              <p className="text-white text-2xl font-black mt-0.5">
+            <div className="min-w-0 flex-1 overflow-hidden">
+              <p className="text-zinc-400 text-[12px] font-medium truncate">Upcoming Paydays</p>
+              <p className="text-white text-[26px] font-black leading-tight truncate mt-0.5">
                 {summaries.length}
               </p>
-              <p className="text-zinc-500 text-xs mt-0.5">
+              <p className="text-zinc-500 text-[10px] truncate mt-0.5">
                 Projected in schedule
               </p>
             </div>
           </div>
 
           {/* Bill Mix */}
-          <div className="flex items-center gap-4 p-5 rounded-[24px] bg-[#141414] border border-zinc-800/80 w-full shadow-md">
-            <div className="w-14 h-14 rounded-2xl bg-purple-600/20 flex items-center justify-center text-purple-400 shrink-0">
-              <svg className="w-6 h-6 text-[#C084FC]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="flex items-center gap-3 p-4 rounded-[24px] bg-[#141414] border border-zinc-800/80 w-full min-w-0 max-w-full overflow-hidden shadow-md">
+            <div className="w-11 h-11 rounded-2xl bg-purple-600/20 flex items-center justify-center text-purple-400 shrink-0">
+              <svg className="w-5 h-5 text-[#C084FC]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
-            <div>
-              <p className="text-zinc-400 text-xs font-medium">Bill Mix</p>
-              <p className="text-white text-2xl font-black mt-0.5">
+            <div className="min-w-0 flex-1 overflow-hidden">
+              <p className="text-zinc-400 text-[12px] font-medium truncate">Bill Mix</p>
+              <p className="text-white text-[20px] sm:text-[26px] font-black leading-tight truncate mt-0.5">
                 {bills.filter(b => b.isActive && b.type === 'fixed').length} Fixed / {bills.filter(b => b.isActive && b.type === 'variable').length} Var
               </p>
-              <p className="text-zinc-500 text-xs mt-0.5">
+              <p className="text-zinc-500 text-[10px] truncate mt-0.5">
                 Variable bills auto-prompt amounts
               </p>
             </div>
           </div>
 
           {/* Extra Expenses */}
-          <div className="flex items-center gap-4 p-5 rounded-[24px] bg-[#141414] border border-zinc-800/80 w-full shadow-md">
-            <div className="w-14 h-14 rounded-2xl bg-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
-              <svg className="w-6 h-6 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="flex items-center gap-3 p-4 rounded-[24px] bg-[#141414] border border-zinc-800/80 w-full min-w-0 max-w-full overflow-hidden shadow-md">
+            <div className="w-11 h-11 rounded-2xl bg-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
+              <svg className="w-5 h-5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <div>
-              <p className="text-zinc-400 text-xs font-medium">Extra Expenses</p>
-              <p className="text-white text-2xl font-black mt-0.5">
+            <div className="min-w-0 flex-1 overflow-hidden">
+              <p className="text-zinc-400 text-[12px] font-medium truncate">Extra Expenses</p>
+              <p className="text-white text-[26px] font-black leading-tight truncate mt-0.5">
                 {extraExpenses.length}
               </p>
-              <p className="text-zinc-500 text-xs mt-0.5">
+              <p className="text-zinc-500 text-[10px] truncate mt-0.5">
                 One-time non-recurring items
               </p>
             </div>

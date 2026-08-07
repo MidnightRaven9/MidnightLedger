@@ -156,108 +156,101 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
             return (
               <div 
                 key={payday.date}
-                className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 space-y-3.5 hover:border-[#7C3AED]/40 transition-all"
+                className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-4 sm:p-5 space-y-3 hover:border-[#7C3AED]/40 transition-all w-full max-w-full overflow-hidden box-border"
               >
                 {/* Top Row: Date Badge + Title/Bills */}
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3.5">
+                <div className="w-full max-w-full overflow-hidden flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
                     {/* Big purple date badge */}
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#1E1B2E] border border-[#3B236E] flex flex-col items-center justify-center text-[#A78BFA] font-bold shrink-0 shadow-inner">
-                      <span className="text-[10px] uppercase font-semibold text-[#C084FC]">
+                    <div className="w-12 h-12 shrink-0 rounded-2xl bg-[#2a1f4a] border border-[#3B236E] flex flex-col items-center justify-center text-[#A78BFA] font-bold shadow-inner">
+                      <span className="text-[9px] uppercase font-bold text-purple-400">
                         {formatDate(payday.date, 'short').split('/')[0]}
                       </span>
-                      <span className="text-xl sm:text-2xl leading-none font-extrabold text-white">
+                      <span className="text-[18px] leading-none font-black text-white">
                         {String(payday.date || '').split('-')[2] || ''}
                       </span>
                     </div>
 
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-base font-extrabold text-white">
+                    <div className="min-w-0 flex-1 overflow-hidden">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <h4 className="text-[16px] font-bold text-white truncate">
                           {formatDate(payday.date, 'medium')}
                         </h4>
                         {isUserAdded && (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#2E1B3E] text-[#C084FC] border border-[#58236E]">
+                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#2E1B3E] text-[#C084FC] border border-[#58236E] shrink-0">
                             Custom
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-white/50 mt-0.5">
-                        {assignedBills.length} bills assigned • Due total: <span className="text-white/80 font-semibold">{formatCurrency(totalBills)}</span>
+                      <p className="text-[11px] text-zinc-500 truncate mt-0.5">
+                        {hasAmount ? `${formatCurrency(estimatedCheck)} avail` : 'Amount TBD'} • {assignedBills.length} bills
                       </p>
                     </div>
                   </div>
 
-                  {isUserAdded && (
-                    <button
-                      onClick={() => {
-                        if (confirm(`Remove custom payday on ${payday.date}?`)) {
-                          deletePayday(payday.id);
-                        }
-                      }}
-                      className="p-2 rounded-xl text-white/30 hover:text-rose-400 hover:bg-rose-950/30 transition-colors"
-                      title="Delete custom payday"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
+                  <div className="shrink-0 text-right">
+                    <p className="text-[15px] font-bold text-purple-400">
+                      {hasAmount && leftOver !== null ? formatCurrency(leftOver) : formatCurrency(totalBills)}
+                    </p>
+                    {isUserAdded && (
+                      <button
+                        onClick={() => {
+                          if (confirm(`Remove custom payday on ${payday.date}?`)) {
+                            deletePayday(payday.id);
+                          }
+                        }}
+                        className="p-1 rounded text-white/30 hover:text-rose-400 transition-colors"
+                        title="Delete custom payday"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Bottom Row: Est. Check / Left Over */}
-                <div className="pt-3 border-t border-[#2A2A2A] flex items-center justify-between gap-4">
+                <div className="pt-2.5 border-t border-[#2A2A2A] flex items-center justify-between gap-2 w-full max-w-full overflow-hidden">
                   
                   {/* Est. Check (Clickable to edit) */}
                   <div 
                     onClick={() => {
                       openModal(summary);
                     }}
-                    className="cursor-pointer group flex items-center gap-2"
+                    className="cursor-pointer group flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden"
                   >
-                    <div>
-                      <span className="text-[11px] text-[#9CA3AF] font-medium block group-hover:text-white transition-colors flex items-center gap-1">
-                        Est. Check <Edit3 className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 text-[#A78BFA] transition-opacity" />
+                    <div className="min-w-0 overflow-hidden">
+                      <span className="text-[10px] text-[#9CA3AF] font-medium block group-hover:text-white transition-colors flex items-center gap-1 truncate">
+                        Est. Check <Edit3 className="w-2.5 h-2.5 text-[#A78BFA] shrink-0" />
                       </span>
                       {hasAmount ? (
-                        <div className="flex flex-col">
-                          <span className="text-base font-bold text-white group-hover:text-[#C084FC] transition-colors leading-tight">
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-xs sm:text-sm font-bold text-white group-hover:text-[#C084FC] transition-colors leading-tight truncate">
                             {formatCurrency(estimatedCheck)}
                           </span>
-                          {payday.useTax && (
-                            <span className="text-[11px] text-white/50 group-hover:text-white/70 transition-colors flex items-center gap-1 leading-none mt-0.5 font-mono">
-                              ({formatCurrency(payday.gross || 0)} gross - {payday.taxPercent}% tax)
-                            </span>
-                          )}
                         </div>
                       ) : (
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="text-sm font-bold text-[#9CA3AF]">TBD</span>
-                            <span className="px-2.5 py-0.5 rounded-full bg-[#7C3AED]/20 border border-[#7C3AED] text-[#A78BFA] font-semibold text-[11px]">
-                              Set Estimate
-                            </span>
-                          </div>
-                          {payday.useTax && (
-                            <span className="text-[11px] text-white/40 mt-1 font-mono">
-                              (Prefilled: {payday.taxPercent}% tax)
-                            </span>
-                          )}
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <span className="text-xs font-bold text-[#9CA3AF]">TBD</span>
+                          <span className="px-2 py-0.5 rounded-full bg-[#7C3AED]/20 border border-[#7C3AED] text-[#A78BFA] font-semibold text-[10px] shrink-0">
+                            Set
+                          </span>
                         </div>
                       )}
                     </div>
                   </div>
 
                   {/* Left Over */}
-                  <div className="text-right">
-                    <span className="text-[11px] text-[#9CA3AF] font-medium block">
+                  <div className="text-right shrink-0 min-w-0">
+                    <span className="text-[10px] text-[#9CA3AF] font-medium block truncate">
                       Left Over
                     </span>
                     {hasAmount && leftOver !== null ? (
-                      <span className={`text-base font-bold ${status === 'positive' ? 'text-[#A78BFA]' : status === 'negative' ? 'text-rose-400' : 'text-white'}`}>
+                      <span className={`text-xs sm:text-sm font-bold truncate block ${status === 'positive' ? 'text-[#A78BFA]' : status === 'negative' ? 'text-rose-400' : 'text-white'}`}>
                         {formatCurrency(leftOver)}
                       </span>
                     ) : (
-                      <span className="text-sm font-semibold text-white/40">
-                        Waiting for amount
+                      <span className="text-xs font-semibold text-white/40 truncate block">
+                        Waiting
                       </span>
                     )}
                   </div>
@@ -265,29 +258,31 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                 </div>
 
                 {/* Collapsible Assigned Bills Section */}
-                <div className="mt-4 border-t border-zinc-800/60 pt-4">
+                <div className="mt-3 border-t border-zinc-800/60 pt-3 w-full max-w-full overflow-hidden">
                   <button
                     type="button"
                     onClick={() => setExpandedId(isExpanded ? null : paydayId)}
-                    className="w-full flex items-center justify-between py-2 group cursor-pointer"
+                    className="w-full flex items-center justify-between py-1.5 group cursor-pointer"
                   >
-                    <span className="text-[12px] font-black tracking-widest text-zinc-400 group-hover:text-white flex items-center flex-wrap gap-1">
-                      BILLS ASSIGNED TO THIS CHECK ({assignedBills.length}):
-                      <span className="ml-2 text-zinc-500 font-medium normal-case">
-                        {assignedBills.length > 0 ? `${paidCount} of ${assignedBills.length} paid` : ''}
+                    <div className="flex items-center justify-between w-full pr-2">
+                      <span className="text-[11px] font-black tracking-widest text-zinc-400 uppercase">
+                        BILLS ({assignedBills.length})
                       </span>
-                    </span>
-                    <span className={`text-zinc-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>⌄</span>
+                      <span className="text-[11px] text-zinc-500 font-medium">
+                        {paidCount}/{assignedBills.length} paid
+                      </span>
+                    </div>
+                    <span className={`text-zinc-500 transition-transform duration-200 shrink-0 ${isExpanded ? 'rotate-180' : ''}`}>⌄</span>
                   </button>
 
                   {isExpanded && (
-                    <div className="mt-3 animate-in slide-in-from-top-1">
+                    <div className="mt-2.5 animate-in slide-in-from-top-1 space-y-2 w-full max-w-full overflow-hidden">
                       {assignedBills.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed border-zinc-800 bg-[#0f0f12] p-4 text-center">
-                          <p className="text-zinc-500 text-[13px]">No bills assigned to this paycheck period.</p>
+                        <div className="rounded-2xl border border-dashed border-zinc-800 bg-[#0f0f12] p-3 text-center">
+                          <p className="text-zinc-500 text-[12px]">No bills assigned to this paycheck period.</p>
                         </div>
                       ) : (
-                        <div className="space-y-2">
+                        <div className="space-y-2 w-full max-w-full overflow-hidden">
                           {assignedBills.map(assigned => {
                             const { bill, effectiveAmount, isPaid, dueFullDate } = assigned;
                             const billEmoji = bill.emoji || getCategoryEmoji(bill.category);
@@ -297,42 +292,39 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                                 key={bill.id}
                                 id={`bill-${bill.id}`}
                                 onClick={() => toggleBillPaid(bill.id, payday.date)}
-                                className={`flex items-center justify-between p-3.5 rounded-2xl border cursor-pointer transition-all ${
-                                  isPaid ? 'paid-bill bg-purple-600/10 border-purple-600/30' : 'bg-zinc-900/50 border-zinc-800 hover:border-zinc-700'
+                                className={`w-full min-w-0 max-w-full overflow-hidden flex items-center gap-2 p-3 rounded-2xl border cursor-pointer transition-all box-border ${
+                                  isPaid ? 'paid-bill bg-purple-600/10 border-purple-600/30' : 'bg-[#1a1a1a] border-zinc-800 hover:border-zinc-700'
                                 }`}
                               >
-                                <div className="flex items-center gap-3 min-w-0 flex-1">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleBillPaid(bill.id, payday.date);
-                                    }}
-                                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                                      isPaid ? 'bg-purple-600 border-purple-600' : 'border-zinc-600 hover:border-zinc-400'
-                                    }`}
-                                    title={isPaid ? "Mark Unpaid" : "Mark Paid"}
-                                  >
-                                    {isPaid && <span className="text-white text-xs font-bold">✓</span>}
-                                  </button>
-                                  <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-2">
-                                      <span className={`bill-name font-semibold text-sm truncate ${isPaid ? 'line-through text-zinc-500' : 'text-white'}`}>
-                                        {isPaid ? '💜 ' : `${billEmoji} `}{bill.name}
-                                      </span>
-                                    </div>
-                                    <span className="text-xs text-zinc-500 block">
-                                      Due {formatDate(dueFullDate, 'short')}
-                                    </span>
-                                  </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleBillPaid(bill.id, payday.date);
+                                  }}
+                                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                                    isPaid ? 'bg-purple-600 border-purple-600' : 'border-zinc-600 hover:border-zinc-400'
+                                  }`}
+                                  title={isPaid ? "Mark Unpaid" : "Mark Paid"}
+                                >
+                                  {isPaid && <span className="text-white text-xs font-bold">✓</span>}
+                                </button>
+                                
+                                <div className="flex-1 min-w-0 overflow-hidden">
+                                  <p className={`text-[14px] font-bold truncate ${isPaid ? 'line-through text-zinc-500' : 'text-white'}`}>
+                                    {isPaid ? '💜 ' : `${billEmoji} `}{bill.name}
+                                  </p>
+                                  <p className="text-[11px] text-zinc-500 truncate">
+                                    Due {formatDate(dueFullDate, 'short')}
+                                  </p>
                                 </div>
 
-                                <div className="text-right shrink-0 ml-3">
-                                  <div className={`font-bold text-sm ${isPaid ? 'text-zinc-500 line-through' : 'text-white'}`}>
+                                <div className="shrink-0 text-right min-w-0">
+                                  <p className={`text-[15px] font-bold ${isPaid ? 'text-zinc-500 line-through' : 'text-white'}`}>
                                     {formatCurrency(effectiveAmount)}
-                                  </div>
-                                  <div className="text-[11px] text-purple-400 capitalize">
+                                  </p>
+                                  <p className="text-[10px] text-purple-400 capitalize truncate">
                                     {bill.type || 'fixed'}
-                                  </div>
+                                  </p>
                                 </div>
                               </div>
                             );
@@ -344,24 +336,24 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                       {(() => {
                         const allPaid = assignedBills.length > 0 && assignedBills.every(b => b.isPaid);
                         return (
-                          <div className="grid grid-cols-2 gap-3 mt-4">
+                          <div className="grid grid-cols-2 gap-2 mt-3 w-full max-w-full">
                             <button
                               onClick={() => openModal(summary)}
-                              className="h-[48px] rounded-full bg-[#7C3AED] hover:bg-purple-700 text-white font-bold text-[14px] transition-all cursor-pointer shadow-md"
+                              className="h-[44px] rounded-full bg-[#7C3AED] hover:bg-purple-700 text-white font-bold text-[13px] transition-all cursor-pointer shadow-md truncate"
                             >
                               Edit Bills
                             </button>
                             {allPaid ? (
                               <button
                                 onClick={() => unmarkAllBillsPaidInPayday(payday.date)}
-                                className="h-[48px] rounded-full bg-[#1e1e1e] hover:bg-zinc-700 border border-zinc-700 text-white font-bold text-[14px] flex items-center justify-center gap-1 transition-all cursor-pointer"
+                                className="h-[44px] rounded-full bg-[#1e1e1e] hover:bg-zinc-700 border border-zinc-700 text-white font-bold text-[13px] flex items-center justify-center gap-1 transition-all cursor-pointer truncate px-1"
                               >
                                 ↩️ Unmark All Paid
                               </button>
                             ) : (
                               <button
                                 onClick={() => markAllBillsPaidInPayday(payday.date)}
-                                className="h-[48px] rounded-full bg-[#1e1e1e] hover:bg-zinc-700 border border-zinc-700 text-white font-bold text-[14px] flex items-center justify-center gap-1 transition-all cursor-pointer"
+                                className="h-[44px] rounded-full bg-[#1e1e1e] hover:bg-zinc-700 border border-zinc-700 text-white font-bold text-[13px] flex items-center justify-center gap-1 transition-all cursor-pointer truncate px-1"
                               >
                                 ✅ Mark All Paid
                               </button>
@@ -373,8 +365,8 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                   )}
 
                   {!isExpanded && assignedBills.length > 0 && (
-                    <div className="mt-2 text-[12px] text-zinc-500">
-                      {assignedBills.length} bills • Due total: {formatCurrency(totalBills)} • Tap to expand
+                    <div className="mt-1.5 text-[11px] text-zinc-500 truncate">
+                      {assignedBills.length} bills • {formatCurrency(totalBills)} • Tap to expand
                     </div>
                   )}
                 </div>
