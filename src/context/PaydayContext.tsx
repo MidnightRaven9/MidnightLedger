@@ -773,9 +773,42 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const importData = (jsonStr: string): boolean => {
     try {
       const parsed = JSON.parse(jsonStr);
+      if (!parsed.version || parsed.version !== '1.0') {
+        console.error('Invalid import version');
+        return false;
+      }
+      if (!Array.isArray(parsed.bills)) return false;
+      if (parsed.bills.length > 500) return false; // DoS limit
+
+      const sanitizeBills = (bills: any[]) => bills.map(b => ({
+        ...b,
+        id: /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(b.id) ? b.id : crypto.randomUUID(),
+        name: String(b.name || '').slice(0, 100).replace(/[<>]/g, ''),
+        amount: Math.min(1000000, Math.max(0, Number(b.amount) || 0)),
+        due_day: Math.min(31, Math.max(1, parseInt(b.due_day || b.dueDay || 1))),
+        category: String(b.category || 'Other').slice(0, 50),
+        recurring: String(b.recurring || 'monthly').slice(0, 20)
+      }));
+
+      if (Array.isArray(parsed.bills)) setBills(sanitizeBills(parsed.bills));
+      if (Array.isArray(parsed.paychecks)) {
+        const cleanPays = parsed.paychecks.map((p: any) => ({
+          ...p,
+          id: /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(p.id) ? p.id : crypto.randomUUID(),
+          date: String(p.date || '').slice(0, 20),
+          amount: Math.min(1000000, Math.max(0, Number(p.amount || p.estimatedAmount || 0)))
+        }));
+        setPaydays(cleanPays);
+      } else if (Array.isArray(parsed.paydays)) {
+        const cleanPays = parsed.paydays.map((p: any) => ({
+          ...p,
+          id: /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(p.id) ? p.id : crypto.randomUUID(),
+          date: String(p.date || '').slice(0, 20),
+          amount: Math.min(1000000, Math.max(0, Number(p.amount || p.estimatedAmount || 0)))
+        }));
+        setPaydays(cleanPays);
+      }
       if (parsed.schedule) setSchedule(parsed.schedule);
-      if (Array.isArray(parsed.paydays)) setPaydays(parsed.paydays);
-      if (Array.isArray(parsed.bills)) setBills(parsed.bills);
       if (Array.isArray(parsed.extraExpenses)) setExtraExpenses(parsed.extraExpenses);
       if (Array.isArray(parsed.extraIncomes)) setExtraIncomes(parsed.extraIncomes);
       if (parsed.variableOverrides) setVariableOverrides(parsed.variableOverrides);
@@ -783,7 +816,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       if (parsed.paidStatuses) setPaidStatuses(parsed.paidStatuses);
       return true;
     } catch (e) {
-      console.error('Invalid import JSON', e);
+      console.error('Import failed', e);
       return false;
     }
   };

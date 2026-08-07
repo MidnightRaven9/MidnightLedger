@@ -96,10 +96,27 @@ startServer();
 export default {
   async fetch(request: Request, env: any): Promise<Response> {
     const url = new URL(request.url);
-    const ALLOWED_ORIGIN = "https://midnightledger.justicegraff6.workers.dev";
-    
+    const ALLOWED_ORIGINS = (env.ALLOWED_ORIGINS?.split(',') || [
+      "https://midnightledger.justicegraff6.workers.dev",
+      "http://localhost:5173",
+      "http://localhost:3000"
+    ]).map((s: string) => s.trim());
+
+    function isOriginAllowed(originStr: string) {
+      if (!originStr) return true; // allow same-origin / mobile / curl
+      return ALLOWED_ORIGINS.includes(originStr) || ALLOWED_ORIGINS.includes('*');
+    }
+
+    const origin = request.headers.get('Origin') || "";
+    if (origin && !isOriginAllowed(origin)) {
+      return new Response(JSON.stringify({ error: 'forbidden origin' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const corsHeaders = {
-      "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+      "Access-Control-Allow-Origin": isOriginAllowed(origin) ? (origin || ALLOWED_ORIGINS[0]) : ALLOWED_ORIGINS[0],
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, x-user-id",
       "Access-Control-Max-Age": "86400",
