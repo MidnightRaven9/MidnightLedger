@@ -2,8 +2,6 @@
 
 Dark-mode budget app for paycheck-to-paycheck planning 🌃 Built for split bills, irregular paydays, and tax estimates 💸📊
 
-Test sync working
-
 ### 🚀 Live Demo
 → https://midnightledger.justicegraff6.workers.dev ✨
 
