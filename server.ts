@@ -8,6 +8,18 @@ import crypto from 'crypto';
 
 dotenv.config();
 
+const rl = new Map();
+function checkRateLimit(key: string) {
+  const now = Date.now();
+  const entry = rl.get(key);
+  if (!entry || now > entry.reset) {
+    rl.set(key, { count: 1, reset: now + 60000 });
+    return false;
+  }
+  entry.count++;
+  return entry.count > 100;
+}
+
 function sanitizeText(input: any, maxLen: number): string {
   if (typeof input !== 'string') return '';
   return input
@@ -119,6 +131,14 @@ startServer();
 
 export default {
   async fetch(request: Request, env: any): Promise<Response> {
+    const clientKey = (request.headers.get('cf-connecting-ip') || 'unknown') + ':' + (request.headers.get('x-user-id') || 'anon');
+    if (checkRateLimit(clientKey)) {
+      return new Response(JSON.stringify({ error: 'Rate limited - try again in 1 min' }), {
+        status: 429,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const url = new URL(request.url);
     const ALLOWED_ORIGINS = (env.ALLOWED_ORIGINS?.split(',') || [
       "https://midnightledger.justicegraff6.workers.dev",
