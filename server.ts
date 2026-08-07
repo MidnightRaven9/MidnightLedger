@@ -126,8 +126,13 @@ export default {
       "http://localhost:3000"
     ]).map((s: string) => s.trim());
 
-    function isOriginAllowed(originStr: string) {
-      if (!originStr) return true; // allow same-origin / mobile / curl
+    function isOriginAllowed(originStr: string): boolean {
+      // Intentionally allow no-Origin: mobile apps, curl, and same-origin requests
+      // don't send Origin header. Security is enforced by strict x-user-id validation
+      // and user_id scoping in DB queries, not by CORS.
+      // CORS only protects browsers from cross-site reads; it is not auth.
+      if (!originStr) return true;
+      
       return ALLOWED_ORIGINS.includes(originStr) || ALLOWED_ORIGINS.includes('*');
     }
 
@@ -146,6 +151,7 @@ export default {
       "Access-Control-Max-Age": "86400",
     };
     
+    // CORS: browser-only protection. Real auth = x-user-id UUID validation
     const withCors = (res: Response) => {
       Object.entries(corsHeaders).forEach(([k,v]) => res.headers.set(k,v));
       return res;
