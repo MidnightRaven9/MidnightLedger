@@ -70,71 +70,116 @@ async function startServer() {
   };
   app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
   app.get('/api/bills', requireUser, (req, res) => {
-    const userId = req.headers['x-user-id'] as string;
-    res.json(db.prepare('SELECT * FROM bills WHERE user_id = ? ORDER BY created_at DESC').all(userId));
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      res.json(db.prepare('SELECT * FROM bills WHERE user_id = ? ORDER BY created_at DESC').all(userId));
+    } catch (err) {
+      console.error('DB error fetching bills:', err);
+      res.status(500).json({ error: 'Failed to fetch bills' });
+    }
   });
   app.post('/api/bills', requireUser, (req, res) => {
-    const userId = req.headers['x-user-id'] as string;
-    const body = req.body || {};
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      const body = req.body || {};
 
-    const VALID_CATEGORIES = ['Housing', 'Utilities', 'Car', 'Insurance', 'Phone', 'Internet', 'Subscriptions', 'Debt', 'Food', 'Health', 'Entertainment', 'Other', 'Savings'] as const;
-    const rawCat = typeof body.category === 'string' ? body.category.trim() : 'Other';
-    const category = (VALID_CATEGORIES as readonly string[]).includes(rawCat) ? rawCat : 'Other';
+      const VALID_CATEGORIES = ['Housing', 'Utilities', 'Car', 'Insurance', 'Phone', 'Internet', 'Subscriptions', 'Debt', 'Food', 'Health', 'Entertainment', 'Other', 'Savings'] as const;
+      const rawCat = typeof body.category === 'string' ? body.category.trim() : 'Other';
+      const category = (VALID_CATEGORIES as readonly string[]).includes(rawCat) ? rawCat : 'Other';
 
-    const name = sanitizeText(body.name, 100);
-    if (!name) return res.status(400).json({ error: 'name required' });
+      const name = sanitizeText(body.name, 100);
+      if (!name) return res.status(400).json({ error: 'name required' });
 
-    if (typeof body.amount !== 'number' || body.amount < 0 || body.amount > 1000000) return res.status(400).json({ error: 'invalid amount' });
+      if (typeof body.amount !== 'number' || body.amount < 0 || body.amount > 1000000) return res.status(400).json({ error: 'invalid amount' });
 
-    const VALID_RECURRING = ['monthly', 'weekly', 'biweekly', 'yearly', 'once'] as const;
-    const recurring = (VALID_RECURRING as readonly string[]).includes(body.recurring) ? body.recurring : 'monthly';
+      const VALID_RECURRING = ['monthly', 'weekly', 'biweekly', 'yearly', 'once'] as const;
+      const recurring = (VALID_RECURRING as readonly string[]).includes(body.recurring) ? body.recurring : 'monthly';
 
-    const billId = isValidId(body.id) ? body.id.toLowerCase() : crypto.randomUUID();
-    const day = Math.min(31, Math.max(1, parseInt(body.due_day || body.dueDay || 1)));
-    db.prepare(`INSERT INTO bills (id, user_id, name, amount, due_day, category, recurring) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET name=excluded.name, amount=excluded.amount, due_day=excluded.due_day, category=excluded.category, recurring=excluded.recurring`).run(billId, userId, name, body.amount, day, category, recurring);
-    res.json({ ok: true, id: billId });
+      const billId = isValidId(body.id) ? body.id.toLowerCase() : crypto.randomUUID();
+      const day = Math.min(31, Math.max(1, parseInt(body.due_day || body.dueDay || 1)));
+      db.prepare(`INSERT INTO bills (id, user_id, name, amount, due_day, category, recurring) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET name=excluded.name, amount=excluded.amount, due_day=excluded.due_day, category=excluded.category, recurring=excluded.recurring`).run(billId, userId, name, body.amount, day, category, recurring);
+      res.json({ ok: true, id: billId });
+    } catch (err) {
+      console.error('DB error saving bill:', err);
+      res.status(500).json({ error: 'Failed to save bill' });
+    }
   });
   app.delete('/api/bills/:id', requireUser, (req, res) => {
-    const userId = req.headers['x-user-id'] as string;
-    db.prepare('DELETE FROM bills WHERE id = ? AND user_id = ?').run(req.params.id, userId);
-    res.json({ ok: true });
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      db.prepare('DELETE FROM bills WHERE id = ? AND user_id = ?').run(req.params.id, userId);
+      res.json({ ok: true });
+    } catch (err) {
+      console.error('DB error deleting bill:', err);
+      res.status(500).json({ error: 'Failed to delete bill' });
+    }
   });
   app.get('/api/paychecks', requireUser, (req, res) => {
-    const userId = req.headers['x-user-id'] as string;
-    res.json(db.prepare('SELECT * FROM paychecks WHERE user_id = ? ORDER BY date DESC').all(userId));
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      res.json(db.prepare('SELECT * FROM paychecks WHERE user_id = ? ORDER BY date DESC').all(userId));
+    } catch (err) {
+      console.error('DB error fetching paychecks:', err);
+      res.status(500).json({ error: 'Failed to fetch paychecks' });
+    }
   });
   app.post('/api/paychecks', requireUser, (req, res) => {
-    const userId = req.headers['x-user-id'] as string;
-    const { id, date, amount, estimatedAmount, allocated } = req.body || {};
-    if (!isValidISODate(date)) {
-      return res.status(400).json({ error: 'invalid date - must be YYYY-MM-DD' });
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      const { id, date, amount, estimatedAmount, allocated } = req.body || {};
+      if (!isValidISODate(date)) {
+        return res.status(400).json({ error: 'invalid date - must be YYYY-MM-DD' });
+      }
+      const safeDate = date.slice(0, 10);
+      const payId = isValidId(id) ? id.toLowerCase() : crypto.randomUUID();
+      const payAmount = amount ?? estimatedAmount ?? 0;
+      if (typeof payAmount !== 'number' || payAmount < 0 || payAmount > 1000000) return res.status(400).json({ error: 'invalid amount' });
+      db.prepare(`INSERT INTO paychecks (id, user_id, date, amount, allocated) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET date=excluded.date, amount=excluded.amount, allocated=excluded.allocated`).run(payId, userId, safeDate, payAmount, allocated || 0);
+      res.json({ ok: true, id: payId });
+    } catch (err) {
+      console.error('DB error saving paycheck:', err);
+      res.status(500).json({ error: 'Failed to save paycheck' });
     }
-    const safeDate = date.slice(0, 10);
-    const payId = isValidId(id) ? id.toLowerCase() : crypto.randomUUID();
-    const payAmount = amount ?? estimatedAmount ?? 0;
-    if (typeof payAmount !== 'number' || payAmount < 0 || payAmount > 1000000) return res.status(400).json({ error: 'invalid amount' });
-    db.prepare(`INSERT INTO paychecks (id, user_id, date, amount, allocated) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET date=excluded.date, amount=excluded.amount, allocated=excluded.allocated`).run(payId, userId, safeDate, payAmount, allocated || 0);
-    res.json({ ok: true, id: payId });
   });
   app.delete('/api/paychecks/:id', requireUser, (req, res) => {
-    const userId = req.headers['x-user-id'] as string;
-    db.prepare('DELETE FROM paychecks WHERE id = ? AND user_id = ?').run(req.params.id, userId);
-    res.json({ ok: true });
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      db.prepare('DELETE FROM paychecks WHERE id = ? AND user_id = ?').run(req.params.id, userId);
+      res.json({ ok: true });
+    } catch (err) {
+      console.error('DB error deleting paycheck:', err);
+      res.status(500).json({ error: 'Failed to delete paycheck' });
+    }
   });
   app.get('/api/allocations', requireUser, (req, res) => {
-    const userId = req.headers['x-user-id'] as string;
-    res.json(db.prepare('SELECT * FROM allocations WHERE user_id = ?').all(userId));
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      res.json(db.prepare('SELECT * FROM allocations WHERE user_id = ?').all(userId));
+    } catch (err) {
+      console.error('DB error fetching allocations:', err);
+      res.status(500).json({ error: 'Failed to fetch allocations' });
+    }
   });
   app.post('/api/allocations', requireUser, (req, res) => {
-    const userId = req.headers['x-user-id'] as string;
-    const { id, paycheck_id, bill_id, amount, paid, paid_date } = req.body || {};
-    const allocId = isValidId(id) ? id.toLowerCase() : crypto.randomUUID();
-    db.prepare(`INSERT INTO allocations (id, user_id, paycheck_id, bill_id, amount, paid, paid_date) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET amount=excluded.amount, paid=excluded.paid, paid_date=excluded.paid_date`).run(allocId, userId, paycheck_id, bill_id, amount || 0, paid ? 1 : 0, paid_date || null);
-    res.json({ ok: true, id: allocId });
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      const { id, paycheck_id, bill_id, amount, paid, paid_date } = req.body || {};
+      const allocId = isValidId(id) ? id.toLowerCase() : crypto.randomUUID();
+      db.prepare(`INSERT INTO allocations (id, user_id, paycheck_id, bill_id, amount, paid, paid_date) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET amount=excluded.amount, paid=excluded.paid, paid_date=excluded.paid_date`).run(allocId, userId, paycheck_id, bill_id, amount || 0, paid ? 1 : 0, paid_date || null);
+      res.json({ ok: true, id: allocId });
+    } catch (err) {
+      console.error('DB error saving allocation:', err);
+      res.status(500).json({ error: 'Failed to save allocation' });
+    }
   });
   app.get('/api/history', requireUser, (req, res) => {
-    const userId = req.headers['x-user-id'] as string;
-    res.json(db.prepare('SELECT * FROM history WHERE user_id = ?').all(userId));
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      res.json(db.prepare('SELECT * FROM history WHERE user_id = ?').all(userId));
+    } catch (err) {
+      console.error('DB error fetching history:', err);
+      res.status(500).json({ error: 'Failed to fetch history' });
+    }
   });
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' });
