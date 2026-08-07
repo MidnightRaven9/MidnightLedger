@@ -31,6 +31,17 @@ function sanitizeText(input: any, maxLen: number): string {
     .replace(/\s{2,}/g, ' ');
 }
 
+function isValidISODate(s: any): boolean {
+  if (typeof s !== 'string') return false;
+  // Must be YYYY-MM-DD
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return false;
+  // Check it didn't roll over (Feb 30 -> Mar 2)
+  const [y, m, day] = s.split('-').map(Number);
+  return d.getUTCFullYear() === y && (d.getUTCMonth() + 1) === m && d.getUTCDate() === day;
+}
+
 const db = new DatabaseSync('./midnightledger.db');
 db.exec(`
 CREATE TABLE IF NOT EXISTS users ( id TEXT PRIMARY KEY, created_at DATETIME DEFAULT CURRENT_TIMESTAMP );
@@ -90,13 +101,15 @@ async function startServer() {
   });
   app.post('/api/paychecks', requireUser, (req, res) => {
     const userId = req.headers['x-user-id'] as string;
-    const { id, date: rawDate, amount, estimatedAmount, allocated } = req.body || {};
-    const date = sanitizeText(rawDate, 20);
-    if (!date) return res.status(400).json({ error: 'invalid date' });
-    const payId = id && /^[a-zA-Z0-9-_]{5,100}$/.test(id) ? id : crypto.randomUUID();
+    const { id, date, amount, estimatedAmount, allocated } = req.body || {};
+    if (!isValidISODate(date)) {
+      return res.status(400).json({ error: 'invalid date - must be YYYY-MM-DD' });
+    }
+    const safeDate = date.slice(0, 10);
+    const payId = id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(id) ? id : crypto.randomUUID();
     const payAmount = amount ?? estimatedAmount ?? 0;
     if (typeof payAmount !== 'number' || payAmount < 0 || payAmount > 1000000) return res.status(400).json({ error: 'invalid amount' });
-    db.prepare(`INSERT INTO paychecks (id, user_id, date, amount, allocated) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET date=excluded.date, amount=excluded.amount, allocated=excluded.allocated`).run(payId, userId, date, payAmount, allocated || 0);
+    db.prepare(`INSERT INTO paychecks (id, user_id, date, amount, allocated) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET date=excluded.date, amount=excluded.amount, allocated=excluded.allocated`).run(payId, userId, safeDate, payAmount, allocated || 0);
     res.json({ ok: true, id: payId });
   });
   app.delete('/api/paychecks/:id', requireUser, (req, res) => {
@@ -231,16 +244,16 @@ export default {
         }
         if (url.pathname === '/api/paychecks' && request.method === 'POST') {
           const body: any = await request.json();
-          const date = sanitizeText(body.date, 20);
-          if (!date) {
-            return withCors(Response.json({ error: 'invalid date' }, { status: 400 }));
+          if (!isValidISODate(body.date)) {
+            return withCors(Response.json({ error: 'invalid date - must be YYYY-MM-DD' }, { status: 400 }));
           }
-          const payId = body.id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.id) ? body.id : crypto.randomUUID();
+          const safeDate = body.date.slice(0, 10);
+          const payId = body.id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(body.id) ? body.id : crypto.randomUUID();
           const amount = typeof body.amount === 'number' ? body.amount : (body.estimatedAmount || 0);
           if (amount < 0 || amount > 1000000) return withCors(Response.json({error: 'invalid amount'}, {status: 400}));
           
           await env.DB.prepare('INSERT INTO paychecks (id, user_id, date, amount, allocated) VALUES (?, ?, ?, ?, ?)')
-            .bind(payId, userId, date, amount, body.allocated || 0).run();
+            .bind(payId, userId, safeDate, amount, body.allocated || 0).run();
           return withCors(Response.json({ ok: true, id: payId }));
         }
         if (url.pathname === '/api/allocations' && request.method === 'GET') {
