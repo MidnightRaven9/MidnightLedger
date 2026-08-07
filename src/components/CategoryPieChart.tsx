@@ -15,6 +15,8 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
   extraExpenses = [],
   height = 260,
 }) => {
+  const [isPieActive, setIsPieActive] = React.useState(false);
+
   // Aggregate bills & tracked expenses by category for current pay period
   const categoryDataMap: Record<string, number> = {};
   const categoryItemsMap: Record<string, { name: string; myShare: number; fullTotal?: number; isSplit?: boolean }[]> = {};
@@ -78,53 +80,34 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
 
   // Custom tooltip component
   const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-[#121212] text-white p-3.5 rounded-2xl border border-[#2A2A2A] shadow-2xl text-xs space-y-2 max-w-xs z-50">
-          <div className="flex items-center gap-2 font-bold border-b border-[#2A2A2A] pb-1.5">
+    if (!active || !payload?.length) return null;
+    const data = payload[0].payload;
+    return (
+      <div className="rounded-2xl bg-[#111] border border-zinc-800 p-3 min-w-[160px] max-w-[200px] shadow-xl z-50">
+        <div className="flex justify-between gap-3">
+          <span className="flex items-center gap-1.5 text-[12px] font-bold text-white truncate">
             <span
-              className="w-2.5 h-2.5 rounded-full inline-block"
-              style={{ backgroundColor: data.color }}
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{ backgroundColor: data.color || payload[0].fill }}
             />
-            <span>{data.name}</span>
-            <span className="ml-auto text-[#A78BFA] font-extrabold text-sm">
-              {formatCurrency(data.value)}
-            </span>
-          </div>
-
-          <div className="text-white/60 text-[11px]">
-            {data.percentage}% of current check bills (My Share)
-          </div>
-
-          {data.bills.length > 0 && (
-            <div className="space-y-1 pt-1 border-t border-[#2A2A2A]">
-              {data.bills.map((b: any, idx: number) => (
-                <div key={idx} className="flex justify-between items-center text-[11px] text-white/80">
-                  <span className="truncate max-w-[140px]">{b.name}:</span>
-                  <span className="font-mono font-medium">
-                    {formatCurrency(b.myShare)}
-                    {b.isSplit && (
-                      <span className="text-[10px] text-[#C084FC] ml-1">
-                        (Full: {formatCurrency(b.fullTotal)})
-                      </span>
-                    )}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
+            {data.name}
+          </span>
+          <span className="text-[12px] font-bold text-purple-400 shrink-0">
+            ${data.value}.00
+          </span>
         </div>
-      );
-    }
-    return null;
+        <p className="text-[11px] text-zinc-400 mt-1 truncate">
+          {data.percentage}% of current check
+        </p>
+      </div>
+    );
   };
 
   return (
-    <div className="w-full flex flex-col md:flex-row items-center gap-4">
-      <div className="w-full md:w-1/2 h-56 relative">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
+    <div className="w-full flex flex-col md:flex-row items-center gap-4 min-w-0 max-w-full overflow-hidden">
+      <div className="w-full md:w-1/2 h-[220px] relative min-w-0 max-w-full">
+        <ResponsiveContainer width="100%" height={220} className="min-w-0 max-w-full" style={{ outline: 'none' }}>
+          <PieChart style={{ outline: 'none' }}>
             <Pie
               data={chartData}
               cx="50%"
@@ -133,17 +116,26 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
               outerRadius={80}
               paddingAngle={3}
               dataKey="value"
+              stroke="none"
+              style={{ outline: 'none' }}
+              onMouseEnter={() => setIsPieActive(true)}
+              onMouseLeave={() => setIsPieActive(false)}
             >
               {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                <Cell key={`cell-${index}`} fill={entry.color} stroke="none" style={{ outline: 'none' }} />
               ))}
             </Pie>
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip
+              content={<CustomTooltip />}
+              position={{ y: 0 }}
+              offset={15}
+              wrapperStyle={{ zIndex: 50, outline: 'none', border: 'none' }}
+            />
           </PieChart>
         </ResponsiveContainer>
         
         {/* Center label inside Donut */}
-        <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-center">
+        <div className={`absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-center transition-opacity duration-150 ${isPieActive ? 'opacity-0' : 'opacity-100'}`}>
           <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wider">My Share</span>
           <span className="text-sm font-extrabold text-white">
             {formatCurrency(totalPeriodAmount)}
@@ -152,25 +144,25 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
       </div>
 
       {/* Legend list */}
-      <div className="w-full md:w-1/2 space-y-2 max-h-56 overflow-y-auto pr-1">
+      <div className="w-full md:w-1/2 space-y-2 max-h-56 overflow-y-auto pr-1 min-w-0 max-w-full">
         {chartData.map((item) => (
           <div
             key={item.name}
-            className="flex items-center justify-between text-xs p-2 rounded-xl bg-[#1E1E1E]/50 border border-transparent hover:border-[#2A2A2A] hover:bg-[#1E1E1E] transition-colors group"
+            className="flex justify-between items-center gap-2 w-full min-w-0 p-3 rounded-2xl bg-[#1a1a1a] border border-zinc-800/50"
             title={item.bills.map(b => b.isSplit ? `${b.name}: ${formatCurrency(b.myShare)} (Full: ${formatCurrency(b.fullTotal)})` : `${b.name}: ${formatCurrency(b.myShare)}`).join(', ')}
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <span
                 className="w-2.5 h-2.5 rounded-full shrink-0"
                 style={{ backgroundColor: item.color }}
               />
-              <span className="font-medium text-white/80">
+              <span className="font-medium text-xs text-white/80 truncate">
                 {item.name}
               </span>
             </div>
 
-            <div className="text-right flex items-center gap-2">
-              <span className="font-bold text-white">
+            <div className="text-right flex items-center gap-2 shrink-0">
+              <span className="font-bold text-xs text-white">
                 {formatCurrency(item.value)}
               </span>
               <span className="text-[10px] text-white/50 min-w-8 text-right font-mono">

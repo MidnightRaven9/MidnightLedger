@@ -177,7 +177,7 @@ export const ReportsView: React.FC = () => {
   // Data for Chart C: Future Projection of Money Left Over
   let runningCumulativeBuffer = 0;
   const projectionData = summaries.map((s, index) => {
-    const label = formatDate(s.payday.date, 'short');
+    const shortDate = formatDate(s.payday.date, 'short');
     const income = s.estimatedCheck || 0;
     const outflow = s.totalOutflow;
     const netThisCheck = income - outflow;
@@ -185,7 +185,8 @@ export const ReportsView: React.FC = () => {
 
     return {
       date: s.payday.date,
-      label: `Check #${index + 1} (${label})`,
+      shortLabel: shortDate,
+      fullLabel: `Check #${index + 1} (${shortDate})`,
       'Income': income,
       'Total Bills & Outflow': outflow,
       'Net Left Over': netThisCheck,
@@ -197,16 +198,16 @@ export const ReportsView: React.FC = () => {
   const BarTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-[#121212] text-white p-3 rounded-xl border border-[#2A2A2A] shadow-xl text-xs space-y-1.5 z-50">
-          <div className="font-bold border-b border-[#2A2A2A] pb-1 text-white/70">
+        <div className="bg-[#111111] text-white p-3 rounded-2xl border border-zinc-800 shadow-xl text-xs space-y-1.5 z-50 pointer-events-none max-w-[220px]">
+          <div className="font-bold border-b border-zinc-800 pb-1 text-zinc-400">
             Paycheck: {label}
           </div>
           {payload.map((item: any, idx: number) => (
-            <div key={idx} className="flex items-center justify-between gap-4">
-              <span style={{ color: item.color }} className="font-medium">
+            <div key={idx} className="flex items-center justify-between gap-3">
+              <span style={{ color: item.color }} className="font-medium truncate">
                 {item.name}:
               </span>
-              <span className="font-bold">{formatCurrency(item.value)}</span>
+              <span className="font-bold shrink-0">{formatCurrency(item.value)}</span>
             </div>
           ))}
         </div>
@@ -216,13 +217,11 @@ export const ReportsView: React.FC = () => {
   };
 
   // Custom Tooltip for Line Chart
-  const LineTooltip = ({ active, payload, label }: any) => {
+  const LineTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
-      const netLeftOverObj = payload.find((p: any) => p.dataKey === 'Net Left Over');
-      const cumulativeBufferObj = payload.find((p: any) => p.dataKey === 'Cumulative Buffer');
-      
-      const netVal = netLeftOverObj ? netLeftOverObj.value : 0;
-      const cumVal = cumulativeBufferObj ? cumulativeBufferObj.value : 0;
+      const data = payload[0].payload;
+      const netVal = data['Net Left Over'];
+      const cumVal = data['Cumulative Buffer'];
       
       const netColor = netVal < 0 ? '#FF4D6A' : '#A78BFA';
       const cumColor = '#00FF94';
@@ -231,26 +230,24 @@ export const ReportsView: React.FC = () => {
       const formattedCum = cumVal < 0 ? `-$${Math.abs(cumVal)}` : `$${cumVal}`;
 
       return (
-        <div className="relative bg-[#0F0F15] text-white p-3.5 rounded-xl border border-[#7C3AED] shadow-2xl text-xs space-y-1.5 z-50">
-          <div className="font-black pb-1 text-white border-b border-[#2A2A2A]">
-            {label}
+        <div className="bg-[#111111] text-white p-3 rounded-2xl border border-zinc-800 shadow-2xl text-xs space-y-1.5 z-50 pointer-events-none max-w-[220px]">
+          <div className="font-bold pb-1 text-white border-b border-zinc-800">
+            {data.fullLabel || data.shortLabel}
           </div>
           <div className="space-y-1 font-sans">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-white/70 font-medium">Net Left Over:</span>
-              <span style={{ color: netColor }} className="font-bold">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-zinc-400 font-medium truncate">Net Left Over:</span>
+              <span style={{ color: netColor }} className="font-bold shrink-0">
                 {formattedNet}
               </span>
             </div>
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-white/70 font-medium">Cumulative:</span>
-              <span style={{ color: cumColor }} className="font-bold">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-zinc-400 font-medium truncate">Cumulative:</span>
+              <span style={{ color: cumColor }} className="font-bold shrink-0">
                 {formattedCum}
               </span>
             </div>
           </div>
-          {/* Small arrow pointing down to data point */}
-          <div className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-3 h-3 bg-[#0F0F15] border-r border-b border-[#7C3AED] rotate-45" />
         </div>
       );
     }
@@ -258,67 +255,57 @@ export const ReportsView: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-3 sm:p-6 pb-28 space-y-5">
+    <div className="w-full min-w-0 max-w-full overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white pb-[100px] space-y-4">
       
-      {/* 1. Page Hero Card */}
-      <div className="rounded-[28px] sm:rounded-[32px] border border-zinc-800/50 bg-[#121212] p-6 sm:p-7 space-y-5">
-        <div className="flex gap-4 items-start">
-          <div className="w-14 h-14 rounded-2xl bg-[#7C3AED]/20 flex items-center justify-center shrink-0">
-            <BarChart2 className="w-7 h-7 text-[#A78BFA]" />
-          </div>
-          <div>
-            <h1 className="text-[30px] leading-[1.1] font-black tracking-tight text-white">
-              Budget Analytics
-            </h1>
-            <p className="text-[15px] leading-6 text-zinc-400 mt-3 max-w-[90%]">
-              Visual breakdown of your category allocations, income vs expense balance, and projected net left over.
-            </p>
-          </div>
-        </div>
+      {/* 1. Header Section */}
+      <div className="w-full min-w-0 max-w-full px-4 pt-4">
+        <h1 className="text-[28px] font-black text-white leading-none tracking-tight">Analytics</h1>
+        <p className="text-[13px] text-zinc-400 mt-2 leading-[1.4] max-w-[320px]">
+          Visual breakdown of your category allocations, income vs expense balance, and projected net left over.
+        </p>
+      </div>
 
-        {/* Category Filter inside hero */}
-        <div className="flex items-center gap-2 bg-[#1E1E1E] p-2 rounded-2xl border border-zinc-800">
-          <Filter className="w-4 h-4 text-[#A78BFA]" />
-          <span className="text-xs font-semibold text-white/70">Category Filter:</span>
-          <select
-            value={selectedCategory}
-            onChange={e => setSelectedCategory(e.target.value)}
-            className="flex-1 px-3 py-1.5 rounded-xl border border-[#2A2A2A] bg-[#121212] text-white text-xs font-medium focus:outline-none focus:border-[#7C3AED]"
-          >
-            <option value="ALL">All Categories</option>
-            {CATEGORIES_LIST.map(cat => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-        </div>
+      {/* Filter Row */}
+      <div className="mx-3 p-2.5 rounded-full bg-[#181818] border border-zinc-800/50 flex items-center gap-2 w-auto min-w-0">
+        <span className="shrink-0 text-[11px] font-bold text-zinc-500 pl-2">▽ Filter:</span>
+        <select
+          value={selectedCategory}
+          onChange={e => setSelectedCategory(e.target.value)}
+          className="flex-1 min-w-0 h-8 rounded-full bg-[#252525] px-3 text-[13px] font-bold text-white truncate appearance-none focus:outline-none cursor-pointer"
+        >
+          <option value="ALL">All Categories</option>
+          {CATEGORIES_LIST.map(cat => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* CHART A SECTION */}
-      <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2A2A2A] pb-4">
+      <div className="mx-3 rounded-[24px] border border-zinc-800/50 bg-[#121212] p-4 sm:p-6 space-y-4 w-auto min-w-0 overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800/60 pb-3">
           <div>
             <div className="flex items-center gap-2 text-white font-extrabold text-base">
               <PieChartIcon className="w-5 h-5 text-[#A78BFA]" />
               Chart A — Category Allocation
             </div>
-            <p className="text-xs text-white/60">
+            <p className="text-xs text-zinc-400 mt-0.5">
               Interactive percentage & dollar breakdown of bills for selected check.
             </p>
           </div>
 
           {/* Payday Selector dropdown */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-white/50">Check:</span>
+          <div className="flex items-center gap-2 w-full min-w-0 mt-2 sm:mt-0">
+            <span className="shrink-0 text-[13px] text-zinc-500">Check:</span>
             <select
               value={selectedPaydayDate}
               onChange={e => setSelectedPaydayDate(e.target.value)}
-              className="px-3 py-1.5 rounded-xl border border-[#2A2A2A] bg-[#1E1E1E] text-white text-xs font-semibold focus:outline-none focus:border-[#7C3AED]"
+              className="flex-1 min-w-0 h-9 rounded-full bg-[#1e1e1e] border border-zinc-800 px-3 text-[13px] font-bold text-white truncate appearance-none focus:outline-none cursor-pointer"
             >
               {summaries.map(s => (
                 <option key={s.payday.date} value={s.payday.date} className="bg-[#121212]">
-                  {formatDate(s.payday.date, 'medium')} ({formatCurrency(s.totalBills)} due)
+                  {formatDate(s.payday.date, 'short')} ({formatCurrency(s.totalBills)} due)
                 </option>
               ))}
             </select>
@@ -328,32 +315,32 @@ export const ReportsView: React.FC = () => {
         <CategoryPieChart
           assignedBills={filteredAssignedBills}
           extraExpenses={activeSummary ? activeSummary.extraExpenses.filter(e => selectedCategory === 'ALL' || e.category === selectedCategory) : []}
-          height={280}
+          height={260}
         />
 
-        <div className="mt-4 pt-4 border-t border-[#2A2A2A]">
-          <span className="text-[11px] font-bold text-white/40 uppercase tracking-wider block mb-3">
+        <div className="mt-4 pt-4 border-t border-zinc-800/60">
+          <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-3">
             Category Breakdown List (Selected Payday)
           </span>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {activePeriodCategoriesList.length === 0 ? (
-              <p className="text-xs text-white/50 italic py-1 col-span-2">No spending in this period.</p>
+              <p className="text-xs text-zinc-500 italic py-1 col-span-2">No spending in this period.</p>
             ) : (
               activePeriodCategoriesList.map(cat => (
-                <div key={cat.name} className="p-3 rounded-xl bg-[#1E1E1E]/60 border border-[#2A2A2A]/40 flex items-center justify-between animate-in fade-in slide-in-from-bottom-2 duration-150">
-                  <div className="flex items-center gap-2">
+                <div key={cat.name} className="flex justify-between items-center gap-2 w-full min-w-0 p-3 rounded-2xl bg-[#1a1a1a] border border-zinc-800/50">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
                     <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
-                    <div>
-                      <span className="text-xs font-bold text-white block">{cat.name}</span>
-                      <span className="text-[10px] text-white/50 block">
+                    <div className="min-w-0 flex-1">
+                      <span className="text-xs font-bold text-white block truncate">{cat.name}</span>
+                      <span className="text-[10px] text-zinc-400 block truncate">
                         {cat.count} item{cat.count !== 1 ? 's' : ''} ({cat.percentage}%)
                       </span>
                     </div>
                   </div>
-                  <div className="text-right flex flex-col">
+                  <div className="text-right flex flex-col shrink-0">
                     <span className="text-sm font-extrabold text-white">{formatCurrency(cat.amount)}</span>
                     {cat.fullAmount > cat.amount && (
-                      <span className="text-[10px] text-white/40 font-semibold">(Full {formatCurrency(cat.fullAmount)})</span>
+                      <span className="text-[10px] text-zinc-500 font-semibold truncate">(Full {formatCurrency(cat.fullAmount)})</span>
                     )}
                   </div>
                 </div>
@@ -364,90 +351,105 @@ export const ReportsView: React.FC = () => {
       </div>
 
       {/* CHART B SECTION */}
-      <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 space-y-4">
-        <div className="border-b border-[#2A2A2A] pb-4">
+      <div className="mx-3 rounded-[24px] border border-zinc-800/50 bg-[#121212] p-4 sm:p-6 space-y-3 w-auto min-w-0 overflow-hidden">
+        <div className="border-b border-zinc-800/60 pb-3">
           <div className="flex items-center gap-2 text-white font-extrabold text-base">
             <BarChart2 className="w-5 h-5 text-[#A78BFA]" />
             Chart B — Income vs Expenses
           </div>
-          <p className="text-xs text-white/60">
+          <p className="text-xs text-zinc-400 mt-0.5">
             Compare expected paycheck income against total obligations across upcoming pay periods.
           </p>
         </div>
 
-        <div className="w-full h-80 pt-2">
-          <ResponsiveContainer width="100%" height="100%">
+        {/* Custom Legend */}
+        <div className="flex gap-4 justify-center items-center py-1 text-[11px] font-bold">
+          <span className="flex items-center gap-1.5 text-zinc-300">
+            <span className="w-3 h-3 bg-[#7C3AED] rounded-xs shrink-0" /> Income
+          </span>
+          <span className="flex items-center gap-1.5 text-zinc-300">
+            <span className="w-3 h-3 bg-[#C084FC] rounded-xs shrink-0" /> Bills
+          </span>
+        </div>
+
+        <div className="w-full min-w-0 h-[260px] bg-[#0a0a0a] rounded-2xl p-2 overflow-hidden border-none outline-none">
+          <ResponsiveContainer width="100%" height={250} style={{ outline: 'none' }}>
             <BarChart
               data={incomeVsExpensesData}
-              margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
+              margin={{ top: 10, right: 8, left: -10, bottom: 20 }}
+              style={{ outline: 'none' }}
             >
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#2A2A2A" opacity={0.6} />
               <XAxis 
                 dataKey="label" 
-                tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11 }}
+                tick={{ fill: '#71717a', fontSize: 10 }}
                 axisLine={{ stroke: '#2A2A2A' }}
+                interval={0}
+                angle={-25}
+                textAnchor="end"
+                height={35}
               />
               <YAxis 
-                tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11 }}
+                tick={{ fill: '#71717a', fontSize: 10 }}
                 axisLine={{ stroke: '#2A2A2A' }}
                 tickFormatter={(val) => `$${val}`}
               />
-              <Tooltip content={<BarTooltip />} />
-              <Legend 
-                verticalAlign="top" 
-                height={36} 
-                wrapperStyle={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}
-              />
-              <Bar dataKey="Income" fill="#7C3AED" radius={[6, 6, 0, 0]} name="Expected Check Income" />
-              <Bar dataKey="Expenses" fill="#C084FC" radius={[6, 6, 0, 0]} name="Total Bills & Expenses" />
+              <Tooltip content={<BarTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+              <Bar dataKey="Income" fill="#7C3AED" barSize={12} radius={[4, 4, 0, 0]} name="Expected Check Income" />
+              <Bar dataKey="Expenses" fill="#C084FC" barSize={12} radius={[4, 4, 0, 0]} name="Total Bills & Expenses" />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       {/* CHART C SECTION */}
-      <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 space-y-4">
-        <div className="border-b border-[#2A2A2A] pb-4">
+      <div className="mx-3 rounded-[24px] border border-zinc-800/50 bg-[#121212] p-4 sm:p-6 space-y-3 w-auto min-w-0 overflow-hidden">
+        <div className="border-b border-zinc-800/60 pb-3">
           <div className="flex items-center gap-2 text-white font-extrabold text-base">
             <TrendingUp className="w-5 h-5 text-[#C084FC]" />
             Chart C — Future Net Left Over
           </div>
-          <p className="text-xs text-white/60">
+          <p className="text-xs text-zinc-400 mt-0.5">
             Projection of remaining net funds and cumulative savings buffer across future paydays.
           </p>
         </div>
 
-        <div className="w-full h-80 pt-2 relative">
-          {/* Legend Overlay at top left inside chart area */}
-          <div className="absolute left-16 top-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-xs font-semibold select-none z-10">
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 border-2 border-dashed border-[#00FF94] bg-transparent shrink-0" />
-              <span className="text-white text-[12px]">Cumulative Buffer Growth</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 bg-[#7C3AED] shrink-0" />
-              <span className="text-white text-[12px]">Net Left Over Per Check</span>
-            </div>
+        {/* Custom Legend Overlay */}
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs font-semibold select-none py-1">
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 border-2 border-dashed border-[#00FF94] bg-transparent shrink-0" />
+            <span className="text-zinc-300 text-[11px]">Cumulative Buffer</span>
           </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 bg-[#7C3AED] shrink-0" />
+            <span className="text-zinc-300 text-[11px]">Net Left Over</span>
+          </div>
+        </div>
 
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="w-full min-w-0 h-[260px] bg-[#0a0a0a] rounded-2xl p-2 overflow-hidden border-none outline-none relative">
+          <ResponsiveContainer width="100%" height={250} style={{ outline: 'none' }}>
             <LineChart
               data={projectionData}
-              margin={{ top: 40, right: 20, left: 0, bottom: 20 }}
+              margin={{ top: 10, right: 8, left: -10, bottom: 20 }}
+              style={{ outline: 'none' }}
             >
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#2A2A2A" opacity={0.25} />
               <XAxis 
-                dataKey="label" 
-                tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11 }}
+                dataKey="shortLabel" 
+                tick={{ fill: '#71717a', fontSize: 10 }}
                 axisLine={{ stroke: '#2A2A2A' }}
+                interval={1}
+                angle={-25}
+                textAnchor="end"
+                height={35}
               />
               <YAxis 
-                tick={{ fill: '#FFFFFF', fontSize: 12 }}
+                tick={{ fill: '#71717a', fontSize: 10 }}
                 axisLine={{ stroke: '#2A2A2A' }}
                 tickFormatter={(val) => val < 0 ? `-$${Math.abs(val)}` : `$${val}`}
               />
-              <Tooltip content={<LineTooltip />} offset={20} />
-              <ReferenceLine y={0} stroke="#FFFFFF" strokeWidth={1} />
+              <Tooltip content={<LineTooltip />} offset={15} cursor={{ stroke: 'rgba(255,255,255,0.1)' }} />
+              <ReferenceLine y={0} stroke="#FFFFFF" strokeWidth={1} opacity={0.4} />
               <Line 
                 type="monotone" 
                 dataKey="Net Left Over" 

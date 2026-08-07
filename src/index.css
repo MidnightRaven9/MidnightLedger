@@ -144,6 +144,25 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 * { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .allocation-card { min-height: auto; overflow: visible; line-height: 1.5; }
 
+/* Recharts Outline & Focus Fix */
+.recharts-wrapper,
+.recharts-surface,
+.recharts-responsive-container,
+.recharts-layer,
+.recharts-sector,
+.recharts-rectangle,
+.recharts-bar-rectangle {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.recharts-wrapper *:focus,
+.recharts-wrapper *:focus-visible {
+  outline: none !important;
+  border: none !important;
+}
+
 @keyframes fall {
   to {
     transform: translateY(100vh) rotate(360deg);
