@@ -7,6 +7,16 @@ import { DatabaseSync } from 'node:sqlite';
 import crypto from 'crypto';
 
 dotenv.config();
+
+function sanitizeText(input: any, maxLen: number): string {
+  if (typeof input !== 'string') return '';
+  return input
+    .trim()
+    .slice(0, maxLen)
+    .replace(/[^a-zA-Z0-9 \-_.$()\/&,.'#]/g, '')
+    .replace(/\s{2,}/g, ' ');
+}
+
 const db = new DatabaseSync('./midnightledger.db');
 db.exec(`
 CREATE TABLE IF NOT EXISTS users ( id TEXT PRIMARY KEY, created_at DATETIME DEFAULT CURRENT_TIMESTAMP );
@@ -40,7 +50,7 @@ async function startServer() {
     const rawCat = typeof body.category === 'string' ? body.category.trim() : 'Other';
     const category = (VALID_CATEGORIES as readonly string[]).includes(rawCat) ? rawCat : 'Other';
 
-    const name = typeof body.name === 'string' ? body.name.trim().slice(0,100).replace(/[<>]/g,'') : '';
+    const name = sanitizeText(body.name, 100);
     if (!name) return res.status(400).json({ error: 'name required' });
 
     if (typeof body.amount !== 'number' || body.amount < 0 || body.amount > 1000000) return res.status(400).json({ error: 'invalid amount' });
@@ -64,12 +74,13 @@ async function startServer() {
   });
   app.post('/api/paychecks', requireUser, (req, res) => {
     const userId = req.headers['x-user-id'] as string;
-    const { id, date, amount, estimatedAmount, allocated } = req.body || {};
-    if (!date || typeof date !== 'string') return res.status(400).json({ error: 'invalid date' });
+    const { id, date: rawDate, amount, estimatedAmount, allocated } = req.body || {};
+    const date = sanitizeText(rawDate, 20);
+    if (!date) return res.status(400).json({ error: 'invalid date' });
     const payId = id && /^[a-zA-Z0-9-_]{5,100}$/.test(id) ? id : crypto.randomUUID();
     const payAmount = amount ?? estimatedAmount ?? 0;
     if (typeof payAmount !== 'number' || payAmount < 0 || payAmount > 1000000) return res.status(400).json({ error: 'invalid amount' });
-    db.prepare(`INSERT INTO paychecks (id, user_id, date, amount, allocated) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET date=excluded.date, amount=excluded.amount, allocated=excluded.allocated`).run(payId, userId, date.slice(0,20), payAmount, allocated || 0);
+    db.prepare(`INSERT INTO paychecks (id, user_id, date, amount, allocated) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET date=excluded.date, amount=excluded.amount, allocated=excluded.allocated`).run(payId, userId, date, payAmount, allocated || 0);
     res.json({ ok: true, id: payId });
   });
   app.delete('/api/paychecks/:id', requireUser, (req, res) => {
@@ -166,7 +177,7 @@ export default {
           const rawCat = typeof body.category === 'string' ? body.category.trim() : 'Other';
           const category = (VALID_CATEGORIES as readonly string[]).includes(rawCat) ? rawCat : 'Other';
 
-          const name = typeof body.name === 'string' ? body.name.trim().slice(0,100).replace(/[<>]/g,'') : '';
+          const name = sanitizeText(body.name, 100);
           if (!name) return withCors(Response.json({ error: 'name required' }, { status: 400 }));
 
           if (typeof body.amount !== 'number' || body.amount < 0 || body.amount > 1000000) {
@@ -189,7 +200,8 @@ export default {
         }
         if (url.pathname === '/api/paychecks' && request.method === 'POST') {
           const body: any = await request.json();
-          if (!body.date || typeof body.date !== 'string') {
+          const date = sanitizeText(body.date, 20);
+          if (!date) {
             return withCors(Response.json({ error: 'invalid date' }, { status: 400 }));
           }
           const payId = body.id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.id) ? body.id : crypto.randomUUID();
@@ -197,7 +209,7 @@ export default {
           if (amount < 0 || amount > 1000000) return withCors(Response.json({error: 'invalid amount'}, {status: 400}));
           
           await env.DB.prepare('INSERT INTO paychecks (id, user_id, date, amount, allocated) VALUES (?, ?, ?, ?, ?)')
-            .bind(payId, userId, body.date.slice(0,20), amount, body.allocated || 0).run();
+            .bind(payId, userId, date, amount, body.allocated || 0).run();
           return withCors(Response.json({ ok: true, id: payId }));
         }
         if (url.pathname === '/api/allocations' && request.method === 'GET') {
