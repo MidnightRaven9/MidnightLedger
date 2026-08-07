@@ -31,8 +31,10 @@ async function startServer() {
   app.use(cors({ origin: ["https://midnightledger.justicegraff6.workers.dev", "http://localhost:5173", "http://localhost:3000"], allowedHeaders: ["Content-Type", "x-user-id"] }));
   app.use(express.json());
   const requireUser = (req: any, res: any, next: any) => {
-    const userId = req.headers['x-user-id'] as string;
-    if (!userId || userId === 'default' || userId.length < 10 || userId.length > 100 || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) {
+    const rawUserId = (req.headers['x-user-id'] as string) || '';
+    const userId = rawUserId.toLowerCase();
+    req.headers['x-user-id'] = userId;
+    if (!userId || userId === 'default' || userId.length < 10 || userId.length > 100 || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(userId)) {
       return res.status(401).json({ error: 'missing or invalid x-user-id' });
     }
     next();
@@ -154,14 +156,15 @@ export default {
     }
 
     if (url.pathname.startsWith('/api/')) {
-      let userId = request.headers.get('x-user-id');
+      const rawUserId = request.headers.get('x-user-id') || '';
+      const userId = rawUserId.toLowerCase();
       
       // Block default/shared user and invalid ids
       if (!userId || userId === 'default' || userId.length < 10 || userId.length > 100) {
         return withCors(Response.json({ error: 'missing or invalid x-user-id' }, { status: 401 }));
       }
       // Basic sanitize userId - only allow valid UUID v4
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) {
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(userId)) {
         return withCors(Response.json({ error: 'invalid user id format' }, { status: 400 }));
       }
 
