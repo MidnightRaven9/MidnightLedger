@@ -3,12 +3,11 @@
 Dark-mode budget app for paycheck-to-paycheck planning 🌃 Built for split bills, irregular paydays, and tax estimates 💸📊
 
 ### 🚀 Live Demo
-→ 💻 https://ai.studio/apps/7f0453b7-b342-442b-94e5-33cdef6ada62 ✨
+→ https://midnightledger.justicegraff6.workers.dev ✨
 
-### 📲 Download 📱💜
-- 🤖 **Android APK:** [Download from Releases](https://github.com/MidnightMarie9/midnight-ledger/releases) 📦✨
-- 💾 Backup Link: [Google Drive](https://drive.google.com/file/d/1fGyyvMCUy5Hf2MXfFOUH8xbhFRzJArkR/view?usp=drivesdk) 🌙
-- 📱 **iPhone/Android PWA:** Open https://ai.studio/apps/7f0453b7-b342-442b-94e5-33cdef6ada62 → Add to Home Screen 💜
+### 📲 Download
+- 🤖 Android APK: https://github.com/MidnightMarie9/MidnightLedger/releases/tag/v2.0 📦✨
+- 📱 PWA: Open live demo → Add to Home Screen
 
 ---
 
@@ -20,7 +19,7 @@ Dark-mode budget app for paycheck-to-paycheck planning 🌃 Built for split bill
 - 💳 **Paycheck Allocation** - See available after bills: `$1,450 available • 3 bills assigned` 💜
 - 💸 **Expenses & Reports** - Track spending per paycheck cycle 📈📉
 - 🕰️ **History** - Past paycheck allocations 📚
-- 🔒 **Local-First** - All data in localStorage, no account needed 🏠
+- 🔒 Cloud-Synced - Bills saved to Cloudflare D1/KV, works offline too ☁️
 - 🌑 **OLED Dark Theme** - True black #0A0A0A with purple #7C3AED accents, PWA installs as "MidnightLedger" 🌙💜🖤
 
 ### 📸 Screenshots
@@ -35,14 +34,15 @@ Dark-mode budget app for paycheck-to-paycheck planning 🌃 Built for split bill
 - 🎨 Tailwind CSS + shadcn/ui ✨
 - ⚡ Vite 🚀
 - 📲 PWA-ready 📱
+- ☁️ Cloudflare Workers + D1 + KV
 
 ### 🏁 Getting Started
 
 ```bash
-git clone https://github.com/MidnightMarie9/midnight-ledger.git
-cd midnight-ledger
-npm install
-npm run dev
+git clone https://github.com/MidnightMarie9/MidnightLedger.git
+cd MidnightLedger
+bun install
+bun run build
 ```
 
 ### 🎨 App Icon
