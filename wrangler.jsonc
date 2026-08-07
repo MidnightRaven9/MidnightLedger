@@ -1,0 +1,16 @@
+{
+  "name": "midnightledger",
+  "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  },
+  "observability": { "enabled": true },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "midnightledger_db", "database_id": "midnightledger_db" }
+  ],
+  "kv_namespaces": [
+    { "binding": "KV", "id": "midnightledger_kv" }
+  ]
+}
