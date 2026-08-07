@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./midnight_ledger_v3_security.png" alt="MidnightLedger v3.0 Security Edition" width="100%">
+</p>
+
 # 🌙 MidnightLedger ✨💜
 
 Dark-mode budget app for paycheck-to-paycheck planning 🌃 Built for split bills, irregular paydays, and tax estimates 💸📊
@@ -6,7 +10,7 @@ Dark-mode budget app for paycheck-to-paycheck planning 🌃 Built for split bill
 → https://midnightledger.justicegraff6.workers.dev ✨
 
 ### 📲 Download
-- 🤖 Android APK: https://github.com/MidnightMarie9/MidnightLedger/releases/tag/v2.0 📦✨
+- 🤖 Android APK: [v3.0 Security Edition](https://github.com/MidnightMarie9/MidnightLedger/releases/tag/v3.0) 🔒✨
 - 📱 PWA: Open live demo → Add to Home Screen
 
 ---
