@@ -1,1 +1,1 @@
-Dark-mode budget for paycheck-to-paycheck planning with split bills
+Offline-first paycheck budgeting app

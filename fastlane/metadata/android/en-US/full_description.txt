@@ -1,1 +1,1 @@
-MidnightLedger is a beautiful dark-themed finance tracker built with React + Vite + Cloudflare D1. Features: Flexible pay periods (biweekly, semi-monthly, custom), split bills by paycheck, tax estimates, paycheck allocation, expenses & reports, history, cloud sync via Cloudflare D1/KV, offline-first, private, no trackers, OLED dark theme #0A0A0A with purple #7C3AED.
+MidnightLedger is an offline-first, private paycheck budgeting app with bill splitting, paycheck allocation, and tax estimates. No trackers, no cloud, fully open source. Built for privacy.
