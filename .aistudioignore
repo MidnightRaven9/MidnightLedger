@@ -1,0 +1,4 @@
+fastlane/metadata/android/en-US/images/phoneScreenshots/
+fastlane/
+*.png
+*.jpg
