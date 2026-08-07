@@ -147,7 +147,7 @@ const migrateBills = (loadedBills: Bill[]): Bill[] => {
     const nameLower = (b.name || '').toLowerCase();
     const isStreamingSub = nameLower.includes('streaming') && nameLower.includes('subscript');
     const isOldName = b.name === 'Streaming Subscriptions' || isStreamingSub;
-    const catIsOld = b.category === 'Streaming Subscriptions';
+    const catIsOld = (b.category as string) === 'Streaming Subscriptions';
     
     if (isOldName || catIsOld) {
       return {

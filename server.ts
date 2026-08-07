@@ -42,6 +42,10 @@ function isValidISODate(s: any): boolean {
   return d.getUTCFullYear() === y && (d.getUTCMonth() + 1) === m && d.getUTCDate() === day;
 }
 
+function isValidId(id: any): boolean {
+  return typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+}
+
 const db = new DatabaseSync('./midnightledger.db');
 db.exec(`
 CREATE TABLE IF NOT EXISTS users ( id TEXT PRIMARY KEY, created_at DATETIME DEFAULT CURRENT_TIMESTAMP );
@@ -85,7 +89,7 @@ async function startServer() {
     const VALID_RECURRING = ['monthly', 'weekly', 'biweekly', 'yearly', 'once'] as const;
     const recurring = (VALID_RECURRING as readonly string[]).includes(body.recurring) ? body.recurring : 'monthly';
 
-    const billId = body.id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.id) ? body.id : crypto.randomUUID();
+    const billId = isValidId(body.id) ? body.id.toLowerCase() : crypto.randomUUID();
     const day = Math.min(31, Math.max(1, parseInt(body.due_day || body.dueDay || 1)));
     db.prepare(`INSERT INTO bills (id, user_id, name, amount, due_day, category, recurring) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET name=excluded.name, amount=excluded.amount, due_day=excluded.due_day, category=excluded.category, recurring=excluded.recurring`).run(billId, userId, name, body.amount, day, category, recurring);
     res.json({ ok: true, id: billId });
@@ -106,7 +110,7 @@ async function startServer() {
       return res.status(400).json({ error: 'invalid date - must be YYYY-MM-DD' });
     }
     const safeDate = date.slice(0, 10);
-    const payId = id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(id) ? id : crypto.randomUUID();
+    const payId = isValidId(id) ? id.toLowerCase() : crypto.randomUUID();
     const payAmount = amount ?? estimatedAmount ?? 0;
     if (typeof payAmount !== 'number' || payAmount < 0 || payAmount > 1000000) return res.status(400).json({ error: 'invalid amount' });
     db.prepare(`INSERT INTO paychecks (id, user_id, date, amount, allocated) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET date=excluded.date, amount=excluded.amount, allocated=excluded.allocated`).run(payId, userId, safeDate, payAmount, allocated || 0);
@@ -124,7 +128,7 @@ async function startServer() {
   app.post('/api/allocations', requireUser, (req, res) => {
     const userId = req.headers['x-user-id'] as string;
     const { id, paycheck_id, bill_id, amount, paid, paid_date } = req.body || {};
-    const allocId = id || crypto.randomUUID();
+    const allocId = isValidId(id) ? id.toLowerCase() : crypto.randomUUID();
     db.prepare(`INSERT INTO allocations (id, user_id, paycheck_id, bill_id, amount, paid, paid_date) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET amount=excluded.amount, paid=excluded.paid, paid_date=excluded.paid_date`).run(allocId, userId, paycheck_id, bill_id, amount || 0, paid ? 1 : 0, paid_date || null);
     res.json({ ok: true, id: allocId });
   });
@@ -231,7 +235,7 @@ export default {
           const VALID_RECURRING = ['monthly', 'weekly', 'biweekly', 'yearly', 'once'] as const;
           const recurring = (VALID_RECURRING as readonly string[]).includes(body.recurring) ? body.recurring : 'monthly';
 
-          const billId = body.id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.id) ? body.id : crypto.randomUUID();
+          const billId = isValidId(body.id) ? body.id.toLowerCase() : crypto.randomUUID();
           const dueDay = Math.min(31, Math.max(1, parseInt(body.due_day || body.dueDate || 1)));
           
           await env.DB.prepare('INSERT INTO bills (id, user_id, name, amount, due_day, category, recurring) VALUES (?, ?, ?, ?, ?, ?, ?)')
@@ -248,7 +252,7 @@ export default {
             return withCors(Response.json({ error: 'invalid date - must be YYYY-MM-DD' }, { status: 400 }));
           }
           const safeDate = body.date.slice(0, 10);
-          const payId = body.id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(body.id) ? body.id : crypto.randomUUID();
+          const payId = isValidId(body.id) ? body.id.toLowerCase() : crypto.randomUUID();
           const amount = typeof body.amount === 'number' ? body.amount : (body.estimatedAmount || 0);
           if (amount < 0 || amount > 1000000) return withCors(Response.json({error: 'invalid amount'}, {status: 400}));
           
@@ -265,7 +269,7 @@ export default {
           const amount = typeof body.amount === 'number' ? body.amount : 0;
           if (amount < 0 || amount > 1000000) return withCors(Response.json({ error: 'invalid amount' }, { status: 400 }));
           
-          const allocId = body.id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.id) ? body.id : crypto.randomUUID();
+          const allocId = isValidId(body.id) ? body.id.toLowerCase() : crypto.randomUUID();
           await env.DB.prepare('INSERT INTO allocations (id, user_id, paycheck_id, bill_id, amount, paid, paid_date) VALUES (?, ?, ?, ?, ?, ?, ?)')
             .bind(allocId, userId, body.paycheck_id, body.bill_id, amount, body.paid ? 1 : 0, body.paid_date || null).run();
           return withCors(Response.json({ ok: true, id: allocId }));
