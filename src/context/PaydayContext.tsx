@@ -25,6 +25,35 @@ const parseKey = (k: string) => {
   return [k.slice(0, idx), k.slice(idx + SPLIT_SEP.length)] as const;
 };
 
+function safeSave(key: string, value: string): boolean {
+  try {
+    // Test quota first
+    const testKey = '__quota_test__' + Date.now();
+    localStorage.setItem(testKey, 'test');
+    localStorage.removeItem(testKey);
+    
+    // Safe to save
+    localStorage.setItem(key, value);
+    return true;
+  } catch (err) {
+    if (err instanceof DOMException && (err.code === 22 || err.name === 'QuotaExceededError')) {
+      console.error('localStorage quota exceeded - data too large');
+      // Try to clear old versions or trim
+      try {
+        localStorage.removeItem('midnightledger_v0');
+        localStorage.removeItem('midnightledger_old');
+        localStorage.setItem(key, value);
+        return true;
+      } catch (e) {
+        alert('Storage full! Please export your data and clear some bills/history.');
+        return false;
+      }
+    }
+    console.error('localStorage save failed', err);
+    return false;
+  }
+}
+
 // Seed sample data
 const DEFAULT_SCHEDULE: PaydaySchedule = {
   frequency: 'biweekly',
@@ -323,8 +352,8 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         excludedOccurrences,
         lastSaved: savedTime,
       };
-      localStorage.setItem('midnightledger_v1', JSON.stringify(stateToSave));
-      localStorage.setItem('midnightledger_extra_income', JSON.stringify(extraIncomes));
+      safeSave('midnightledger_v1', JSON.stringify(stateToSave));
+      safeSave('midnightledger_extra_income', JSON.stringify(extraIncomes));
       setLastSaved(savedTime);
     } catch (err) {
       console.error('Failed to save to local storage', err);
