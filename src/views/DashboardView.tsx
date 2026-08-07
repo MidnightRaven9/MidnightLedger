@@ -340,7 +340,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   let totalPeriodAmount = 0;
 
   assignedBills.forEach(item => {
-    const cat = item.bill.category || 'Other';
+    const rawCat = item.bill.category || 'Other';
+    const cat = (rawCat as string) === 'Streaming Subscriptions' ? 'Subscriptions' : rawCat;
     const myShare = item.effectiveAmount;
     const fullBillAmt = item.bill.isSplit ? (item.bill.fullTotal || item.bill.amount) : myShare;
     categorySummaryMap[cat] = categorySummaryMap[cat] || { amount: 0, fullAmount: 0, count: 0 };
@@ -351,7 +352,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   });
 
   extraExpenses.forEach(exp => {
-    const cat = exp.category || 'Other';
+    const rawCat = exp.category || 'Other';
+    const cat = (rawCat as string) === 'Streaming Subscriptions' ? 'Subscriptions' : rawCat;
     const amt = exp.amount;
     categorySummaryMap[cat] = categorySummaryMap[cat] || { amount: 0, fullAmount: 0, count: 0 };
     categorySummaryMap[cat].amount += amt;

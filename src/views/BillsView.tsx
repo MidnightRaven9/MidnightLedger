@@ -28,7 +28,10 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
   const filteredBills = bills.filter(bill => {
     const matchesSearch = bill.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           bill.notes?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCat = selectedCategory === 'ALL' || bill.category === selectedCategory;
+    const matchesCat = selectedCategory === 'ALL' || 
+      bill.category === selectedCategory ||
+      (selectedCategory === 'Subscriptions' && (bill.category as string) === 'Streaming Subscriptions') ||
+      (selectedCategory === 'Streaming Subscriptions' && bill.category === 'Subscriptions');
     const matchesType = selectedType === 'ALL' || bill.type === selectedType;
     return matchesSearch && matchesCat && matchesType;
   });
@@ -42,7 +45,8 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
   const categoryTotals: Record<string, number> = {};
   bills.forEach(b => {
     const amt = viewMode === 'myShare' ? b.amount : (b.isSplit ? (b.fullTotal || b.amount) : b.amount);
-    categoryTotals[b.category] = (categoryTotals[b.category] || 0) + amt;
+    const cat = (b.category as string) === 'Streaming Subscriptions' ? 'Subscriptions' : b.category;
+    categoryTotals[cat] = (categoryTotals[cat] || 0) + amt;
   });
 
   const categoryColors: Record<string, string> = {
@@ -51,13 +55,14 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
     'Insurance': 'bg-blue-400',
     'Phone & Internet': 'bg-purple-400',
     'Subscriptions': 'bg-rose-400',
+    'Streaming Subscriptions': 'bg-rose-400',
     'Food & Household': 'bg-cyan-400',
     'Debt & Credit': 'bg-orange-400',
     'Savings': 'bg-teal-400',
     'General': 'bg-violet-400',
   };
 
-  const categories = Array.from(new Set(bills.map(b => b.category)));
+  const categories = Array.from(new Set(bills.map(b => (b.category as string) === 'Streaming Subscriptions' ? 'Subscriptions' : b.category)));
 
   return (
     <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-3 sm:p-6 pb-28 space-y-5">

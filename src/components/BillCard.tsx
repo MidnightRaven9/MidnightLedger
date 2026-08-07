@@ -56,6 +56,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
     'Insurance': 'bg-cyan-950/40 text-cyan-400 border-cyan-900/50',
     'Phone & Internet': 'bg-purple-950/40 text-purple-400 border-purple-900/50',
     'Subscriptions': 'bg-rose-950/40 text-rose-400 border-rose-900/50',
+    'Streaming Subscriptions': 'bg-rose-950/40 text-rose-400 border-rose-900/50',
     'Food & Household': 'bg-teal-950/40 text-teal-400 border-teal-900/50',
     'Debt & Credit': 'bg-orange-950/40 text-orange-400 border-orange-900/50',
     'Savings': 'bg-violet-950/40 text-violet-400 border-violet-900/50',
@@ -186,12 +187,12 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
           )}
 
           <div className="min-w-0 flex-1 overflow-hidden">
-            <p className={`text-[15px] font-bold truncate ${isPaid ? 'line-through text-zinc-400' : 'text-white'}`}>
+            <p className={`text-[15px] font-bold truncate max-w-[155px] sm:max-w-[220px] ${isPaid ? 'line-through text-zinc-400' : 'text-white'}`}>
               {isPaid ? '💜 ' : `${billEmoji} `}{bill.name}
             </p>
             <div className="flex flex-wrap gap-1.5 mt-1.5">
               <span className={`px-2.5 py-0.5 rounded-full border text-[11px] font-bold ${catColorClass}`}>
-                {bill.category}
+                {(bill.category as string) === 'Streaming Subscriptions' ? 'Subscriptions' : bill.category}
               </span>
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-500/15 text-purple-400 border border-purple-500/30">
                 {bill.type === 'fixed' || bill.type === 'Fixed' ? 'Fixed' : 'Variable'}

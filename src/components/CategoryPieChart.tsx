@@ -21,7 +21,8 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
   let totalPeriodAmount = 0;
 
   assignedBills.forEach(item => {
-    const cat = item.bill.category || 'Other';
+    const rawCat = item.bill.category || 'Other';
+    const cat = (rawCat as string) === 'Streaming Subscriptions' ? 'Subscriptions' : rawCat;
     const myShare = item.effectiveAmount;
     const fullTotal = item.effectiveFullTotal ?? item.bill.fullTotal ?? item.bill.amount;
 
@@ -38,7 +39,8 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
   });
 
   extraExpenses.forEach(exp => {
-    const cat = exp.category || 'Other';
+    const rawCat = exp.category || 'Other';
+    const cat = (rawCat as string) === 'Streaming Subscriptions' ? 'Subscriptions' : rawCat;
     const amt = exp.amount;
 
     categoryDataMap[cat] = (categoryDataMap[cat] || 0) + amt;

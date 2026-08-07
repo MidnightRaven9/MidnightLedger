@@ -7,6 +7,7 @@ export const CATEGORY_COLORS: Record<BillCategory | string, string> = {
   'Insurance': '#6D28D9',       // Deep Purple
   'Phone & Internet': '#E879F9', // Fuchsia
   'Subscriptions': '#DDD6FE',   // Soft Lilac
+  'Streaming Subscriptions': '#DDD6FE', // Soft Lilac
   'Food & Household': '#818CF8', // Indigo / Soft Blue-Purple
   'Debt & Credit': '#F43F5E',   // Soft Red
   'Savings': '#34D399',         // Mint

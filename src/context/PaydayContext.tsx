@@ -78,7 +78,7 @@ const DEFAULT_BILLS: Bill[] = [
   },
   {
     id: 'sample_bill_5',
-    name: 'Streaming Subscriptions',
+    name: 'Subscriptions',
     amount: 18,
     dueDate: 27,
     type: 'fixed',
@@ -99,6 +99,25 @@ const DEFAULT_EXPENSES: ExtraExpense[] = [
     createdAt: '2026-08-05',
   },
 ];
+
+const migrateBills = (loadedBills: Bill[]): Bill[] => {
+  if (!Array.isArray(loadedBills)) return DEFAULT_BILLS;
+  return loadedBills.map(b => {
+    const nameLower = (b.name || '').toLowerCase();
+    const isStreamingSub = nameLower.includes('streaming') && nameLower.includes('subscript');
+    const isOldName = b.name === 'Streaming Subscriptions' || isStreamingSub;
+    const catIsOld = b.category === 'Streaming Subscriptions';
+    
+    if (isOldName || catIsOld) {
+      return {
+        ...b,
+        name: isOldName ? 'Subscriptions' : b.name,
+        category: catIsOld ? 'Subscriptions' : b.category,
+      };
+    }
+    return b;
+  });
+};
 
 const getSavedState = () => {
   try {
@@ -136,10 +155,12 @@ const getSavedState = () => {
         } catch (_) {}
       }
 
+      const rawBills = Array.isArray(parsed.bills) ? parsed.bills : DEFAULT_BILLS;
+
       return {
         schedule: parsed.schedule || DEFAULT_SCHEDULE,
         paydays: Array.isArray(parsed.paydays) ? parsed.paydays : (Array.isArray(parsed.paychecks) ? parsed.paychecks : DEFAULT_PAYDAYS),
-        bills: Array.isArray(parsed.bills) ? parsed.bills : DEFAULT_BILLS,
+        bills: migrateBills(rawBills),
         extraExpenses: Array.isArray(parsed.extraExpenses) ? parsed.extraExpenses : (Array.isArray(parsed.expenses) ? parsed.expenses : DEFAULT_EXPENSES),
         extraIncomes: extraIncomes,
         variableOverrides: parsed.variableOverrides || {},

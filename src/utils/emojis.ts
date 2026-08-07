@@ -5,6 +5,7 @@ export const CATEGORY_EMOJIS: Record<string, string> = {
   'Insurance': '🛡️',
   'Phone & Internet': '📱',
   'Subscriptions': '🎬',
+  'Streaming Subscriptions': '🎬',
   'Food & Household': '🍔',
   'Food': '🍔',
   'Gas': '⛽',

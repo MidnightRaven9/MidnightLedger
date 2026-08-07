@@ -92,8 +92,16 @@ export const ReportsView: React.FC = () => {
   const activeSummary = summaries.find(s => s.payday.date === selectedPaydayDate) || nextPaydaySummary || summaries[0];
 
   // Filter bills for Chart A if category filter is active
+  const isSelectedCategoryMatch = (cat?: string) => {
+    if (selectedCategory === 'ALL') return true;
+    if (cat === selectedCategory) return true;
+    if (selectedCategory === 'Subscriptions' && cat === 'Streaming Subscriptions') return true;
+    if (selectedCategory === 'Streaming Subscriptions' && cat === 'Subscriptions') return true;
+    return false;
+  };
+
   const filteredAssignedBills = activeSummary
-    ? activeSummary.assignedBills.filter(b => selectedCategory === 'ALL' || b.bill.category === selectedCategory)
+    ? activeSummary.assignedBills.filter(b => isSelectedCategoryMatch(b.bill.category))
     : [];
 
   // Active period categories list for breakdown display below Chart A
@@ -102,9 +110,10 @@ export const ReportsView: React.FC = () => {
   
   if (activeSummary) {
     activeSummary.assignedBills
-      .filter(b => selectedCategory === 'ALL' || b.bill.category === selectedCategory)
+      .filter(b => isSelectedCategoryMatch(b.bill.category))
       .forEach(item => {
-        const cat = item.bill.category || 'Other';
+        const rawCat = item.bill.category || 'Other';
+        const cat = (rawCat as string) === 'Streaming Subscriptions' ? 'Subscriptions' : rawCat;
         const myShare = item.effectiveAmount;
         const fullBillAmt = item.bill.isSplit ? (item.bill.fullTotal || item.bill.amount) : myShare;
         activePeriodCategoryMap[cat] = activePeriodCategoryMap[cat] || { amount: 0, fullAmount: 0, count: 0 };
@@ -115,9 +124,10 @@ export const ReportsView: React.FC = () => {
       });
 
     activeSummary.extraExpenses
-      .filter(e => selectedCategory === 'ALL' || e.category === selectedCategory)
+      .filter(e => isSelectedCategoryMatch(e.category))
       .forEach(exp => {
-        const cat = exp.category || 'Other';
+        const rawCat = exp.category || 'Other';
+        const cat = (rawCat as string) === 'Streaming Subscriptions' ? 'Subscriptions' : rawCat;
         const amt = exp.amount;
         activePeriodCategoryMap[cat] = activePeriodCategoryMap[cat] || { amount: 0, fullAmount: 0, count: 0 };
         activePeriodCategoryMap[cat].amount += amt;
