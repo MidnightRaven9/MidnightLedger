@@ -241,49 +241,50 @@ export const BillModal: React.FC<BillModalProps> = ({
         <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1 modal-content scrollbar-hide w-full max-w-full overflow-x-hidden box-border">
           
           {/* Bill Name & Custom Emoji */}
-          <div className="space-y-2 w-full max-w-full overflow-hidden box-border">
-            <label className="block text-xs font-semibold text-white/80">
+          <div className="w-full min-w-0 max-w-full space-y-2 box-border">
+            <label className="block text-[12px] font-bold text-white/80">
               Bill Name & Emoji <span className="text-rose-400">*</span>
             </label>
-            <div className="flex items-center gap-3 w-full max-w-full overflow-hidden box-border">
+            <div className="flex gap-2 w-full min-w-0 mt-2">
+              {/* Selected emoji box - FIXED SIZE */}
               <input
                 type="text"
-                value={customEmoji}
+                value={customEmoji || suggestEmoji(name) || getCategoryEmoji(category)}
                 onChange={e => setCustomEmoji(e.target.value)}
-                placeholder="🏠"
-                className="w-[56px] h-[56px] min-w-[56px] shrink-0 rounded-2xl bg-[#1a1a1a] border border-zinc-800 text-center text-[28px] focus:outline-none focus:border-[#7C3AED] text-white box-border"
                 maxLength={2}
-                title="Custom Emoji"
+                title="Bill Emoji"
+                className="w-[56px] h-[56px] min-w-[56px] shrink-0 rounded-2xl bg-[#1f1f1f] border border-zinc-700 text-center text-[28px] leading-none text-white focus:outline-none focus:border-purple-500 overflow-hidden box-border"
+                style={{ fontFamily: '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif' }}
               />
-              <div className="flex-1 min-w-0 w-full">
-                <input
-                  type="text"
-                  required
-                  placeholder="Movie"
-                  value={name}
-                  onChange={e => handleNameChange(e.target.value)}
-                  className="w-full max-w-full min-w-0 h-[56px] rounded-2xl bg-[#1a1a1a] border border-zinc-800 px-4 text-white text-[16px] focus:outline-none focus:border-[#7C3AED] box-border"
-                />
-              </div>
+              <input
+                type="text"
+                required
+                placeholder="Movie"
+                value={name}
+                onChange={e => handleNameChange(e.target.value)}
+                className="flex-1 min-w-0 h-[56px] rounded-2xl bg-[#1f1f1f] border border-zinc-700 px-4 text-[16px] text-white truncate focus:outline-none focus:border-[#7C3AED] box-border"
+              />
             </div>
-            
-            {/* Quick Emoji Pickers */}
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-2 pt-1">
-              <span className="text-[10px] text-white/40 shrink-0 font-semibold flex items-center gap-1">
-                <Smile className="w-3 h-3 text-[#A78BFA]" /> Pick:
-              </span>
-              {QUICK_EMOJIS.map(e => (
-                <button
-                  key={e}
-                  type="button"
-                  onClick={() => setCustomEmoji(e)}
-                  className={`p-1 rounded-lg text-sm hover:bg-[#2A2A2A] transition-all cursor-pointer ${
-                    customEmoji === e ? 'bg-[#7C3AED]/40 ring-1 ring-[#7C3AED]' : 'bg-[#1E1E1E]'
-                  }`}
-                >
-                  {e}
-                </button>
-              ))}
+
+            {/* Emoji picker - make it scrollable, not cut off */}
+            <div className="mt-3 flex items-center gap-1 w-full min-w-0 max-w-full">
+              <span className="shrink-0 text-[12px] text-zinc-500 flex items-center gap-1">☺ Pick:</span>
+              <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide">
+                <div className="flex gap-1.5 w-max pr-4">
+                  {QUICK_EMOJIS.map(e => (
+                    <button
+                      key={e}
+                      type="button"
+                      onClick={() => setCustomEmoji(e)}
+                      data-selected={customEmoji === e}
+                      className="w-9 h-9 shrink-0 rounded-full bg-[#1f1f1f] border border-zinc-800 flex items-center justify-center text-[20px] leading-none hover:border-purple-500 data-[selected=true]:border-purple-500 data-[selected=true]:bg-purple-500/20 cursor-pointer transition-colors"
+                      style={{ fontFamily: '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif' }}
+                    >
+                      {e}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 

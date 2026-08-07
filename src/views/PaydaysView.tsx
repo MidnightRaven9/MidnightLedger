@@ -159,39 +159,42 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                 className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-4 sm:p-5 space-y-3 hover:border-[#7C3AED]/40 transition-all w-full max-w-full overflow-hidden box-border"
               >
                 {/* Top Row: Date Badge + Title/Bills */}
-                <div className="w-full max-w-full overflow-hidden flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
+                <div className="w-full min-w-0 max-w-full overflow-hidden flex items-start justify-between gap-2">
+                  <div className="flex gap-2.5 min-w-0 flex-1 overflow-hidden">
                     {/* Big purple date badge */}
-                    <div className="w-12 h-12 shrink-0 rounded-2xl bg-[#2a1f4a] border border-[#3B236E] flex flex-col items-center justify-center text-[#A78BFA] font-bold shadow-inner">
-                      <span className="text-[9px] uppercase font-bold text-purple-400">
+                    <div className="w-12 h-12 shrink-0 rounded-2xl bg-[#2a1f4a] border border-[#3B236E] flex flex-col items-center justify-center shadow-inner">
+                      <span className="text-[10px] font-black text-purple-400 uppercase">
                         {formatDate(payday.date, 'short').split('/')[0]}
                       </span>
-                      <span className="text-[18px] leading-none font-black text-white">
+                      <span className="text-[22px] font-black text-white leading-none">
                         {String(payday.date || '').split('-')[2] || ''}
                       </span>
                     </div>
 
                     <div className="min-w-0 flex-1 overflow-hidden">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <h4 className="text-[16px] font-bold text-white truncate">
+                        <p className="text-[15px] font-bold text-white truncate leading-tight">
                           {formatDate(payday.date, 'medium')}
-                        </h4>
+                        </p>
                         {isUserAdded && (
                           <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#2E1B3E] text-[#C084FC] border border-[#58236E] shrink-0">
                             Custom
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] text-zinc-500 truncate mt-0.5">
-                        {hasAmount ? `${formatCurrency(estimatedCheck)} avail` : 'Amount TBD'} • {assignedBills.length} bills
+                      <p className="text-[11px] text-zinc-400 truncate leading-tight mt-0.5">
+                        {hasAmount ? `${formatCurrency(estimatedCheck)} avail` : 'Amount TBD'}
+                      </p>
+                      <p className="text-[11px] text-zinc-500 truncate leading-tight">
+                        {assignedBills.length} bills ({formatCurrency(totalBills)})
                       </p>
                     </div>
                   </div>
 
-                  <div className="shrink-0 text-right">
-                    <p className="text-[15px] font-bold text-purple-400">
+                  <div className="shrink-0 flex flex-col items-end gap-1">
+                    <span className="text-[14px] font-black text-purple-400">
                       {hasAmount && leftOver !== null ? formatCurrency(leftOver) : formatCurrency(totalBills)}
-                    </p>
+                    </span>
                     {isUserAdded && (
                       <button
                         onClick={() => {
