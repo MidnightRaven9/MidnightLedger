@@ -305,8 +305,8 @@ export const HistoryView: React.FC = () => {
       )}
 
       {/* 3. Section A: Past Paycheck Allocations */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between px-1" id="paycheck-history-top">
+      <div className="space-y-4" id="paycheck-history-top">
+        <div className="flex items-center justify-between px-1">
           <h3 className="text-base font-extrabold text-white flex items-center gap-2">
             <Receipt className="w-5 h-5 text-[#A78BFA]" />
             Past Paycheck Allocations
@@ -322,7 +322,7 @@ export const HistoryView: React.FC = () => {
             <p className="text-xs font-semibold">No paycheck history yet - your past paydays will appear here after your first pay period</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-3 pb-24 overflow-visible">
+          <div className="space-y-3">
             {filteredSummaries.slice(0, visibleCount).map(summary => {
               const paydayId = summary.payday.id;
               const isPaydayExpanded = expandedPaydayIds[paydayId] ?? false;
@@ -480,19 +480,19 @@ export const HistoryView: React.FC = () => {
               );
             })}
 
-            {/* Sticky Show More / Show Less Button */}
-            <div className="sticky bottom-20 sm:bottom-24 z-30 flex justify-center py-2 pointer-events-none">
+            {/* Show More / Show Less Button */}
+            <div className="flex justify-center py-3">
               {visibleCount < totalCount ? (
                 <button 
                   onClick={handleToggle} 
-                  className="pointer-events-auto bg-violet-600 hover:bg-violet-700 text-white px-6 py-3 rounded-full flex items-center gap-2 shadow-lg shadow-violet-900/50 text-xs font-extrabold cursor-pointer border border-violet-500"
+                  className="bg-violet-600 hover:bg-violet-700 text-white px-6 py-3 rounded-full flex items-center gap-2 shadow-lg shadow-violet-900/50 text-xs font-extrabold cursor-pointer border border-violet-500"
                 >
                   <ChevronDown className="w-4 h-4" /> Show 5 more ({totalCount - visibleCount} remaining)
                 </button>
               ) : totalCount > 5 && (
                 <button 
                   onClick={handleToggle} 
-                  className="pointer-events-auto bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-3 rounded-full flex items-center gap-2 border border-zinc-700 text-xs font-extrabold cursor-pointer shadow-lg"
+                  className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-3 rounded-full flex items-center gap-2 border border-zinc-700 text-xs font-extrabold cursor-pointer shadow-lg"
                 >
                   <ChevronUp className="w-4 h-4" /> Show less
                 </button>
@@ -503,7 +503,7 @@ export const HistoryView: React.FC = () => {
       </div>
 
       {/* 4. Section B: Bill Payment History & Timeline */}
-      <div className="space-y-4 pt-4">
+      <div className="mt-6 space-y-4">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-base font-extrabold text-white flex items-center gap-2">
             <Activity className="w-5 h-5 text-[#C084FC]" />
