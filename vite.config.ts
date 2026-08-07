@@ -15,5 +15,18 @@ export default defineConfig(() => {
       host: '0.0.0.0',
       port: 3000,
     },
+    build: {
+      outDir: 'dist',
+      chunkSizeWarningLimit: 1000,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            react: ['react', 'react-dom'],
+            charts: ['recharts'],
+            ui: ['lucide-react', 'motion'],
+          },
+        },
+      },
+    },
   };
 });
