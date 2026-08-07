@@ -13,6 +13,18 @@ import { triggerConfetti } from '../utils/emojis';
 
 const STORAGE_KEY = 'midnightledger_v1';
 
+// UUID v4 contains no :: so split is safe
+const SPLIT_SEP = '::';
+const makeKey = (billId: string, paydayDate: string) => `${billId}${SPLIT_SEP}${paydayDate}`;
+const parseKey = (k: string) => {
+  const idx = k.lastIndexOf(SPLIT_SEP);
+  if (idx === -1) {
+    const parts = k.split('_');
+    return [parts[0] || '', parts.slice(1).join('_')] as const;
+  }
+  return [k.slice(0, idx), k.slice(idx + SPLIT_SEP.length)] as const;
+};
+
 // Seed sample data
 const DEFAULT_SCHEDULE: PaydaySchedule = {
   frequency: 'biweekly',
@@ -388,7 +400,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   };
 
   const deleteBillOccurrence = (billId: string, paydayDate: string) => {
-    const key = `${billId}_${paydayDate}`;
+    const key = makeKey(billId, paydayDate);
     const month = paydayDate.slice(0, 7);
     const monthKey = `${billId}_${month}`;
     setExcludedOccurrences(prev => ({
@@ -473,7 +485,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   };
 
   const setVariableOverride = (billId: string, paydayDate: string, amount: number, fullTotalOverride?: number) => {
-    const key = `${billId}_${paydayDate}`;
+    const key = makeKey(billId, paydayDate);
     setVariableOverrides(prev => ({
       ...prev,
       [key]: amount,
@@ -493,7 +505,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setPaidStatuses(prev => {
       const updated = { ...prev };
       targetSummary.assignedBills.forEach(ab => {
-        const key = `${ab.bill.id}_${paydayDate}`;
+        const key = makeKey(ab.bill.id, paydayDate);
         updated[key] = true;
       });
 
@@ -501,9 +513,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         const historyList: Array<{ billId: string; paydayDate: string; paidAt: string }> = [];
         Object.entries(updated).forEach(([k, isPaid]) => {
           if (isPaid) {
-            const parts = k.split('_');
-            const bId = parts[0];
-            const pDate = parts.slice(1).join('_');
+            const [bId, pDate] = parseKey(k);
             if (bId && pDate) {
               historyList.push({
                 billId: bId,
@@ -534,7 +544,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setPaidStatuses(prev => {
       const updated = { ...prev };
       targetSummary.assignedBills.forEach(ab => {
-        const key = `${ab.bill.id}_${paydayDate}`;
+        const key = makeKey(ab.bill.id, paydayDate);
         updated[key] = false;
       });
 
@@ -542,9 +552,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         const historyList: Array<{ billId: string; paydayDate: string; paidAt: string }> = [];
         Object.entries(updated).forEach(([k, isPaid]) => {
           if (isPaid) {
-            const parts = k.split('_');
-            const bId = parts[0];
-            const pDate = parts.slice(1).join('_');
+            const [bId, pDate] = parseKey(k);
             if (bId && pDate) {
               historyList.push({
                 billId: bId,
@@ -592,8 +600,8 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     });
     const billName = assignedItem?.bill.name || billObj?.name || 'Bill';
 
-    const key = `${canonicalBillId}_${targetPaydayDate}`;
-    const altKey = `${billId}_${targetPaydayDate}`;
+    const key = makeKey(canonicalBillId, targetPaydayDate);
+    const altKey = makeKey(billId, targetPaydayDate);
 
     const currentPaid = !!(paidStatuses[key] ?? paidStatuses[altKey] ?? assignedItem?.isPaid);
     const nextStatus = !currentPaid;
@@ -623,9 +631,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         const historyList: Array<{ billId: string; paydayDate: string; paidAt: string }> = [];
         Object.entries(updated).forEach(([k, isPaid]) => {
           if (isPaid) {
-            const parts = k.split('_');
-            const bId = parts[0];
-            const pDate = parts.slice(1).join('_');
+            const [bId, pDate] = parseKey(k);
             if (bId && pDate) {
               historyList.push({
                 billId: bId,
@@ -647,8 +653,8 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             const item = ab.bill as any;
             const isMatch = item.id === billId || item.originalBillId === billId || item.billId === billId || item.id === canonicalBillId;
             if (isMatch) return true;
-            const k1 = `${ab.bill.id}_${targetPaydayDate}`;
-            const k2 = `${item.originalBillId || ab.bill.id}_${targetPaydayDate}`;
+            const k1 = makeKey(ab.bill.id, targetPaydayDate);
+            const k2 = makeKey(item.originalBillId || ab.bill.id, targetPaydayDate);
             return !!(updated[k1] || updated[k2]);
           });
 

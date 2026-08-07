@@ -290,17 +290,18 @@ export function calculatePaydaySummaries(
         return true;
       })
       .map(occ => {
-        const key = `${occ.bill.id}_${payday.date}`;
-        const override = variableOverrides[key];
+        const key = `${occ.bill.id}::${payday.date}`;
+        const altKey = `${occ.bill.id}_${payday.date}`;
+        const override = variableOverrides[key] ?? variableOverrides[altKey];
         const isOverride = override !== undefined;
         const effectiveAmount = isOverride ? override : occ.bill.amount;
 
-        const fullOverride = variableFullTotalOverrides?.[key];
+        const fullOverride = (variableFullTotalOverrides?.[key] ?? variableFullTotalOverrides?.[altKey]);
         const effectiveFullTotal = fullOverride !== undefined
           ? fullOverride
           : (occ.bill.isSplit ? (occ.bill.fullTotal ?? occ.bill.amount) : occ.bill.amount);
 
-        const isPaid = paidStatuses[key] ?? false;
+        const isPaid = (paidStatuses[key] ?? paidStatuses[altKey]) ?? false;
 
         return {
           bill: occ.bill,
