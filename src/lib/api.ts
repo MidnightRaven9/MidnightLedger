@@ -2,12 +2,22 @@ import { Bill, Payday } from '../types';
 
 const STORAGE_KEY = 'midnightledger_v1';
 
+const getUserId = (): string => {
+  if (typeof window === 'undefined') return 'default_user_ssr';
+  let id = localStorage.getItem('midnightledger_uid');
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem('midnightledger_uid', id);
+  }
+  return id;
+};
+
 export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T | null> {
   try {
     const res = await fetch(endpoint, {
       headers: {
         'Content-Type': 'application/json',
-        'x-user-id': 'default_user',
+        'x-user-id': getUserId(),
         ...(options?.headers || {}),
       },
       ...options,
