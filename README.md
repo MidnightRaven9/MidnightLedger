@@ -1,14 +1,4 @@
-<p align="center">
-  <img src=".github/images/midnight_ledger_final.png" alt="MidnightLedger banner" width="100%">
-</p>
-
-<h1 align="center">🌙 MidnightLedger</h1>
-<p align="center">
-  <strong>Privacy-first payday budget</strong><br>
-  <em>All data stays local. No cloud. No tracking.</em>
-</p>
-
----
+# 🌙 MidnightLedger ✨💜
 
 Dark-mode budget app for paycheck-to-paycheck planning 🌃 Built for split bills, irregular paydays, and tax estimates 💸📊
 
