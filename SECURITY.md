@@ -1,20 +1,15 @@
-# 🔒 Security Policy 🌙💜
+# Security Policy
 
-### 📦 Supported Versions
-| Version | Supported ✨ |
-| ------- | ------------------ |
-| 1.0.x   | ✅ Yes 💜 |
+## Supported Versions
+| Version | Supported |
+| ------- | --------- |
+| 1.x | ✅ Yes |
 
-### 🐛 Reporting a Vulnerability
-Please DO NOT open a public issue 🚫
+## Reporting a Vulnerability
 
-Instead:
-1. 📧 Message MidnightMarie9 on GitHub
-2. 📝 Describe the vulnerability
-3. ⏳ We’ll respond within 48 hours 💜
+If you find a security vulnerability, please open a GitHub Issue with the `security` label or use GitHub's Private Vulnerability Reporting:
+https://github.com/MidnightMarie9/MidnightLedger/security/advisories/new
 
-### 🔐 Notes
-- 🔒 App is localStorage-only, no server data 🏠
-- No sensitive data is transmitted 🌙
+Please do not publicly disclose vulnerabilities until we've had a chance to review.
 
-Thank you for keeping MidnightLedger safe! ✨🛡️
+See full audit: docs/SECURITY_AUDIT_2026-08-07.md (Grade: A+ - Approved for Production - Aug 7, 2026)
