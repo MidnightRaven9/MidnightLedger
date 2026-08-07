@@ -6,7 +6,9 @@ import dotenv from 'dotenv';
 import { DatabaseSync } from 'node:sqlite';
 import crypto from 'crypto';
 
-dotenv.config();
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config();
+}
 
 const rl = new Map();
 function checkRateLimit(key: string) {
