@@ -41,3 +41,13 @@ dist/
 .wrangler/
 android/app/build/
 android/.gradle/
+
+# F-Droid ignore
+midnightledger.db
+bun.lock
+dist/
+.wrangler/
+android/app/build/
+android/.gradle/
+android/app/src/main/assets/public/
+
