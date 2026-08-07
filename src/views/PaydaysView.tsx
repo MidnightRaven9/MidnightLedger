@@ -107,21 +107,21 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-3 pt-2 flex-wrap">
+        <div className="grid grid-cols-2 gap-2 w-full pt-2">
           <button
             onClick={onOpenPaydayModal}
-            className="flex-1 min-w-[140px] px-4 py-3 rounded-2xl bg-[#1A1A1A] hover:bg-[#252525] border border-zinc-800 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="h-11 rounded-2xl bg-[#1A1A1A] hover:bg-[#252525] border border-zinc-800 text-white font-bold text-[13px] transition-all flex items-center justify-center gap-1.5 cursor-pointer truncate px-2 box-border w-full"
           >
-            <Plus className="w-4 h-4 text-[#A78BFA]" />
-            Add Custom Date
+            <Plus className="w-4 h-4 text-[#A78BFA] shrink-0" />
+            <span className="truncate">Add Custom Date</span>
           </button>
           
           <button
             onClick={onOpenScheduleModal}
-            className="flex-1 min-w-[160px] px-4 py-3 rounded-2xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-[0_8px_20px_rgba(124,58,237,0.3)] cursor-pointer"
+            className="h-11 rounded-2xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-[13px] transition-all flex items-center justify-center gap-1.5 shadow-[0_8px_20px_rgba(124,58,237,0.3)] cursor-pointer truncate px-2 box-border w-full"
           >
-            <Settings className="w-4 h-4 text-[#DDD6FE]" />
-            Change Rule
+            <Settings className="w-4 h-4 text-[#DDD6FE] shrink-0" />
+            <span className="truncate">Change Rule</span>
           </button>
         </div>
       </div>
