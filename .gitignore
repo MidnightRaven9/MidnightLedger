@@ -35,3 +35,9 @@ Thumbs.db
 
 # ✨ AI Studio
 .ai-studio
+midnightledger.db
+bun.lock
+dist/
+.wrangler/
+android/app/build/
+android/.gradle/
