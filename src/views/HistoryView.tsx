@@ -39,6 +39,7 @@ export const HistoryView: React.FC = () => {
   const [expandedPaydayIds, setExpandedPaydayIds] = useState<Record<string, boolean>>({});
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState<number>(5);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [saveStatusText, setSaveStatusText] = useState('Data stored locally on this device');
 
   useEffect(() => {
@@ -72,6 +73,7 @@ export const HistoryView: React.FC = () => {
   // Reset visible items when filters change
   useEffect(() => {
     setVisibleCount(5);
+    setIsExpanded(false);
   }, [filterMode, selectedMonth]);
 
   // Get current year and month strings
@@ -111,9 +113,42 @@ export const HistoryView: React.FC = () => {
       result = result.filter(s => s.payday.date.startsWith(filterMode));
     }
 
+    // Deduplicate / group by actual payday date
+    const mapByDate = new Map<string, PaydaySummary>();
+    result.forEach(s => {
+      const dateKey = s.payday.date;
+      if (!mapByDate.has(dateKey)) {
+        mapByDate.set(dateKey, s);
+      } else {
+        const existing = mapByDate.get(dateKey)!;
+        const sCheck = s.payday.estimatedAmount ?? 0;
+        const eCheck = existing.payday.estimatedAmount ?? 0;
+        if ((eCheck === 0 && sCheck > 0) || s.payday.isManual || s.assignedBills.length > existing.assignedBills.length) {
+          mapByDate.set(dateKey, s);
+        }
+      }
+    });
+
     // Sort newest paydays first
-    return result.sort((a, b) => b.payday.date.localeCompare(a.payday.date));
+    return Array.from(mapByDate.values()).sort((a, b) => b.payday.date.localeCompare(a.payday.date));
   }, [summaries, filterMode, activeMonthStr]);
+
+  const totalCount = filteredSummaries.length;
+
+  const handleToggle = () => {
+    if (isExpanded) {
+      setVisibleCount(5);
+      setIsExpanded(false);
+      // scroll back to top of history list
+      document.getElementById('paycheck-history-top')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      const nextCount = visibleCount + 5;
+      setVisibleCount(nextCount);
+      if (nextCount >= totalCount) {
+        setIsExpanded(true);
+      }
+    }
+  };
 
   // Handle Export / Import
   const handleExport = () => {
@@ -271,7 +306,7 @@ export const HistoryView: React.FC = () => {
 
       {/* 3. Section A: Past Paycheck Allocations */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between px-1">
+        <div className="flex items-center justify-between px-1" id="paycheck-history-top">
           <h3 className="text-base font-extrabold text-white flex items-center gap-2">
             <Receipt className="w-5 h-5 text-[#A78BFA]" />
             Past Paycheck Allocations
@@ -290,7 +325,10 @@ export const HistoryView: React.FC = () => {
           <div className="flex flex-col gap-3 pb-24 overflow-visible">
             {filteredSummaries.slice(0, visibleCount).map(summary => {
               const paydayId = summary.payday.id;
-              const isExpanded = expandedPaydayIds[paydayId] ?? false;
+              const isPaydayExpanded = expandedPaydayIds[paydayId] ?? false;
+
+              const checkAmount = summary.payday.estimatedAmount ?? (summary.totalAvailable ?? 0);
+              const hasCheckAmount = checkAmount > 0;
 
               const totalAssigned = summary.assignedBills.length;
               const paidBills = summary.assignedBills.filter(b => b.isPaid);
@@ -316,28 +354,34 @@ export const HistoryView: React.FC = () => {
                         </div>
                         {/* Check info & status badge */}
                         <div className="flex items-center gap-2 flex-wrap leading-[1.4]">
-                          {summary.payday.estimatedAmount === 0 ? (
+                          {!hasCheckAmount ? (
                             <span className="text-zinc-500 font-semibold text-[16px] leading-[1.4]">
-                              Check: TBD
+                              No amount set
                             </span>
                           ) : (
                             <span className="text-[#B794F6] font-semibold text-[16px] leading-[1.4]">
-                              Check: {formatCurrency(summary.payday.estimatedAmount)}
+                              Allocated: {formatCurrency(summary.totalBills)} / {formatCurrency(checkAmount)}
                             </span>
                           )}
                           <span className="w-1 h-1 bg-white/30 rounded-full"></span>
                           
                           {totalAssigned === 0 ? (
-                            <span className="bg-[#1E1E1E] text-white/50 text-xs px-2 py-1 rounded-full border border-[#2A2A2A]">
+                            <span className="bg-[#1E1E1E] text-white/50 text-xs px-2.5 py-1 rounded-full border border-[#2A2A2A] font-semibold">
                               No Bills
                             </span>
                           ) : isAllPaid ? (
-                            <span className="bg-emerald-950/40 text-emerald-400 text-xs px-2 py-1 rounded-full border border-emerald-800/40 flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3" />
-                              All Paid
+                            <span className="bg-emerald-950/60 text-emerald-400 text-xs px-2.5 py-1 rounded-full border border-emerald-800/60 flex items-center gap-1 font-semibold">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                              Paid ({paidCount}/{totalAssigned})
+                            </span>
+                          ) : paidCount === 0 ? (
+                            <span className="bg-rose-950/60 text-rose-400 text-xs px-2.5 py-1 rounded-full border border-rose-800/60 flex items-center gap-1 font-semibold">
+                              <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                              Unpaid ({paidCount}/{totalAssigned})
                             </span>
                           ) : (
-                            <span className="bg-amber-900/40 text-amber-500 text-xs px-2 py-1 rounded-full">
+                            <span className="bg-amber-950/60 text-amber-400 text-xs px-2.5 py-1 rounded-full border border-amber-800/60 flex items-center gap-1 font-semibold">
+                              <Clock className="w-3.5 h-3.5 text-amber-400" />
                               {unpaidCount} Unpaid ({paidCount}/{totalAssigned})
                             </span>
                           )}
@@ -345,23 +389,19 @@ export const HistoryView: React.FC = () => {
                         {/* Bill counts */}
                         <div className="text-[14px] text-white/50 leading-[1.5]">
                           {totalAssigned} Bill{totalAssigned === 1 ? '' : 's'}
-                        </div>
-                        {/* Total bills amount or leftover */}
-                        <div className="text-[13px] text-white/40 leading-[1.5]">
-                          ({formatCurrency(summary.totalBills)})
                           {summary.totalExtraExpenses > 0 && ` + Extras: ${formatCurrency(summary.totalExtraExpenses)}`}
                         </div>
                       </div>
 
                       {/* Dropdown chevron button */}
                       <button className="p-1.5 rounded-xl bg-[#1E1E1E] text-white/60 hover:text-white transition-colors shrink-0">
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        {isPaydayExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </button>
                     </div>
                   </div>
 
                   {/* Expanded Content Drawer */}
-                  {isExpanded && (
+                  {isPaydayExpanded && (
                     <div className="border-t border-[#2A2A2A]/60 bg-[#0A0A0A] space-y-4 pt-4 mt-4 rounded-2xl p-3 overflow-visible">
                       
                       {/* Bills Assigned Table */}
@@ -411,7 +451,9 @@ export const HistoryView: React.FC = () => {
                       <div className="p-3 rounded-2xl bg-[#121212] border border-[#2A2A2A] grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
                         <div>
                           <span className="text-[10px] text-white/50 block">Check Estimate</span>
-                          <span className="text-xs font-extrabold text-white">{formatCurrency(summary.payday.estimatedAmount)}</span>
+                          <span className="text-xs font-extrabold text-white">
+                            {hasCheckAmount ? formatCurrency(checkAmount) : 'No amount set'}
+                          </span>
                         </div>
                         <div>
                           <span className="text-[10px] text-white/50 block">Total Outflow</span>
@@ -424,9 +466,9 @@ export const HistoryView: React.FC = () => {
                         <div>
                           <span className="text-[10px] text-white/50 block">Net Left Over</span>
                           <span className={`text-xs font-extrabold ${
-                            (summary.leftOver ?? 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                            !hasCheckAmount ? 'text-zinc-500' : (summary.leftOver ?? 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
                           }`}>
-                            {formatCurrency(summary.leftOver)}
+                            {hasCheckAmount ? formatCurrency(summary.leftOver) : 'N/A'}
                           </span>
                         </div>
                       </div>
@@ -438,17 +480,24 @@ export const HistoryView: React.FC = () => {
               );
             })}
 
-            {/* Show More Button */}
-            {filteredSummaries.length > visibleCount && (
-              <div className="flex justify-center pt-2">
-                <button
-                  onClick={() => setVisibleCount(prev => prev + 5)}
-                  className="px-5 py-2.5 rounded-xl bg-[#1E1E1E] hover:bg-[#2A2A2A] text-white font-extrabold text-xs border border-[#2A2A2A] transition-all cursor-pointer shadow-md"
+            {/* Sticky Show More / Show Less Button */}
+            <div className="sticky bottom-20 sm:bottom-24 z-30 flex justify-center py-2 pointer-events-none">
+              {visibleCount < totalCount ? (
+                <button 
+                  onClick={handleToggle} 
+                  className="pointer-events-auto bg-violet-600 hover:bg-violet-700 text-white px-6 py-3 rounded-full flex items-center gap-2 shadow-lg shadow-violet-900/50 text-xs font-extrabold cursor-pointer border border-violet-500"
                 >
-                  Show 5 more
+                  <ChevronDown className="w-4 h-4" /> Show 5 more ({totalCount - visibleCount} remaining)
                 </button>
-              </div>
-            )}
+              ) : totalCount > 5 && (
+                <button 
+                  onClick={handleToggle} 
+                  className="pointer-events-auto bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-3 rounded-full flex items-center gap-2 border border-zinc-700 text-xs font-extrabold cursor-pointer shadow-lg"
+                >
+                  <ChevronUp className="w-4 h-4" /> Show less
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -523,41 +572,44 @@ export const HistoryView: React.FC = () => {
 
                   {/* Dot History Timeline */}
                   <div className="pt-1">
-                    <span className="text-[10px] font-bold text-white/40 block mb-1.5">
-                      Paycheck Timeline History:
-                    </span>
-
                     {billOccurrences.length === 0 ? (
-                      <p className="text-[10px] text-white/30 italic">No paydays calculated for this bill yet.</p>
+                      <div className="p-3 rounded-xl bg-[#0D0D0D] border border-dashed border-[#2A2A2A]">
+                        <p className="text-xs text-white/50 italic">No paycheck history yet - dots will appear after your first allocation</p>
+                      </div>
                     ) : (
-                      <div className="flex items-center gap-[6px] overflow-x-auto pb-1 scrollbar-none">
-                        {billOccurrences.map((occ, idx) => (
-                          <div 
-                            key={`${occ.paydayDate}_${idx}`}
-                            className="group relative flex flex-col items-center cursor-pointer shrink-0"
-                          >
-                            {/* Dot Indicator */}
-                            <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
-                              occ.isPaid 
-                                ? 'bg-emerald-500/20 border border-emerald-500 text-emerald-400 shadow-sm shadow-emerald-950' 
-                                : 'bg-[#1E1E1E] border border-[#3B236E] text-white/30'
-                            }`}>
-                              {occ.isPaid ? (
-                                <Check className="w-2.5 h-2.5 stroke-[3]" />
-                              ) : (
-                                <div className="w-1 h-1 rounded-full bg-white/30" />
-                              )}
-                            </div>
+                      <>
+                        <span className="text-[10px] font-bold text-white/40 block mb-1.5">
+                          Paycheck Timeline History:
+                        </span>
+                        <div className="flex items-center gap-[6px] overflow-x-auto pb-1 scrollbar-none">
+                          {billOccurrences.map((occ, idx) => (
+                            <div 
+                              key={`${occ.paydayDate}_${idx}`}
+                              className="group relative flex flex-col items-center cursor-pointer shrink-0"
+                            >
+                              {/* Dot Indicator */}
+                              <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
+                                occ.isPaid 
+                                  ? 'bg-emerald-500/20 border border-emerald-500 text-emerald-400 shadow-sm shadow-emerald-950' 
+                                  : 'bg-[#1E1E1E] border border-[#3B236E] text-white/30'
+                              }`}>
+                                {occ.isPaid ? (
+                                  <Check className="w-2.5 h-2.5 stroke-[3]" />
+                                ) : (
+                                  <div className="w-1 h-1 rounded-full bg-white/30" />
+                                )}
+                              </div>
 
-                            {/* Hover Tooltip */}
-                            <div className="absolute bottom-full mb-1 hidden group-hover:flex flex-col items-center z-20 pointer-events-none">
-                              <div className="px-2 py-1 rounded-lg bg-[#1E1B2E] border border-[#3B236E] text-[10px] text-white font-bold whitespace-nowrap shadow-xl">
-                                {formatDate(occ.paydayDate)}: {occ.isPaid ? `Paid (${formatCurrency(occ.amount)})` : 'Unpaid'}
+                              {/* Hover Tooltip */}
+                              <div className="absolute bottom-full mb-1 hidden group-hover:flex flex-col items-center z-20 pointer-events-none">
+                                <div className="px-2 py-1 rounded-lg bg-[#1E1B2E] border border-[#3B236E] text-[10px] text-white font-bold whitespace-nowrap shadow-xl">
+                                  {formatDate(occ.paydayDate)}: {occ.isPaid ? `Paid (${formatCurrency(occ.amount)})` : 'Unpaid'}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      </>
                     )}
                   </div>
 

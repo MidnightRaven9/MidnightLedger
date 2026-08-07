@@ -205,7 +205,20 @@ export function calculatePaydaySummaries(
 ): PaydaySummary[] {
   if (!paydays.length) return [];
 
-  const sortedPaydays = [...paydays].sort((a, b) => compareDates(a.date, b.date));
+  // Deduplicate paydays by date
+  const uniquePaydaysMap = new Map<string, Payday>();
+  paydays.forEach(p => {
+    const existing = uniquePaydaysMap.get(p.date);
+    if (!existing) {
+      uniquePaydaysMap.set(p.date, p);
+    } else {
+      if (p.isManual || ((p.estimatedAmount ?? 0) > 0 && !(existing.estimatedAmount && existing.estimatedAmount > 0))) {
+        uniquePaydaysMap.set(p.date, p);
+      }
+    }
+  });
+
+  const sortedPaydays = Array.from(uniquePaydaysMap.values()).sort((a, b) => compareDates(a.date, b.date));
   const activeBills = bills.filter(b => b.isActive);
 
   // Determine earliest and latest dates to generate bill occurrences
