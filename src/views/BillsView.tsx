@@ -154,46 +154,49 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
       </div>
 
       {/* 3. Search & Dropdown Filters Card */}
-      <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 space-y-4">
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
+      <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-4 sm:p-6 space-y-3.5 w-full min-w-0 max-w-full overflow-hidden box-border">
+        {/* Search */}
+        <div className="relative w-full min-w-0">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
           <input
             type="text"
-            placeholder="🔍 Search bills..."
+            placeholder="Search bills..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-white text-sm focus:outline-none focus:border-purple-600"
+            className="w-full h-11 rounded-2xl bg-[#1a1a1a] border border-zinc-800 pl-10 pr-4 text-[14px] text-white placeholder-zinc-500 focus:outline-none focus:border-purple-600 box-border"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3 w-full">
+        {/* Toggles */}
+        <div className="grid grid-cols-2 gap-2 w-full max-w-full">
           <button
             onClick={() => setViewMode('myShare')}
-            className={`w-full h-[46px] rounded-full text-[14px] font-bold flex items-center justify-center gap-1.5 whitespace-nowrap transition-all cursor-pointer ${
+            className={`h-10 rounded-full text-[13px] font-bold flex items-center justify-center gap-1.5 truncate transition-all cursor-pointer box-border px-2 ${
               viewMode === 'myShare'
                 ? 'bg-[#7C3AED] text-white shadow-lg shadow-purple-600/20'
-                : 'bg-[#1a1a1a] border border-zinc-800 text-zinc-400 hover:text-white'
+                : 'bg-[#1f1f1f] border border-zinc-800 text-zinc-400 hover:text-white'
             }`}
           >
-            🙋 My Share
+            👋 My Share
           </button>
           <button
             onClick={() => setViewMode('fullTotal')}
-            className={`w-full h-[46px] rounded-full text-[14px] font-bold flex items-center justify-center gap-1.5 whitespace-nowrap transition-all cursor-pointer ${
+            className={`h-10 rounded-full text-[13px] font-bold flex items-center justify-center gap-1.5 truncate transition-all cursor-pointer box-border px-2 ${
               viewMode === 'fullTotal'
                 ? 'bg-[#7C3AED] text-white shadow-lg shadow-purple-600/20'
-                : 'bg-[#1a1a1a] border border-zinc-800 text-zinc-400 hover:text-white'
+                : 'bg-[#1f1f1f] border border-zinc-800 text-zinc-400 hover:text-white'
             }`}
           >
             👥 Full Totals
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 w-full mt-3 overflow-hidden">
+        {/* Dropdowns */}
+        <div className="grid grid-cols-2 gap-2 w-full max-w-full">
           <select
             value={selectedCategory}
             onChange={e => setSelectedCategory(e.target.value)}
-            className="w-full h-[44px] rounded-full bg-[#1a1a1a] border border-zinc-800 px-3 text-[13px] sm:text-[14px] text-white focus:outline-none focus:border-purple-600 whitespace-nowrap overflow-hidden text-ellipsis min-w-0 cursor-pointer"
+            className="w-full min-w-0 h-10 rounded-full bg-[#1f1f1f] border border-zinc-800 px-3 text-[13px] text-white focus:outline-none focus:border-purple-600 truncate cursor-pointer box-border"
           >
             <option value="ALL">🏷️ All Categories</option>
             {(categories as string[]).map(c => (
@@ -204,7 +207,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
           <select
             value={selectedType}
             onChange={e => setSelectedType(e.target.value)}
-            className="w-full h-[44px] rounded-full bg-[#1a1a1a] border border-zinc-800 px-3 text-[13px] sm:text-[14px] text-white focus:outline-none focus:border-purple-600 whitespace-nowrap overflow-hidden text-ellipsis min-w-0 cursor-pointer"
+            className="w-full min-w-0 h-10 rounded-full bg-[#1f1f1f] border border-zinc-800 px-3 text-[13px] text-white focus:outline-none focus:border-purple-600 truncate cursor-pointer box-border"
           >
             <option value="ALL">💳 All Types</option>
             <option value="fixed">Fixed</option>
