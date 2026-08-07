@@ -33,11 +33,9 @@ function sanitizeText(input: any, maxLen: number): string {
 
 function isValidISODate(s: any): boolean {
   if (typeof s !== 'string') return false;
-  // Must be YYYY-MM-DD
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
   const d = new Date(s);
   if (isNaN(d.getTime())) return false;
-  // Check it didn't roll over (Feb 30 -> Mar 2)
   const [y, m, day] = s.split('-').map(Number);
   return d.getUTCFullYear() === y && (d.getUTCMonth() + 1) === m && d.getUTCDate() === day;
 }
@@ -141,9 +139,9 @@ async function startServer() {
     try {
       const { id, date, amount, estimatedAmount, allocated } = req.body || {};
       if (!isValidISODate(date)) {
-        return res.status(400).json({ error: 'invalid date - must be YYYY-MM-DD' });
+        return res.status(400).json({ error: 'Invalid date - must be YYYY-MM-DD' });
       }
-      const safeDate = date.slice(0, 10);
+      const safeDate = date;
       const payId = isValidId(id) ? id.toLowerCase() : crypto.randomUUID();
       const payAmount = amount ?? estimatedAmount ?? 0;
       if (typeof payAmount !== 'number' || payAmount < 0 || payAmount > 1000000) return res.status(400).json({ error: 'invalid amount' });
@@ -310,9 +308,9 @@ export default {
         if (url.pathname === '/api/paychecks' && request.method === 'POST') {
           const body: any = await request.json();
           if (!isValidISODate(body.date)) {
-            return withCors(Response.json({ error: 'invalid date - must be YYYY-MM-DD' }, { status: 400 }));
+            return withCors(Response.json({ error: 'Invalid date - must be YYYY-MM-DD' }, { status: 400 }));
           }
-          const safeDate = body.date.slice(0, 10);
+          const safeDate = body.date;
           const payId = isValidId(body.id) ? body.id.toLowerCase() : crypto.randomUUID();
           const amount = typeof body.amount === 'number' ? body.amount : (body.estimatedAmount || 0);
           if (amount < 0 || amount > 1000000) return withCors(Response.json({error: 'invalid amount'}, {status: 400}));
