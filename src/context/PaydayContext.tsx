@@ -9,7 +9,7 @@ import {
 } from '../types';
 import { toISODateString, formatDate } from '../utils/dateUtils';
 import { generatePaydaysFromSchedule, calculatePaydaySummaries } from '../utils/paydayLogic';
-import { triggerConfetti } from '../utils/emojis';
+import { triggerConfetti, getCategoryEmoji } from '../utils/emojis';
 
 const STORAGE_KEY = 'midnightledger_v1';
 
@@ -179,7 +179,7 @@ const getSavedState = () => {
           extraIncomes: [] as ExtraIncome[],
           variableOverrides: {} as Record<string, number>,
           variableFullTotalOverrides: {} as Record<string, number>,
-          paidStatuses: {} as Record<string, boolean>,
+          paidStatuses: {} as Record<string, boolean | string>,
           excludedOccurrences: {} as Record<string, boolean>,
           lastSaved: parsed.lastSaved || null,
         };
@@ -202,7 +202,13 @@ const getSavedState = () => {
         schedule: parsed.schedule || DEFAULT_SCHEDULE,
         paydays: Array.isArray(parsed.paydays) ? parsed.paydays : (Array.isArray(parsed.paychecks) ? parsed.paychecks : DEFAULT_PAYDAYS),
         bills: migrateBills(rawBills),
-        extraExpenses: Array.isArray(parsed.extraExpenses) ? parsed.extraExpenses : (Array.isArray(parsed.expenses) ? parsed.expenses : DEFAULT_EXPENSES),
+        extraExpenses: (Array.isArray(parsed.extraExpenses) ? parsed.extraExpenses : (Array.isArray(parsed.expenses) ? parsed.expenses : DEFAULT_EXPENSES)).map(e => {
+          if (e.emoji === '📌' || !e.emoji) {
+            const catEmoji = getCategoryEmoji(e.category);
+            if (catEmoji && catEmoji !== '📌') return { ...e, emoji: catEmoji };
+          }
+          return e;
+        }),
         extraIncomes: extraIncomes,
         variableOverrides: parsed.variableOverrides || {},
         variableFullTotalOverrides: parsed.variableFullTotalOverrides || {},
@@ -217,7 +223,18 @@ const getSavedState = () => {
   return null;
 };
 
+export interface CustomCategory {
+  name: string;
+  emoji: string;
+}
+
 interface PaydayContextType {
+  customExpenseCategories: CustomCategory[];
+  addCustomExpenseCategory: (cat: CustomCategory) => void;
+  deleteCustomExpenseCategory: (name: string) => void;
+  customBillCategories: CustomCategory[];
+  addCustomBillCategory: (cat: CustomCategory) => void;
+  deleteCustomBillCategory: (name: string) => void;
   schedule: PaydaySchedule;
   paydays: Payday[];
   bills: Bill[];
@@ -225,7 +242,7 @@ interface PaydayContextType {
   extraIncomes: ExtraIncome[];
   variableOverrides: Record<string, number>;
   variableFullTotalOverrides: Record<string, number>;
-  paidStatuses: Record<string, boolean>;
+  paidStatuses: Record<string, boolean | string>;
   excludedOccurrences: Record<string, boolean>;
   toastMessage: string | null;
   lastSaved: string | null;
@@ -248,6 +265,7 @@ interface PaydayContextType {
   deletePayday: (id: string) => void;
   
   addExtraExpense: (expense: Omit<ExtraExpense, 'id'>) => void;
+  updateExtraExpense: (expense: ExtraExpense) => void;
   deleteExtraExpense: (id: string) => void;
 
   addExtraIncome: (income: Omit<ExtraIncome, 'id'>) => void;
@@ -295,7 +313,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const saved = getSavedState();
     return saved ? saved.variableFullTotalOverrides : {};
   });
-  const [paidStatuses, setPaidStatuses] = useState<Record<string, boolean>>(() => {
+  const [paidStatuses, setPaidStatuses] = useState<Record<string, boolean | string>>(() => {
     const saved = getSavedState();
     return saved ? saved.paidStatuses : {};
   });
@@ -317,6 +335,32 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       }
     } catch (_) {}
     return 'myShare';
+  });
+
+  const [customExpenseCategories, setCustomExpenseCategories] = useState<CustomCategory[]>(() => {
+    try {
+      const savedCats = localStorage.getItem('midnightledger_customExpenseCategories');
+      if (savedCats) return JSON.parse(savedCats);
+      
+      const oldCats = localStorage.getItem('midnightledger_customCategories');
+      if (oldCats) {
+         const parsed = JSON.parse(oldCats);
+         if (parsed.length > 0) {
+            localStorage.setItem('midnightledger_customExpenseCategories', JSON.stringify(parsed));
+            localStorage.removeItem('midnightledger_customCategories');
+            return parsed;
+         }
+      }
+    } catch (_) {}
+    return [];
+  });
+
+  const [customBillCategories, setCustomBillCategories] = useState<CustomCategory[]>(() => {
+    try {
+      const savedCats = localStorage.getItem('customBillCategories') || localStorage.getItem('midnightledger_customBillCategories');
+      if (savedCats) return JSON.parse(savedCats);
+    } catch (_) {}
+    return [];
   });
 
   const setViewMode = (mode: 'myShare' | 'fullTotal') => {
@@ -384,9 +428,14 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const nextPaydaySummary = useMemo(() => {
     if (!summaries.length) return null;
     const todayStr = toISODateString(new Date());
-    // Find first payday that is >= today or closest future payday
-    const upcoming = summaries.find(s => s.payday.date >= todayStr);
-    return upcoming || summaries[0];
+    // Find the most recent payday that is <= today
+    for (let i = summaries.length - 1; i >= 0; i--) {
+      if (summaries[i].payday.date <= todayStr) {
+        return summaries[i];
+      }
+    }
+    // Fallback to first if today is before the first payday
+    return summaries[0];
   }, [summaries]);
 
   // Handlers
@@ -400,7 +449,61 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   };
 
   const updateBill = (updated: Bill) => {
-    setBills(prev => prev.map(b => (b.id === updated.id ? updated : b)));
+    setBills(prev => {
+      const updatedBills = prev.map(b => {
+        const bAny = b as any;
+        const uAny = updated as any;
+        const matches = 
+          String(b.id) === String(updated.id) ||
+          (bAny._id && String(bAny._id) === String(updated.id)) ||
+          (uAny._id && String(b.id) === String(uAny._id)) ||
+          b.name.toLowerCase() === updated.name.toLowerCase();
+        if (matches) {
+          return {
+            ...b,
+            ...updated,
+            amount: updated.amount,
+            myShare: updated.amount,
+            fullTotal: updated.fullTotal ?? updated.amount,
+          };
+        }
+        return b;
+      });
+      try {
+        localStorage.setItem('bills', JSON.stringify(updatedBills));
+        localStorage.setItem('myBills', JSON.stringify(updatedBills));
+        localStorage.setItem('midnightledger_bills', JSON.stringify(updatedBills));
+      } catch (_) {}
+      return updatedBills;
+    });
+
+    setVariableOverrides(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(k => {
+        if (
+          k.startsWith(`${updated.id}_`) || 
+          k.startsWith(`${updated.id}::`) || 
+          (updated.name && (k.startsWith(`${updated.name}_`) || k.startsWith(`${updated.name}::`)))
+        ) {
+          delete next[k];
+        }
+      });
+      return next;
+    });
+
+    setVariableFullTotalOverrides(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(k => {
+        if (
+          k.startsWith(`${updated.id}_`) || 
+          k.startsWith(`${updated.id}::`) || 
+          (updated.name && (k.startsWith(`${updated.name}_`) || k.startsWith(`${updated.name}::`)))
+        ) {
+          delete next[k];
+        }
+      });
+      return next;
+    });
   };
 
   const deleteBill = (id: string) => {
@@ -489,6 +592,10 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setExtraExpenses(prev => [...prev, newExpense]);
   };
 
+  const updateExtraExpense = (updated: ExtraExpense) => {
+    setExtraExpenses(prev => prev.map(e => (e.id === updated.id ? updated : e)));
+  };
+
   const deleteExtraExpense = (id: string) => {
     setExtraExpenses(prev => prev.filter(e => e.id !== id));
   };
@@ -557,10 +664,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         console.error('Error syncing midnightledger_paid_history:', err);
       }
 
-      setTimeout(() => {
-        triggerConfetti();
-        showToast(`🎉 Paycheck cleared! All bills marked paid 💜`);
-      }, 50);
+
 
       return updated;
     });
@@ -608,102 +712,222 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       const summaryWithBill = summaries.find(s => 
         s.assignedBills.some(ab => {
           const b = ab.bill as any;
-          return b.id === billId || b.originalBillId === billId || b.billId === billId;
+          return String(b.id) === String(billId) || String(b._id) === String(billId) || b.originalBillId === billId || b.billId === billId || b.name === billId;
         })
       );
       targetPaydayDate = summaryWithBill ? summaryWithBill.payday.date : (nextPaydaySummary?.payday.date || '');
     }
 
-    if (!targetPaydayDate) return;
+    const targetSummary = summaries.find(s => s.payday.date === targetPaydayDate) || summaries[0];
+    const effectivePaydayDate = targetPaydayDate || (targetSummary ? targetSummary.payday.date : '');
 
-    const targetSummary = summaries.find(s => s.payday.date === targetPaydayDate);
     const assignedItem = targetSummary?.assignedBills.find(ab => {
       const b = ab.bill as any;
-      return b.id === billId || b.originalBillId === billId || b.billId === billId;
+      return String(b.id) === String(billId) || String(b._id) === String(billId) || b.originalBillId === billId || b.billId === billId || b.name === billId;
     });
 
     const canonicalBillId = assignedItem ? assignedItem.bill.id : billId;
+
     const billObj = bills.find(b => {
-      const item = b as any;
-      return item.id === canonicalBillId || item.id === billId || item.originalBillId === billId || item.billId === billId;
-    });
-    const billName = assignedItem?.bill.name || billObj?.name || 'Bill';
-
-    const key = makeKey(canonicalBillId, targetPaydayDate);
-    const altKey = makeKey(billId, targetPaydayDate);
-
-    const currentPaid = !!(paidStatuses[key] ?? paidStatuses[altKey] ?? assignedItem?.isPaid);
-    const nextStatus = !currentPaid;
-
-    // Synchronize isPaid flag on bills list template
-    setBills(prev => {
-      const updatedBills = prev.map(b => {
-        if (b.id === billId || b.id === canonicalBillId) {
-          return { ...b, isPaid: nextStatus };
-        }
-        return b;
-      });
-      try {
-        localStorage.setItem('midnightledger_bills', JSON.stringify(updatedBills));
-      } catch (_) {}
-      return updatedBills;
+      const bAny = b as any;
+      return String(b.id) === String(billId) ||
+        String(bAny._id) === String(billId) ||
+        String(b.id) === String(canonicalBillId) ||
+        b.name === billId ||
+        b.name === assignedItem?.bill.name;
     });
 
-    setPaidStatuses(prev => {
-      const updated = {
-        ...prev,
-        [key]: nextStatus,
-        [altKey]: nextStatus,
-      };
+    const billIdentifiers = Array.from(new Set([
+      canonicalBillId,
+      billId,
+      billObj?.id,
+      billObj?.name,
+      (billObj as any)?._id,
+      assignedItem?.bill?.id,
+      assignedItem?.bill?.name,
+    ].filter(Boolean) as string[]));
+    
+    const key = makeKey(canonicalBillId, effectivePaydayDate);
+    const altKey = makeKey(billId, effectivePaydayDate);
+    const uKey1 = `${canonicalBillId}_${effectivePaydayDate}`;
+    const uKey2 = `${billId}_${effectivePaydayDate}`;
+    
+    const currentPaid = !!(
+      paidStatuses[key] ||
+      paidStatuses[altKey] ||
+      paidStatuses[uKey1] ||
+      paidStatuses[uKey2] ||
+      paidStatuses[canonicalBillId] ||
+      paidStatuses[billId] ||
+      (billObj?.name && paidStatuses[billObj.name]) ||
+      (billObj?.name && paidStatuses[`${billObj.name}::${effectivePaydayDate}`]) ||
+      (billObj?.name && paidStatuses[`${billObj.name}_${effectivePaydayDate}`]) ||
+      assignedItem?.isPaid ||
+      billObj?.paid ||
+      (billObj as any)?.isPaid ||
+      (assignedItem?.bill as any)?.paid ||
+      (assignedItem?.bill as any)?.isPaid
+    );
+    
+    if (currentPaid) {
+      // UNCHECK
+      (window as any).prevBillsAllPaid = false;
 
-      try {
-        const historyList: Array<{ billId: string; paydayDate: string; paidAt: string }> = [];
-        Object.entries(updated).forEach(([k, isPaid]) => {
-          if (isPaid) {
-            const [bId, pDate] = parseKey(k);
-            if (bId && pDate) {
-              historyList.push({
-                billId: bId,
-                paydayDate: pDate,
-                paidAt: new Date().toISOString(),
-              });
-            }
+      setPaidStatuses(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(k => {
+          const matches = billIdentifiers.some(id => 
+            k === id || 
+            k.startsWith(`${id}::`) || 
+            k.startsWith(`${id}_`) || 
+            k.endsWith(`::${id}`) || 
+            k.endsWith(`_${id}`) ||
+            k === `${id}::${effectivePaydayDate}` ||
+            k === `${id}_${effectivePaydayDate}`
+          );
+          if (matches) {
+            updated[k] = false;
           }
         });
-        localStorage.setItem('midnightledger_paid_history', JSON.stringify(historyList));
-      } catch (err) {
-        console.error('Error syncing midnightledger_paid_history:', err);
-      }
+        updated[key] = false;
+        updated[altKey] = false;
+        updated[uKey1] = false;
+        updated[uKey2] = false;
+        updated[canonicalBillId] = false;
+        updated[billId] = false;
+        try {
+          localStorage.setItem('midnightledger_paid_history', JSON.stringify(updated));
+          localStorage.setItem('midnightledger_paidStatuses', JSON.stringify(updated));
 
-      if (nextStatus) {
-        const totalBillsCount = targetSummary ? targetSummary.assignedBills.length : bills.length;
-        if (targetSummary && targetSummary.assignedBills.length > 0) {
-          const allPaidNow = targetSummary.assignedBills.every(ab => {
-            const item = ab.bill as any;
-            const isMatch = item.id === billId || item.originalBillId === billId || item.billId === billId || item.id === canonicalBillId;
-            if (isMatch) return true;
-            const k1 = makeKey(ab.bill.id, targetPaydayDate);
-            const k2 = makeKey(item.originalBillId || ab.bill.id, targetPaydayDate);
-            return !!(updated[k1] || updated[k2]);
-          });
-
-          if (allPaidNow) {
-            setTimeout(() => {
-              triggerConfetti();
-            }, 100);
-            showToast(`🎉 All bills paid! ${totalBillsCount} cleared 💜`);
-          } else {
-            showToast(`💜 ${billName} marked paid`);
-          }
-        } else {
-          showToast(`💜 ${billName} marked paid`);
+          let savedPaid: string[] = [];
+          try {
+            const raw = localStorage.getItem('paidBills');
+            if (raw) savedPaid = JSON.parse(raw);
+          } catch (_) {}
+          const filtered = savedPaid.filter(id => !billIdentifiers.some(bid => String(bid).toLowerCase() === String(id).toLowerCase()));
+          localStorage.setItem('paidBills', JSON.stringify(filtered));
+        } catch (err) {
+          console.error('Error syncing paidStatuses:', err);
         }
-      } else {
-        showToast(`↩️ ${billName} unmarked`);
-      }
+        
+        return updated;
+      });
 
-      return updated;
+      setBills(prev => {
+        const updatedBills = prev.map(b => {
+          const bAny = b as any;
+          const matches = billIdentifiers.some(id => 
+            String(b.id) === String(id) || 
+            String(bAny._id) === String(id) || 
+            b.name === id
+          );
+          if (matches) {
+            return { ...b, paid: false, isPaid: false, paidAt: null };
+          }
+          return b;
+        });
+        try {
+          localStorage.setItem('bills', JSON.stringify(updatedBills));
+          localStorage.setItem('myBills', JSON.stringify(updatedBills));
+        } catch (_) {}
+        return updatedBills;
+      });
+    } else {
+      // CHECK
+      const currentActiveDate = nextPaydaySummary?.payday.date || effectivePaydayDate;
+      const isFuture = effectivePaydayDate > currentActiveDate;
+      const valToSet = isFuture ? currentActiveDate : true;
+
+      setPaidStatuses(prev => {
+        const updated = { ...prev };
+        updated[key] = valToSet;
+        updated[altKey] = valToSet;
+        updated[uKey1] = valToSet;
+        updated[uKey2] = valToSet;
+        if (billObj?.name) {
+          updated[`${billObj.name}::${effectivePaydayDate}`] = valToSet;
+          updated[`${billObj.name}_${effectivePaydayDate}`] = valToSet;
+        }
+        
+        try {
+          localStorage.setItem('midnightledger_paid_history', JSON.stringify(updated));
+          localStorage.setItem('midnightledger_paidStatuses', JSON.stringify(updated));
+        } catch (err) {
+          console.error('Error syncing paidStatuses:', err);
+        }
+
+        if (targetSummary) {
+          const remainingUnpaid = targetSummary.assignedBills.filter(ab => {
+            const abId = ab.bill.id;
+            if (abId === canonicalBillId || abId === billId) return false;
+            const abKey = makeKey(abId, effectivePaydayDate);
+            const abAlt = makeKey(abId, effectivePaydayDate);
+            return !updated[abKey] && !updated[abAlt] && !ab.isPaid;
+          });
+          if (remainingUnpaid.length === 0) {
+            triggerConfetti();
+          }
+        }
+
+        return updated;
+      });
+
+      setBills(prev => {
+        const updatedBills = prev.map(b => {
+          const bAny = b as any;
+          const matches = billIdentifiers.some(id => 
+            String(b.id) === String(id) || 
+            String(bAny._id) === String(id) || 
+            b.name === id
+          );
+          if (matches) {
+            return { ...b, paid: true, isPaid: true, paidAt: new Date().toISOString() };
+          }
+          return b;
+        });
+        try {
+          localStorage.setItem('bills', JSON.stringify(updatedBills));
+          localStorage.setItem('myBills', JSON.stringify(updatedBills));
+        } catch (_) {}
+        return updatedBills;
+      });
+    }
+  };
+
+  const addCustomExpenseCategory = (cat: CustomCategory) => {
+    setCustomExpenseCategories(prev => {
+      const next = [...prev, cat];
+      localStorage.setItem('midnightledger_customExpenseCategories', JSON.stringify(next));
+      return next;
     });
+  };
+
+  const deleteCustomExpenseCategory = (name: string) => {
+    setCustomExpenseCategories(prev => {
+      const next = prev.filter(c => c.name !== name);
+      localStorage.setItem('midnightledger_customExpenseCategories', JSON.stringify(next));
+      return next;
+    });
+    setExtraExpenses(prev => prev.map(e => e.category === name ? { ...e, category: 'Other' } : e));
+  };
+
+  const addCustomBillCategory = (cat: CustomCategory) => {
+    setCustomBillCategories(prev => {
+      const next = [...prev, cat];
+      localStorage.setItem('customBillCategories', JSON.stringify(next));
+      localStorage.setItem('midnightledger_customBillCategories', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const deleteCustomBillCategory = (name: string) => {
+    setCustomBillCategories(prev => {
+      const next = prev.filter(c => c.name !== name);
+      localStorage.setItem('customBillCategories', JSON.stringify(next));
+      localStorage.setItem('midnightledger_customBillCategories', JSON.stringify(next));
+      return next;
+    });
+    setBills(prev => prev.map(b => b.category === name ? { ...b, category: 'Other' } : b));
   };
 
   const clearAllData = () => {
@@ -884,6 +1108,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         updatePaydays,
         deletePayday,
         addExtraExpense,
+        updateExtraExpense,
         deleteExtraExpense,
         addExtraIncome,
         deleteExtraIncome,
@@ -892,6 +1117,12 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         toggleBillPaid,
         markAllBillsPaidInPayday,
         unmarkAllBillsPaidInPayday,
+        customExpenseCategories,
+        addCustomExpenseCategory,
+        deleteCustomExpenseCategory,
+        customBillCategories,
+        addCustomBillCategory,
+        deleteCustomBillCategory,
         clearAllData,
         exportData,
         importData,

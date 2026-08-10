@@ -19,6 +19,10 @@ export interface AssignedBill {
   isOverride: boolean;
   isPaid: boolean;
   dueFullDate: string; // YYYY-MM-DD exact due date in this period
+  originalAssignedPayday?: string;
+  paidWithPaydayId?: string;
+  paidEarly?: boolean;
+  isPaidEarly?: boolean; // If true, this item is just a reference shown in the paidWithPaydayId card
 }
 
 export interface PaydaySummary {

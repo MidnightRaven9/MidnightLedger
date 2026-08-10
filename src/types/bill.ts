@@ -1,14 +1,4 @@
-export type BillCategory = 
-  | 'Housing' 
-  | 'Utilities' 
-  | 'Car' 
-  | 'Insurance' 
-  | 'Phone & Internet' 
-  | 'Subscriptions' 
-  | 'Food & Household' 
-  | 'Debt & Credit' 
-  | 'Savings' 
-  | 'Other';
+export type BillCategory = string;
 
 export type BillType = 'fixed' | 'variable';
 export type SplitType = 'even' | 'custom' | 'percentage';

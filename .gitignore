@@ -4,7 +4,6 @@ node_modules
 .pnp.js
 
 # 🚀 Build
-dist
 build
 out
 
@@ -37,7 +36,6 @@ Thumbs.db
 .ai-studio
 midnightledger.db
 bun.lock
-dist/
 .wrangler/
 android/app/build/
 android/.gradle/
@@ -45,7 +43,6 @@ android/.gradle/
 # F-Droid ignore
 midnightledger.db
 bun.lock
-dist/
 .wrangler/
 android/app/build/
 android/.gradle/

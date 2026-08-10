@@ -7,6 +7,7 @@ import {
   ShoppingBag, 
   History, 
   RotateCcw,
+  Settings,
   Download,
   Upload,
   BarChart3
@@ -14,7 +15,7 @@ import {
 import { usePayday } from '../context/PaydayContext';
 import { ClearDataModal } from './ClearDataModal';
 
-export type TabType = 'dashboard' | 'bills' | 'paydays' | 'expenses' | 'reports' | 'history';
+export type TabType = 'dashboard' | 'bills' | 'paydays' | 'expenses' | 'reports' | 'history' | 'settings';
 
 interface NavbarProps {
   activeTab: TabType;

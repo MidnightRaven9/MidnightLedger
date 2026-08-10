@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Calendar, 
   Settings, 
@@ -11,6 +11,7 @@ import {
 import { usePayday } from '../context/PaydayContext';
 import { formatDate, formatCurrency } from '../utils/dateUtils';
 import { getCategoryEmoji } from '../utils/emojis';
+import { tryCelebrate } from '../utils/celebrate';
 import { PaydaySummary } from '../types';
 
 interface PaydaysViewProps {
@@ -26,6 +27,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
   const { 
     schedule, 
     summaries, 
+    nextPaydaySummary,
     deletePayday, 
     updatePayday, 
     updatePaydays, 
@@ -39,6 +41,32 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
   const [estimateModalInput, setEstimateModalInput] = useState<string>('');
   const [showAllPaydays, setShowAllPaydays] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedExpensesId, setExpandedExpensesId] = useState<string | null>(null);
+
+  const [prevPaydayAllPaid, setPrevPaydayAllPaid] = useState<Record<string, boolean>>({});
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsInitialLoad(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    summaries.forEach(s => {
+      const key = 'payday_' + s.payday.date;
+      const bills = s.assignedBills;
+      const allPaidNow = bills.length > 0 && bills.every(b => b.isPaid);
+      const prev = prevPaydayAllPaid[key];
+      if (prev === undefined) {
+        setPrevPaydayAllPaid(p => ({ ...p, [key]: allPaidNow }));
+        return;
+      }
+      const newPrev = tryCelebrate(key, allPaidNow, prev, isInitialLoad);
+      if (newPrev !== prev) {
+        setPrevPaydayAllPaid(p => ({ ...p, [key]: newPrev }));
+      }
+    });
+  }, [summaries, isInitialLoad]);
 
   React.useEffect(() => {
     if (summaries.length > 0 && !expandedId) {
@@ -86,7 +114,12 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
     }
   };
 
-  const displayedSummaries = showAllPaydays ? summaries : summaries.slice(0, 5);
+  
+  const currentSummaryId = nextPaydaySummary?.payday?.id || nextPaydaySummary?.payday?.date;
+  const currentIdx = summaries.findIndex(s => (s.payday.id || s.payday.date) === currentSummaryId);
+  const startIdx = Math.max(0, currentIdx);
+  const displayedSummaries = showAllPaydays ? summaries.slice(startIdx) : summaries.slice(startIdx, startIdx + 5);
+
 
   return (
     <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-3 sm:p-6 pb-28 space-y-5">
@@ -146,11 +179,12 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
       ) : (
         <div className="space-y-5">
           {displayedSummaries.map((summary) => {
-            const { payday, assignedBills, totalBills, estimatedCheck, leftOver, status } = summary;
+            const { payday, assignedBills, totalBills, estimatedCheck, leftOver, status, extraExpenses, totalExtraExpenses } = summary;
             const hasAmount = estimatedCheck !== null && estimatedCheck > 0;
             const isUserAdded = payday.isManual && payday.id.startsWith('payday_');
             const paydayId = payday.id || payday.date;
             const isExpanded = expandedId === paydayId;
+            const isExpensesExpanded = expandedExpensesId === paydayId;
             const paidCount = assignedBills.filter(b => b.isPaid).length;
 
             return (
@@ -183,10 +217,10 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                         )}
                       </div>
                       <p className="text-[11px] text-zinc-400 truncate leading-tight mt-0.5">
-                        {hasAmount ? `${formatCurrency(estimatedCheck)} avail` : 'Amount TBD'}
+                        {hasAmount ? `${formatCurrency(estimatedCheck)} available` : 'Amount TBD'} • {assignedBills.length + extraExpenses.length} items
                       </p>
                       <p className="text-[11px] text-zinc-500 truncate leading-tight">
-                        {assignedBills.length} bills ({formatCurrency(totalBills)})
+                        {assignedBills.length} bills ({formatCurrency(totalBills)}){extraExpenses.length > 0 ? ` + ${extraExpenses.length} expenses (${formatCurrency(totalExtraExpenses)})` : ''}
                       </p>
                     </div>
                   </div>
@@ -335,7 +369,9 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                         </div>
                       )}
 
-                      {/* Dynamic Action Buttons */}
+                      
+
+{/* Dynamic Action Buttons */}
                       {(() => {
                         const allPaid = assignedBills.length > 0 && assignedBills.every(b => b.isPaid);
                         return (
@@ -373,6 +409,69 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                     </div>
                   )}
                 </div>
+                {/* Collapsible Expenses Section */}
+                {extraExpenses.length > 0 && (
+                  <div className="mt-3 border-t border-zinc-800/60 pt-3 w-full max-w-full overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedExpensesId(isExpensesExpanded ? null : paydayId)}
+                      className="w-full flex items-center justify-between py-1.5 group cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between w-full pr-2">
+                        <span className="text-[11px] font-black tracking-widest text-zinc-400 uppercase">
+                          EXPENSES ({extraExpenses.length})
+                        </span>
+                        <span className="text-[11px] text-zinc-500 font-medium">
+                          {formatCurrency(totalExtraExpenses)}
+                        </span>
+                      </div>
+                      <span className={`text-zinc-500 transition-transform duration-200 shrink-0 ${isExpensesExpanded ? 'rotate-180' : ''}`}>⌄</span>
+                    </button>
+
+                    {isExpensesExpanded && (
+                      <div className="mt-2.5 animate-in slide-in-from-top-1 space-y-2 w-full max-w-full overflow-hidden">
+                        {extraExpenses.map(exp => {
+                          const expEmoji = exp.emoji || getCategoryEmoji(exp.category);
+                          return (
+                            <div
+                              key={exp.id}
+                              className="w-full min-w-0 max-w-full overflow-hidden flex items-center justify-between p-3 rounded-2xl bg-[#1e1e1e] border border-[#2a2a2a] box-border"
+                            >
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <div className="w-10 h-10 rounded-[10px] bg-[#2a2a2a] flex items-center justify-center text-lg shrink-0">
+                                  {expEmoji}
+                                </div>
+                                <div className="min-w-0 flex-1 overflow-hidden">
+                                  <p className="text-[14px] font-bold text-white truncate">{exp.description}</p>
+                                  <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
+                                    <span className="px-2 py-0.5 rounded-full border border-zinc-700 text-[10px] text-zinc-400 whitespace-nowrap shrink-0 bg-[#222]">
+                                      {exp.category}
+                                    </span>
+                                    <span className="text-[10px] text-zinc-500 truncate">
+                                      • Paycheck: {formatDate(exp.paydayDate || exp.date, 'short')}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="shrink-0 flex items-center justify-end pl-2">
+                                <span className="text-[#f87171] font-bold text-[15px] truncate">
+                                  -{formatCurrency(exp.amount)}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    
+                    {!isExpensesExpanded && (
+                      <div className="mt-1.5 text-[11px] text-zinc-500 truncate">
+                        {extraExpenses.length} expenses • {formatCurrency(totalExtraExpenses)} • Tap to expand
+                      </div>
+                    )}
+                  </div>
+                )}
+
 
               </div>
             );

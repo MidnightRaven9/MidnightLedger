@@ -7,6 +7,7 @@ import { PaydaysView } from './views/PaydaysView';
 import { ExpensesView } from './views/ExpensesView';
 import { ReportsView } from './views/ReportsView';
 import { HistoryView } from './views/HistoryView';
+import { SettingsView } from './views/SettingsView';
 
 import { BillModal } from './components/BillModal';
 import { ExpenseModal } from './components/ExpenseModal';
@@ -29,6 +30,7 @@ function MainApp() {
   const [billToEdit, setBillToEdit] = useState<Bill | null>(null);
 
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [expenseToEdit, setExpenseToEdit] = useState<any>(null);
   const [defaultExpensePayday, setDefaultExpensePayday] = useState<string | undefined>(undefined);
 
   const [isExtraIncomeModalOpen, setIsExtraIncomeModalOpen] = useState(false);
@@ -43,8 +45,9 @@ function MainApp() {
     setIsBillModalOpen(true);
   };
 
-  const handleOpenExpenseModal = (paydayDate?: string) => {
+  const handleOpenExpenseModal = (paydayDate?: string, expenseToEdit?: any) => {
     setDefaultExpensePayday(paydayDate);
+    setExpenseToEdit(expenseToEdit || null);
     setIsExpenseModalOpen(true);
   };
 
@@ -90,7 +93,7 @@ function MainApp() {
         )}
 
         {activeTab === 'expenses' && (
-          <ExpensesView onOpenExpenseModal={() => handleOpenExpenseModal()} />
+          <ExpensesView onOpenExpenseModal={handleOpenExpenseModal} />
         )}
 
         {activeTab === 'reports' && (
@@ -111,6 +114,7 @@ function MainApp() {
         isOpen={isExpenseModalOpen}
         onClose={() => setIsExpenseModalOpen(false)}
         defaultPaydayDate={defaultExpensePayday}
+        expenseToEdit={expenseToEdit}
       />
 
       <AddExtraIncomeModal

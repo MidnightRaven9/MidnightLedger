@@ -301,7 +301,33 @@ export function calculatePaydaySummaries(
           ? fullOverride
           : (occ.bill.isSplit ? (occ.bill.fullTotal ?? occ.bill.amount) : occ.bill.amount);
 
-        const isPaid = (paidStatuses[key] ?? paidStatuses[altKey]) ?? false;
+                const nameKey = `${occ.bill.name}::${payday.date}`;
+        const nameAltKey = `${occ.bill.name}_${payday.date}`;
+        const dueKey = `${occ.bill.id}::${occ.dueDateStr}`;
+        const dueAltKey = `${occ.bill.id}_${occ.dueDateStr}`;
+        const nameDueKey = `${occ.bill.name}::${occ.dueDateStr}`;
+        const nameDueAltKey = `${occ.bill.name}_${occ.dueDateStr}`;
+
+        const possibleKeys = [
+          key, altKey, nameKey, nameAltKey, dueKey, dueAltKey, nameDueKey, nameDueAltKey,
+          occ.bill.id, occ.bill.name, String((occ.bill as any)._id || '')
+        ].filter(Boolean);
+
+        let paidStatus: boolean | string | undefined = undefined;
+        for (const k of possibleKeys) {
+          if (k in paidStatuses && paidStatuses[k] !== undefined) {
+            paidStatus = paidStatuses[k];
+            break;
+          }
+        }
+
+        if (paidStatus === undefined) {
+          paidStatus = occ.bill.paid ?? (occ.bill as any).isPaid ?? false;
+        }
+
+        const isPaid = !!paidStatus;
+        const paidWithPaydayId = typeof paidStatus === 'string' ? paidStatus : (isPaid ? payday.date : undefined);
+        const paidEarly = typeof paidStatus === 'string' && paidStatus !== payday.date;
 
         return {
           bill: occ.bill,
@@ -310,9 +336,56 @@ export function calculatePaydaySummaries(
           isOverride,
           isPaid,
           dueFullDate: occ.dueDateStr,
+          originalAssignedPayday: payday.date,
+          paidWithPaydayId,
+          paidEarly
         };
-      })
-      .sort((a, b) => compareDates(a.dueFullDate, b.dueFullDate));
+      });
+
+    // Now we need to also grab bills from OTHER paydays that were paid with THIS payday.
+    const earlyPaidItems: AssignedBill[] = [];
+    Object.keys(paidStatuses).forEach(k => {
+      const pStatus = paidStatuses[k];
+      if (typeof pStatus === 'string' && pStatus === payday.date) {
+        const parts = k.split('::');
+        const billId = parts[0];
+        const origPaydayDate = parts[1];
+        
+        if (origPaydayDate && origPaydayDate !== payday.date) {
+          const billObj = bills.find(b => {
+             const bAny = b as any;
+             return bAny.id === billId || bAny.originalBillId === billId || bAny.billId === billId;
+          });
+          if (billObj) {
+            const occ = occurrences.find(o => {
+               const oAny = o.bill as any;
+               return (oAny.id === billId || oAny.originalBillId === billId || oAny.billId === billId) && 
+                      o.dueDateStr >= origPaydayDate;
+            });
+            
+            const override = variableOverrides[k];
+            const effectiveAmount = override !== undefined ? override : billObj.amount;
+            const fullOverride = variableFullTotalOverrides?.[k];
+            const effectiveFullTotal = fullOverride !== undefined ? fullOverride : (billObj.isSplit ? (billObj.fullTotal ?? billObj.amount) : billObj.amount);
+
+            earlyPaidItems.push({
+              bill: billObj,
+              effectiveAmount,
+              effectiveFullTotal,
+              isOverride: override !== undefined,
+              isPaid: true,
+              dueFullDate: occ ? occ.dueDateStr : origPaydayDate,
+              originalAssignedPayday: origPaydayDate,
+              paidWithPaydayId: payday.date,
+              paidEarly: true,
+              isPaidEarly: true 
+            });
+          }
+        }
+      }
+    });
+
+    const combinedAssigned = [...assignedForThisPayday, ...earlyPaidItems].sort((a, b) => compareDates(a.dueFullDate, b.dueFullDate));
 
     // Extra expenses for this payday (matching paydayDate)
     const assignedExpenses = extraExpenses.filter(e => e.paydayDate === payday.date);
@@ -320,7 +393,11 @@ export function calculatePaydaySummaries(
     // Extra incomes for this payday (matching paydayDate)
     const assignedIncomes = extraIncomes.filter(i => i.paydayDate === payday.date);
 
-    const totalBills = assignedForThisPayday.reduce((sum, item) => sum + item.effectiveAmount, 0);
+    const totalBills = combinedAssigned.reduce((sum, item) => {
+      // If the bill was paid with ANOTHER paycheck, it shouldn't deduct from THIS paycheck's available money.
+      const isPaidWithOther = item.paidWithPaydayId && item.paidWithPaydayId !== payday.date;
+      return sum + (isPaidWithOther ? 0 : item.effectiveAmount);
+    }, 0);
     const totalExtraExpenses = assignedExpenses.reduce((sum, item) => sum + item.amount, 0);
     const totalExtraIncome = assignedIncomes.reduce((sum, item) => sum + item.amount, 0);
     const totalOutflow = totalBills + totalExtraExpenses;
@@ -348,7 +425,7 @@ export function calculatePaydaySummaries(
     return {
       payday,
       nextPaydayDate,
-      assignedBills: assignedForThisPayday,
+      assignedBills: combinedAssigned,
       extraExpenses: assignedExpenses,
       extraIncomes: assignedIncomes,
       totalBills,

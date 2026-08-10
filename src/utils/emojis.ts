@@ -8,18 +8,49 @@ export const CATEGORY_EMOJIS: Record<string, string> = {
   'Streaming Subscriptions': '🎬',
   'Food & Household': '🍔',
   'Food': '🍔',
+  'Food/Drinks': '🍔',
   'Gas': '⛽',
-  'Shopping': '🛒',
+  'Shopping': '🛍️',
+  'Groceries': '🛒',
   'Pet': '🐾',
   'Entertainment': '🎮',
+  'Fun': '🎉',
+  'Bills': '📄',
+  'Cigs': '🚬',
   'Debt & Credit': '💳',
   'Savings': '🏦',
-  'Other': '💸',
+  'Other': '📦',
 };
 
 export const getCategoryEmoji = (category?: string): string => {
   if (!category) return '💸';
-  return CATEGORY_EMOJIS[category] || '💸';
+  if (CATEGORY_EMOJIS[category]) return CATEGORY_EMOJIS[category];
+  
+  // Also check custom categories from localStorage
+  try {
+    const savedExpenseCats = localStorage.getItem('midnightledger_customExpenseCategories');
+    if (savedExpenseCats) {
+      const parsed = JSON.parse(savedExpenseCats);
+      const custom = parsed.find((c: any) => c.name === category);
+      if (custom) return custom.emoji;
+    }
+    const savedBillCats = localStorage.getItem('customBillCategories') || localStorage.getItem('midnightledger_customBillCategories');
+    if (savedBillCats) {
+      const parsed = JSON.parse(savedBillCats);
+      const custom = parsed.find((c: any) => c.name === category);
+      if (custom) return custom.emoji;
+    }
+    const savedCats = localStorage.getItem('midnightledger_customCategories');
+    if (savedCats) {
+      const parsed = JSON.parse(savedCats);
+      const custom = parsed.find((c: any) => c.name === category);
+      if (custom) return custom.emoji;
+    }
+  } catch (e) {
+    // ignore
+  }
+  
+  return '📦'; // Default for custom / other
 };
 
 export const suggestEmoji = (name: string): string | null => {
@@ -36,15 +67,56 @@ export const suggestEmoji = (name: string): string | null => {
   return null;
 };
 
+import confetti from 'canvas-confetti';
+
+let customConfetti: any = null;
+
+try {
+  if (typeof window !== 'undefined' && confetti && typeof (confetti as any).create === 'function') {
+    customConfetti = (confetti as any).create(null, { useWorker: false, resize: true });
+  }
+} catch (e) {
+  console.warn('Failed to initialize custom confetti instance:', e);
+}
+
 export const triggerConfetti = () => {
-  const emojis = ['🎉', '💜'];
-  document.querySelectorAll('.confetti-emoji').forEach(el => el.remove());
+  try {
+    const fire = customConfetti || confetti;
+    if (typeof fire === 'function') {
+      fire({ 
+        particleCount: 150, 
+        spread: 70, 
+        origin: { y: 0.6 }, 
+        colors: ['#a855f7', '#ec4899', '#8b5cf6'],
+        zIndex: 9999,
+      });
+    }
+  } catch (e) {
+    console.error('Confetti error:', e);
+  }
+};
+
+export const triggerPurpleHearts = () => {
+  document.querySelectorAll('.purple-heart-anim').forEach(el => el.remove());
   
-  for (let i = 0; i < 30; i++) {
+  // Create stylesheet for keyframes if it doesn't exist
+  if (!document.getElementById('purple-heart-styles')) {
+    const style = document.createElement('style');
+    style.id = 'purple-heart-styles';
+    style.textContent = `
+      @keyframes fallHearts {
+        0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  for (let i = 0; i < 20; i++) {
     const el = document.createElement('div');
-    el.className = 'confetti-emoji';
-    el.textContent = emojis[i % 2];
-    el.style.cssText = `position:fixed;left:${Math.random() * 100}vw;top:-20px;font-size:24px;animation:fall ${2.5 + Math.random() * 1.5}s linear forwards;z-index:9999;pointer-events:none;`;
+    el.className = 'purple-heart-anim';
+    el.textContent = '💜';
+    el.style.cssText = `position:fixed;left:${Math.random() * 100}vw;top:-20px;font-size:${20 + Math.random() * 14}px;animation:fallHearts ${2.5 + Math.random() * 1.5}s linear forwards;z-index:9999;pointer-events:none;`;
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 4000);
   }

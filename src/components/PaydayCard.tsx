@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ChevronDown, 
   ChevronUp, 
@@ -21,6 +21,7 @@ import { calculateSplitShare } from '../utils/splitUtils';
 import { usePayday } from '../context/PaydayContext';
 import { DeleteBillModal } from './DeleteBillModal';
 import { BillCard } from './BillCard';
+import { tryCelebrate } from '../utils/celebrate';
 
 interface PaydayCardProps {
   summary: PaydaySummary;
@@ -74,6 +75,25 @@ export const PaydayCard: React.FC<PaydayCardProps> = ({
     leftOver,
     status
   } = summary;
+
+  const allPaidNow = assignedBills.length > 0 && assignedBills.every(b => b.isPaid);
+
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const prevPaydayAllPaidRef = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsInitialLoad(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (prevPaydayAllPaidRef.current === null) {
+      prevPaydayAllPaidRef.current = allPaidNow;
+      return;
+    }
+    const newPrev = tryCelebrate('payday_' + payday.date, allPaidNow, prevPaydayAllPaidRef.current, isInitialLoad);
+    prevPaydayAllPaidRef.current = newPrev;
+  }, [allPaidNow, isInitialLoad, payday.date]);
 
   const handleSaveEstCheck = () => {
     const val = parseFloat(tempEstCheck);

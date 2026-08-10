@@ -179,4 +179,34 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   color: #a1a1aa;
 }
 
+/* Checkbox & Modal Stacking Context Fix */
+.bill-check-wrapper, .bill-checkbox, .check-btn, .bill-check-btn {
+  position: relative !important;
+  z-index: 5 !important;
+  pointer-events: auto !important;
+  opacity: 1 !important;
+}
+
+.paid-bill .bill-check-wrapper,
+.paid-bill .check-btn,
+.paid-bill .bill-check-btn {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+}
+
+.edit-modal-overlay, .modal-overlay, .edit-bill-modal-backdrop {
+  z-index: 9999 !important;
+  background: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  isolation: isolate !important;
+}
+
+.edit-modal-content, .edit-bill-modal, .modal-content-container {
+  z-index: 10000 !important;
+  position: relative !important;
+}
+
+
 

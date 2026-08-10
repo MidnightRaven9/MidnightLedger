@@ -1,28 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, 
   Receipt, 
   Search, 
-  PieChart
+  PieChart,
+  Settings
 } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
 import { Bill } from '../types';
 import { formatCurrency } from '../utils/dateUtils';
 import { getCategoryEmoji } from '../utils/emojis';
+import { tryCelebrate } from '../utils/celebrate';
 import { DeleteBillModal } from '../components/DeleteBillModal';
 import { BillCard } from '../components/BillCard';
+import { ManageCategoriesModal } from '../components/ManageCategoriesModal';
 
 interface BillsViewProps {
   onOpenBillModal: (billToEdit?: Bill | null) => void;
 }
 
 export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
-  const { bills, viewMode, setViewMode, summaries, nextPaydaySummary, toggleBillPaid } = usePayday();
+  const { bills, viewMode, setViewMode, summaries, nextPaydaySummary, toggleBillPaid, customBillCategories } = usePayday();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedType, setSelectedType] = useState<string>('ALL');
   const [deletingBill, setDeletingBill] = useState<Bill | null>(null);
+  const [isManageCategoriesModalOpen, setIsManageCategoriesModalOpen] = useState(false);
+
+  const [billSort, setBillSort] = useState<string>(() => {
+    return localStorage.getItem('billSort') || localStorage.getItem('midnightledger_billSort') || 'due';
+  });
+
+  const [showNextCycle, setShowNextCycle] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('showNextCycle');
+      return saved !== null ? JSON.parse(saved) : false;
+    } catch (_) {
+      return false;
+    }
+  });
+
+  const handleSortChange = (newSort: string) => {
+    setBillSort(newSort);
+    localStorage.setItem('billSort', newSort);
+    localStorage.setItem('midnightledger_billSort', newSort);
+  };
+
+  const currentPaydayDate = nextPaydaySummary?.payday.date || summaries[0]?.payday.date || '';
+  const currentSummary = summaries.find(s => s.payday.date === currentPaydayDate) || nextPaydaySummary;
+  const billsForCheck = currentSummary ? currentSummary.assignedBills : [];
+  const allPaidNow = billsForCheck.length > 0 && billsForCheck.every(ab => ab.isPaid);
+
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const prevBillsAllPaidRef = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsInitialLoad(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (prevBillsAllPaidRef.current === null) {
+      prevBillsAllPaidRef.current = allPaidNow;
+      return;
+    }
+    const newPrev = tryCelebrate('bills_' + currentPaydayDate, allPaidNow, prevBillsAllPaidRef.current, isInitialLoad);
+    prevBillsAllPaidRef.current = newPrev;
+  }, [allPaidNow, isInitialLoad, currentPaydayDate]);
 
   // Filter bills
   const filteredBills = bills.filter(bill => {
@@ -62,10 +107,116 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
     'General': 'bg-violet-400',
   };
 
-  const categories = Array.from(new Set(bills.map(b => (b.category as string) === 'Streaming Subscriptions' ? 'Subscriptions' : b.category)));
+  const sortedAndFilteredBills = (() => {
+    const list = [...filteredBills];
+    if (billSort === 'due') {
+      const getNextDueDate = (bill: Bill) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let dueDay = 1;
+        if (bill.dueDay !== undefined && bill.dueDay !== null) {
+          dueDay = Number(bill.dueDay);
+        } else if (typeof bill.dueDate === 'number') {
+          dueDay = bill.dueDate;
+        } else {
+          const strDueDate = String((bill as any).dueDate || (bill as any).due || '1');
+          if (strDueDate.includes('-')) {
+            const parts = strDueDate.split('-');
+            const day = parseInt(parts[2], 10);
+            if (!isNaN(day)) dueDay = day;
+          } else {
+            const parsed = parseInt(strDueDate, 10);
+            if (!isNaN(parsed)) dueDay = parsed;
+          }
+        }
+
+        if (isNaN(dueDay) || dueDay < 1) dueDay = 1;
+
+        let next = new Date(today.getFullYear(), today.getMonth(), dueDay);
+        next.setHours(0, 0, 0, 0);
+
+        if (next < today) {
+          next = new Date(today.getFullYear(), today.getMonth() + 1, dueDay);
+          next.setHours(0, 0, 0, 0);
+        }
+
+        return next.getTime();
+      };
+
+      list.sort((a, b) => getNextDueDate(a) - getNextDueDate(b));
+    } else if (billSort === 'low') {
+      list.sort((a, b) => {
+        const amtA = viewMode === 'myShare' ? a.amount : (a.isSplit ? (a.fullTotal || a.amount) : a.amount);
+        const amtB = viewMode === 'myShare' ? b.amount : (b.isSplit ? (b.fullTotal || b.amount) : b.amount);
+        return amtA - amtB;
+      });
+    } else if (billSort === 'high') {
+      list.sort((a, b) => {
+        const amtA = viewMode === 'myShare' ? a.amount : (a.isSplit ? (a.fullTotal || a.amount) : a.amount);
+        const amtB = viewMode === 'myShare' ? b.amount : (b.isSplit ? (b.fullTotal || b.amount) : b.amount);
+        return amtB - amtA;
+      });
+    }
+    return list;
+  })();
+
+  const getDueDay = (bill: Bill): number => {
+    if (bill.dueDay !== undefined && bill.dueDay !== null) {
+      const parsed = Number(bill.dueDay);
+      if (!isNaN(parsed) && parsed >= 1) return parsed;
+    }
+    if (typeof bill.dueDate === 'number') {
+      return bill.dueDate;
+    }
+    const strDueDate = String((bill as any).dueDate || (bill as any).due || (bill as any).dueDay || '1');
+    if (strDueDate.includes('-')) {
+      const parts = strDueDate.split('-');
+      const day = parseInt(parts[2], 10);
+      if (!isNaN(day)) return day;
+    } else if (strDueDate.includes('/')) {
+      const parts = strDueDate.split('/');
+      const day = parseInt(parts[1] || parts[0], 10);
+      if (!isNaN(day)) return day;
+    } else {
+      const parsed = parseInt(strDueDate, 10);
+      if (!isNaN(parsed)) return parsed;
+    }
+    return 1;
+  };
+
+  const todayDay = new Date().getDate();
+
+  let upcomingBills: Bill[] = [];
+  let nextCycleBills: Bill[] = [];
+
+  if (billSort === 'due') {
+    sortedAndFilteredBills.forEach(b => {
+      const dueDay = getDueDay(b);
+      if (dueDay >= todayDay) {
+        upcomingBills.push(b);
+      } else {
+        nextCycleBills.push(b);
+      }
+    });
+  } else {
+    upcomingBills = sortedAndFilteredBills;
+  }
+
+  const categories = Array.from(
+    new Set([
+      ...bills.map(b => (b.category as string) === 'Streaming Subscriptions' ? 'Subscriptions' : b.category),
+      ...(customBillCategories || []).map(c => c.name)
+    ])
+  );
 
   return (
     <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-3 sm:p-6 pb-28 space-y-5">
+      <ManageCategoriesModal 
+        type="bill"
+        isOpen={isManageCategoriesModalOpen} 
+        onClose={() => setIsManageCategoriesModalOpen(false)} 
+      />
       
       {/* 1. Bill Management Hub Hero Card */}
       <div className="rounded-[28px] sm:rounded-[32px] border border-zinc-800/50 bg-[#121212] p-6 sm:p-7 space-y-5">
@@ -162,7 +313,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
       <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-4 sm:p-6 space-y-3.5 w-full min-w-0 max-w-full overflow-hidden box-border">
         {/* Search */}
         <div className="relative w-full min-w-0">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
           <input
             type="text"
             placeholder="Search bills..."
@@ -219,33 +370,145 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
             <option value="variable">Variable</option>
           </select>
         </div>
+
+        {/* Sort Row */}
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800/50">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span className="text-[13px] text-zinc-400 font-medium shrink-0">Sort:</span>
+            <select
+              value={billSort}
+              onChange={e => handleSortChange(e.target.value)}
+              className="h-10 rounded-full bg-[#1f1f1f] border border-zinc-800 px-4 text-[13px] text-white focus:outline-none focus:border-purple-600 cursor-pointer truncate"
+            >
+              <option value="due">Due Date</option>
+              <option value="low">Amount: Low to High</option>
+              <option value="high">Amount: High to Low</option>
+            </select>
+          </div>
+          <button
+            onClick={() => setIsManageCategoriesModalOpen(true)}
+            className="w-11 h-11 shrink-0 flex items-center justify-center rounded-2xl bg-[#1f1f1f] border border-zinc-800 text-zinc-400 hover:text-white hover:border-[#7C3AED] transition-colors cursor-pointer"
+            title="Manage Categories"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* 4. Bill Cards List */}
-      {filteredBills.length === 0 ? (
+      {sortedAndFilteredBills.length === 0 ? (
         <div className="p-12 text-center rounded-2xl bg-[#121212] border border-[#2A2A2A] text-white/50">
           <p className="text-sm">No bills found matching your criteria.</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredBills.map(bill => {
-            const assignedSummary = summaries.find(s => s.assignedBills.some(ab => ab.bill.id === bill.id)) || nextPaydaySummary;
+          {upcomingBills.map(bill => {
+            const billAny = bill as any;
+            const assignedSummary = summaries.find(s => s.assignedBills.some(ab => {
+              const b = ab.bill as any;
+              return String(b.id) === String(bill.id) || String(b._id) === String(bill.id) || (billAny._id && String(b.id) === String(billAny._id)) || b.name === bill.name;
+            })) || nextPaydaySummary;
+
             const paydayDate = assignedSummary ? assignedSummary.payday.date : '';
-            const assignedItem = assignedSummary?.assignedBills.find(ab => ab.bill.id === bill.id);
-            const isPaid = assignedItem ? assignedItem.isPaid : false;
+            const assignedItem = assignedSummary?.assignedBills.find(ab => {
+              const b = ab.bill as any;
+              return String(b.id) === String(bill.id) || String(b._id) === String(bill.id) || (billAny._id && String(b.id) === String(billAny._id)) || b.name === bill.name;
+            });
+
+            const isPaid = assignedItem ? assignedItem.isPaid : !!(bill.paid || billAny.isPaid);
 
             return (
               <BillCard
-                key={bill.id}
+                key={bill.id || billAny._id || bill.name}
                 bill={bill}
                 viewMode={viewMode}
                 isPaid={isPaid}
-                onTogglePaid={() => toggleBillPaid(bill.id, paydayDate)}
+                onTogglePaid={() => toggleBillPaid(bill.id || billAny._id || bill.name, paydayDate)}
                 onEdit={() => onOpenBillModal(bill)}
                 onDelete={() => setDeletingBill(bill)}
               />
             );
           })}
+
+          {billSort === 'due' && nextCycleBills.length > 0 && (
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowNextCycle(prev => {
+                    const next = !prev;
+                    try {
+                      localStorage.setItem('showNextCycle', JSON.stringify(next));
+                    } catch (_) {}
+                    return next;
+                  });
+                }}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  borderRadius: '16px',
+                  background: '#1a1a1a',
+                  border: '1px dashed #3a3a3a',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginTop: '12px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#ffffff',
+                  cursor: 'pointer'
+                }}
+              >
+                <span>
+                  🗓️ Already passed - Next Cycle ({nextCycleBills.length}) • Due {nextCycleBills.map(b => {
+                    const d = getDueDay(b);
+                    const s = ["th", "st", "nd", "rd"];
+                    const v = d % 100;
+                    return d + (s[(v - 20) % 10] || s[v] || s[0]);
+                  }).join(', ')}
+                </span>
+                <span style={{ transform: showNextCycle ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▽</span>
+              </button>
+
+              {showNextCycle && (
+                <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '12px', opacity: 0.85 }}>
+                  <div style={{ fontSize: '12px', color: '#6b7280', padding: '0 4px' }}>
+                    These will cycle back to top when their due date comes around again next month.
+                  </div>
+                  <div className="space-y-3">
+                    {nextCycleBills.map(bill => {
+                      const billAny = bill as any;
+                      const assignedSummary = summaries.find(s => s.assignedBills.some(ab => {
+                        const b = ab.bill as any;
+                        return String(b.id) === String(bill.id) || String(b._id) === String(bill.id) || (billAny._id && String(b.id) === String(billAny._id)) || b.name === bill.name;
+                      })) || nextPaydaySummary;
+
+                      const paydayDate = assignedSummary ? assignedSummary.payday.date : '';
+                      const assignedItem = assignedSummary?.assignedBills.find(ab => {
+                        const b = ab.bill as any;
+                        return String(b.id) === String(bill.id) || String(b._id) === String(bill.id) || (billAny._id && String(b.id) === String(billAny._id)) || b.name === bill.name;
+                      });
+
+                      const isPaid = assignedItem ? assignedItem.isPaid : !!(bill.paid || billAny.isPaid);
+
+                      return (
+                        <div key={bill.id || billAny._id || bill.name} style={{ opacity: 0.9 }}>
+                          <BillCard
+                            bill={bill}
+                            viewMode={viewMode}
+                            isPaid={isPaid}
+                            onTogglePaid={() => toggleBillPaid(bill.id || billAny._id || bill.name, paydayDate)}
+                            onEdit={() => onOpenBillModal(bill)}
+                            onDelete={() => setDeletingBill(bill)}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

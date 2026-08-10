@@ -78,17 +78,41 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
       >
         <div className="flex items-center gap-3 min-w-0 flex-1">
           {onTogglePaid && (
-            <button
-              onClick={onTogglePaid}
-              className="text-[#A78BFA] hover:text-white transition-colors cursor-pointer shrink-0"
-              title={isPaid ? "Mark as Unpaid" : "Mark as Paid"}
-            >
-              {isPaid ? (
-                <span className="text-lg inline-block animate-pulse">💜</span>
-              ) : (
-                <Circle className="w-5 h-5 text-white/30 hover:text-purple-400 transition-colors" />
-              )}
-            </button>
+            <div className="bill-check-wrapper shrink-0" style={{ position: 'relative', zIndex: 1, pointerEvents: 'auto' }}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onTogglePaid();
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                }}
+                className={`check-btn bill-check-btn ${isPaid ? 'checked paid' : ''}`}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  background: isPaid ? '#a855f7' : '#1a1a1a',
+                  border: '2px solid #a855f7',
+                  color: 'white',
+                  fontSize: '20px',
+                  display: 'grid',
+                  placeItems: 'center',
+                  cursor: 'pointer',
+                  pointerEvents: 'auto',
+                  touchAction: 'manipulation',
+                  flexShrink: 0,
+                  position: 'relative',
+                  zIndex: 1
+                }}
+                aria-label="Toggle paid"
+                title={isPaid ? "Mark as Unpaid" : "Mark as Paid"}
+              >
+                {isPaid ? '✓' : <span style={{ opacity: 0 }}>✓</span>}
+              </button>
+            </div>
           )}
 
           <div className="min-w-0 flex-1">
@@ -172,18 +196,41 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
       <div className="flex items-start justify-between gap-2 w-full min-w-0 max-w-full overflow-hidden">
         <div className="flex items-start gap-2.5 min-w-0 flex-1 overflow-hidden">
           {onTogglePaid && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onTogglePaid();
-              }}
-              className={`w-5 h-5 rounded-full border border-zinc-600 flex items-center justify-center shrink-0 mt-0.5 transition-all cursor-pointer ${
-                isPaid ? 'bg-purple-600 border-purple-600' : 'hover:border-zinc-400'
-              }`}
-              title={isPaid ? "Mark as Unpaid" : "Mark as Paid"}
-            >
-              {isPaid && <span className="text-white text-[10px] font-bold">✓</span>}
-            </button>
+            <div className="bill-check-wrapper shrink-0" style={{ position: 'relative', zIndex: 1, pointerEvents: 'auto' }}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onTogglePaid();
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                }}
+                className={`check-btn bill-check-btn ${isPaid ? 'checked paid' : ''}`}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  background: isPaid ? '#a855f7' : '#1a1a1a',
+                  border: '2px solid #a855f7',
+                  color: 'white',
+                  fontSize: '20px',
+                  display: 'grid',
+                  placeItems: 'center',
+                  cursor: 'pointer',
+                  pointerEvents: 'auto',
+                  touchAction: 'manipulation',
+                  flexShrink: 0,
+                  position: 'relative',
+                  zIndex: 1
+                }}
+                aria-label="Toggle paid"
+                title={isPaid ? "Mark as Unpaid" : "Mark as Paid"}
+              >
+                {isPaid ? '✓' : <span style={{ opacity: 0 }}>✓</span>}
+              </button>
+            </div>
           )}
 
           <div className="min-w-0 flex-1 overflow-hidden">

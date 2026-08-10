@@ -131,7 +131,7 @@ export const NextPaydayHero: React.FC<NextPaydayHeroProps> = ({
 
           <button
             id="btn-hero-add-bill"
-            onClick={onOpenBillModal}
+            onClick={() => onOpenBillModal()}
             className="w-full min-w-0 h-[44px] px-2 rounded-full text-[13px] font-bold bg-[#1E1E1E] hover:bg-[#2A2A2A] text-white/90 border border-[#2A2A2A] transition-all flex items-center justify-center gap-1 cursor-pointer truncate"
           >
             <Receipt className="w-4 h-4 text-[#C084FC] shrink-0" />

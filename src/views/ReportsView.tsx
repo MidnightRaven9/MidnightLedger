@@ -79,7 +79,16 @@ const CustomActiveDot = (props: any) => {
 };
 
 export const ReportsView: React.FC = () => {
-  const { summaries, bills, nextPaydaySummary } = usePayday();
+  const { summaries, bills, nextPaydaySummary, customBillCategories, customExpenseCategories } = usePayday();
+
+  // Combine default categories with any custom categories
+  const allCategories = Array.from(
+    new Set([
+      ...CATEGORIES_LIST,
+      ...(customBillCategories || []).map(c => c.name),
+      ...(customExpenseCategories || []).map(c => c.name),
+    ])
+  );
 
   // Category Filter State for reports breakdown
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
@@ -114,13 +123,13 @@ export const ReportsView: React.FC = () => {
       .forEach(item => {
         const rawCat = item.bill.category || 'Other';
         const cat = (rawCat as string) === 'Streaming Subscriptions' ? 'Subscriptions' : rawCat;
-        const myShare = item.effectiveAmount;
+        const myShare = Number(item.effectiveAmount) || 0;
         const fullBillAmt = item.bill.isSplit ? (item.bill.fullTotal || item.bill.amount) : myShare;
         activePeriodCategoryMap[cat] = activePeriodCategoryMap[cat] || { amount: 0, fullAmount: 0, count: 0 };
-        activePeriodCategoryMap[cat].amount += myShare;
-        activePeriodCategoryMap[cat].fullAmount += fullBillAmt;
+        activePeriodCategoryMap[cat].amount = Math.round((activePeriodCategoryMap[cat].amount + myShare) * 100) / 100;
+        activePeriodCategoryMap[cat].fullAmount = Math.round((activePeriodCategoryMap[cat].fullAmount + fullBillAmt) * 100) / 100;
         activePeriodCategoryMap[cat].count += 1;
-        activePeriodTotal += myShare;
+        activePeriodTotal = Math.round((activePeriodTotal + myShare) * 100) / 100;
       });
 
     activeSummary.extraExpenses
@@ -128,23 +137,25 @@ export const ReportsView: React.FC = () => {
       .forEach(exp => {
         const rawCat = exp.category || 'Other';
         const cat = (rawCat as string) === 'Streaming Subscriptions' ? 'Subscriptions' : rawCat;
-        const amt = exp.amount;
+        const amt = Number(exp.amount) || 0;
         activePeriodCategoryMap[cat] = activePeriodCategoryMap[cat] || { amount: 0, fullAmount: 0, count: 0 };
-        activePeriodCategoryMap[cat].amount += amt;
-        activePeriodCategoryMap[cat].fullAmount += amt;
+        activePeriodCategoryMap[cat].amount = Math.round((activePeriodCategoryMap[cat].amount + amt) * 100) / 100;
+        activePeriodCategoryMap[cat].fullAmount = Math.round((activePeriodCategoryMap[cat].fullAmount + amt) * 100) / 100;
         activePeriodCategoryMap[cat].count += 1;
-        activePeriodTotal += amt;
+        activePeriodTotal = Math.round((activePeriodTotal + amt) * 100) / 100;
       });
   }
 
   const activePeriodCategoriesList = Object.entries(activePeriodCategoryMap).map(([name, data]) => {
-    const percentage = activePeriodTotal > 0 ? Math.round((data.amount / activePeriodTotal) * 100) : 0;
+    const itemPctInt = activePeriodTotal > 0 ? Math.round((data.amount / activePeriodTotal) * 100) : 0;
+    const itemPctDec = activePeriodTotal > 0 ? ((data.amount / activePeriodTotal) * 100).toFixed(1) : '0';
     return {
       name,
       amount: data.amount,
       fullAmount: data.fullAmount,
       count: data.count,
-      percentage,
+      itemPctInt,
+      itemPctDec,
       color: getCategoryColor(name),
     };
   }).sort((a, b) => b.amount - a.amount);
@@ -220,14 +231,17 @@ export const ReportsView: React.FC = () => {
   const LineTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
-      const netVal = data['Net Left Over'];
-      const cumVal = data['Cumulative Buffer'];
+      const netVal = Number(data['Net Left Over'] || 0);
+      const cumVal = Number(data['Cumulative Buffer'] || 0);
       
       const netColor = netVal < 0 ? '#FF4D6A' : '#A78BFA';
       const cumColor = '#00FF94';
       
-      const formattedNet = netVal < 0 ? `-$${Math.abs(netVal)}` : `$${netVal}`;
-      const formattedCum = cumVal < 0 ? `-$${Math.abs(cumVal)}` : `$${cumVal}`;
+      const formatVal = (v: number) => {
+        const isNeg = v < 0;
+        const absVal = Math.abs(v).toFixed(2);
+        return isNeg ? `-$${absVal}` : `$${absVal}`;
+      };
 
       return (
         <div className="bg-[#111111] text-white p-3 rounded-2xl border border-zinc-800 shadow-2xl text-xs space-y-1.5 z-50 pointer-events-none max-w-[220px]">
@@ -238,13 +252,13 @@ export const ReportsView: React.FC = () => {
             <div className="flex items-center justify-between gap-3">
               <span className="text-zinc-400 font-medium truncate">Net Left Over:</span>
               <span style={{ color: netColor }} className="font-bold shrink-0">
-                {formattedNet}
+                {formatVal(netVal)}
               </span>
             </div>
             <div className="flex items-center justify-between gap-3">
               <span className="text-zinc-400 font-medium truncate">Cumulative:</span>
               <span style={{ color: cumColor }} className="font-bold shrink-0">
-                {formattedCum}
+                {formatVal(cumVal)}
               </span>
             </div>
           </div>
@@ -255,57 +269,75 @@ export const ReportsView: React.FC = () => {
   };
 
   return (
-    <div className="w-full min-w-0 max-w-full overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white pb-[100px] space-y-4">
+    <div className="w-full max-w-[600px] mx-auto overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-4 pb-[100px]">
       
       {/* 1. Header Section */}
-      <div className="w-full min-w-0 max-w-full px-4 pt-4">
-        <h1 className="text-[28px] font-black text-white leading-none tracking-tight">Analytics</h1>
-        <p className="text-[13px] text-zinc-400 mt-2 leading-[1.4] max-w-[320px]">
-          Visual breakdown of your category allocations, income vs expense balance, and projected net left over.
-        </p>
-      </div>
-
-      {/* Filter Row */}
-      <div className="mx-3 p-2.5 rounded-full bg-[#181818] border border-zinc-800/50 flex items-center gap-2 w-auto min-w-0">
-        <span className="shrink-0 text-[11px] font-bold text-zinc-500 pl-2">▽ Filter:</span>
-        <select
-          value={selectedCategory}
-          onChange={e => setSelectedCategory(e.target.value)}
-          className="flex-1 min-w-0 h-8 rounded-full bg-[#252525] px-3 text-[13px] font-bold text-white truncate appearance-none focus:outline-none cursor-pointer"
-        >
-          <option value="ALL">All Categories</option>
-          {CATEGORIES_LIST.map(cat => (
-            <option key={cat} value={cat}>
-              {cat}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* CHART A SECTION */}
-      <div className="mx-3 rounded-[24px] border border-zinc-800/50 bg-[#121212] p-4 sm:p-6 space-y-4 w-auto min-w-0 overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800/60 pb-3">
+      <div className="rounded-[20px] bg-[#151515] border border-[#2a2a2a] p-6 flex flex-col gap-4 mb-4">
+        <div className="flex gap-4 items-start">
+          <div style={{ width: '52px', height: '52px', background: '#2a1f4a', borderRadius: '16px', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3v18h18"></path>
+              <path d="M7 16V8"></path>
+              <path d="M12 16V4"></path>
+              <path d="M17 16v-6"></path>
+            </svg>
+          </div>
           <div>
-            <div className="flex items-center gap-2 text-white font-extrabold text-base">
+            <h1 className="text-[32px] font-extrabold leading-[1.1] text-white">Analytics</h1>
+            <p className="text-[15px] text-[#9ca3af] mt-2 leading-[1.4]">
+              Visual breakdown of your category allocations, income vs expense balance, and projected net left over.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Filter Bar */}
+      <div className="p-4 rounded-[16px] bg-[#1a1a1a] border border-[#2a2a2a] flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
+        <div className="flex gap-2 items-center w-full sm:w-auto">
+          <span className="text-[12px] text-[#a78bfa]">▽</span>
+          <span className="text-[13px] text-[#9ca3af] font-medium">Filter:</span>
+          <select
+            value={selectedCategory}
+            onChange={e => setSelectedCategory(e.target.value)}
+            className="flex-1 sm:w-[200px] h-[40px] rounded-full bg-[#2a2a2a] border border-[#333333] px-4 text-[14px] font-semibold text-white cursor-pointer focus:outline-none"
+          >
+            <option value="ALL">All Categories</option>
+            {allCategories.map(cat => (
+              <option key={cat} value={cat} className="bg-[#1a1a1a]">
+                {cat}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="text-[13px] text-[#6b7280] font-medium whitespace-nowrap">
+          Check: {activeSummary ? formatDate(activeSummary.payday.date, 'short') : 'Current'}
+        </div>
+      </div>
+
+      {/* 3. CHART A SECTION */}
+      <div className="p-5 rounded-[20px] bg-[#1a1a1a] border border-[#2a2a2a] mb-4 flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#2a2a2a]">
+          <div>
+            <h2 className="text-[18px] font-bold text-white leading-[1.2] flex items-center gap-2">
               <PieChartIcon className="w-5 h-5 text-[#A78BFA]" />
               Chart A — Category Allocation
-            </div>
-            <p className="text-xs text-zinc-400 mt-0.5">
+            </h2>
+            <p className="text-[14px] text-[#9ca3af] mt-1 leading-[1.4]">
               Interactive percentage & dollar breakdown of bills for selected check.
             </p>
           </div>
 
           {/* Payday Selector dropdown */}
-          <div className="flex items-center gap-2 w-full min-w-0 mt-2 sm:mt-0">
-            <span className="shrink-0 text-[13px] text-zinc-500">Check:</span>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="shrink-0 text-[13px] text-[#9ca3af] font-medium">Check:</span>
             <select
               value={selectedPaydayDate}
               onChange={e => setSelectedPaydayDate(e.target.value)}
-              className="flex-1 min-w-0 h-9 rounded-full bg-[#1e1e1e] border border-zinc-800 px-3 text-[13px] font-bold text-white truncate appearance-none focus:outline-none cursor-pointer"
+              className="flex-1 h-[38px] rounded-full bg-[#2a2a2a] border border-[#333] px-3 text-[13px] font-semibold text-white truncate focus:outline-none cursor-pointer"
             >
               {summaries.map(s => (
-                <option key={s.payday.date} value={s.payday.date} className="bg-[#121212]">
-                  {formatDate(s.payday.date, 'short')} ({formatCurrency(s.totalBills)} due)
+                <option key={s.payday.date} value={s.payday.date} className="bg-[#1a1a1a]">
+                  {formatDate(s.payday.date, 'short')}
                 </option>
               ))}
             </select>
@@ -314,34 +346,36 @@ export const ReportsView: React.FC = () => {
 
         <CategoryPieChart
           assignedBills={filteredAssignedBills}
-          extraExpenses={activeSummary ? activeSummary.extraExpenses.filter(e => selectedCategory === 'ALL' || e.category === selectedCategory) : []}
-          height={260}
+          extraExpenses={activeSummary ? activeSummary.extraExpenses.filter(e => isSelectedCategoryMatch(e.category)) : []}
+          height={220}
+          showLegend={false}
         />
 
-        <div className="mt-4 pt-4 border-t border-zinc-800/60">
-          <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-3">
-            Category Breakdown List (Selected Payday)
-          </span>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div className="pt-2 border-t border-[#2a2a2a]">
+          <div style={{ fontSize: '11px', letterSpacing: '0.08em', color: '#6b7280', margin: '14px 0 10px', fontWeight: 700, textTransform: 'uppercase' }}>
+            CATEGORY BREAKDOWN ( {activeSummary ? formatDate(activeSummary.payday.date, 'short') : ''} )
+          </div>
+          <div className="space-y-2">
             {activePeriodCategoriesList.length === 0 ? (
-              <p className="text-xs text-zinc-500 italic py-1 col-span-2">No spending in this period.</p>
+              <p className="text-[13px] text-[#9ca3af] italic py-2">No spending in this period.</p>
             ) : (
               activePeriodCategoriesList.map(cat => (
-                <div key={cat.name} className="flex justify-between items-center gap-2 w-full min-w-0 p-3 rounded-2xl bg-[#1a1a1a] border border-zinc-800/50">
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
-                    <div className="min-w-0 flex-1">
-                      <span className="text-xs font-bold text-white block truncate">{cat.name}</span>
-                      <span className="text-[10px] text-zinc-400 block truncate">
-                        {cat.count} item{cat.count !== 1 ? 's' : ''} ({cat.percentage}%)
-                      </span>
+                <div
+                  key={cat.name}
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', background: '#1a1a1a', borderRadius: '14px', marginBottom: '8px', border: '1px solid #2a2a2a' }}
+                >
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', minWidth: 0 }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: cat.color, flexShrink: 0 }} />
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, color: '#ffffff', fontSize: '15px' }} className="truncate">{cat.name}</div>
+                      <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                        {cat.count} item{cat.count > 1 ? 's' : ''} ({cat.itemPctInt}%)
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right flex flex-col shrink-0">
-                    <span className="text-sm font-extrabold text-white">{formatCurrency(cat.amount)}</span>
-                    {cat.fullAmount > cat.amount && (
-                      <span className="text-[10px] text-zinc-500 font-semibold truncate">(Full {formatCurrency(cat.fullAmount)})</span>
-                    )}
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ fontWeight: 700, color: '#ffffff', fontSize: '16px' }}>{formatCurrency(cat.amount)}</div>
+                    <div style={{ fontSize: '12px', color: '#9ca3af' }}>{cat.itemPctDec}%</div>
                   </div>
                 </div>
               ))
@@ -350,20 +384,20 @@ export const ReportsView: React.FC = () => {
         </div>
       </div>
 
-      {/* CHART B SECTION */}
-      <div className="mx-3 rounded-[24px] border border-zinc-800/50 bg-[#121212] p-4 sm:p-6 space-y-3 w-auto min-w-0 overflow-hidden">
-        <div className="border-b border-zinc-800/60 pb-3">
-          <div className="flex items-center gap-2 text-white font-extrabold text-base">
+      {/* 4. CHART B SECTION */}
+      <div className="p-5 rounded-[20px] bg-[#1a1a1a] border border-[#2a2a2a] mb-4 flex flex-col gap-4">
+        <div className="pb-2 border-b border-[#2a2a2a]">
+          <h2 className="text-[18px] font-bold text-white leading-[1.2] flex items-center gap-2">
             <BarChart2 className="w-5 h-5 text-[#A78BFA]" />
             Chart B — Income vs Expenses
-          </div>
-          <p className="text-xs text-zinc-400 mt-0.5">
+          </h2>
+          <p className="text-[14px] text-[#9ca3af] mt-1 leading-[1.4]">
             Compare expected paycheck income against total obligations across upcoming pay periods.
           </p>
         </div>
 
         {/* Custom Legend */}
-        <div className="flex gap-4 justify-center items-center py-1 text-[11px] font-bold">
+        <div className="flex gap-4 justify-center items-center py-1 text-[12px] font-semibold">
           <span className="flex items-center gap-1.5 text-zinc-300">
             <span className="w-3 h-3 bg-[#7C3AED] rounded-xs shrink-0" /> Income
           </span>
@@ -372,8 +406,8 @@ export const ReportsView: React.FC = () => {
           </span>
         </div>
 
-        <div className="w-full min-w-0 h-[260px] bg-[#0a0a0a] rounded-2xl p-2 overflow-hidden border-none outline-none">
-          <ResponsiveContainer width="100%" height={250} style={{ outline: 'none' }}>
+        <div className="w-full bg-[#111111] rounded-[16px] p-4 h-[220px]">
+          <ResponsiveContainer width="100%" height={188} style={{ outline: 'none' }}>
             <BarChart
               data={incomeVsExpensesData}
               margin={{ top: 10, right: 8, left: -10, bottom: 20 }}
@@ -403,31 +437,31 @@ export const ReportsView: React.FC = () => {
       </div>
 
       {/* CHART C SECTION */}
-      <div className="mx-3 rounded-[24px] border border-zinc-800/50 bg-[#121212] p-4 sm:p-6 space-y-3 w-auto min-w-0 overflow-hidden">
-        <div className="border-b border-zinc-800/60 pb-3">
-          <div className="flex items-center gap-2 text-white font-extrabold text-base">
+      <div className="p-5 rounded-[20px] bg-[#1a1a1a] border border-[#2a2a2a] mb-4 flex flex-col gap-4">
+        <div className="pb-2 border-b border-[#2a2a2a]">
+          <h2 className="text-[18px] font-bold text-white leading-[1.2] flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-[#C084FC]" />
             Chart C — Future Net Left Over
-          </div>
-          <p className="text-xs text-zinc-400 mt-0.5">
+          </h2>
+          <p className="text-[14px] text-[#9ca3af] mt-1 leading-[1.4]">
             Projection of remaining net funds and cumulative savings buffer across future paydays.
           </p>
         </div>
 
         {/* Custom Legend Overlay */}
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs font-semibold select-none py-1">
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[12px] font-semibold select-none py-1">
           <div className="flex items-center gap-1.5">
             <span className="w-3 h-3 border-2 border-dashed border-[#00FF94] bg-transparent shrink-0" />
-            <span className="text-zinc-300 text-[11px]">Cumulative Buffer</span>
+            <span className="text-zinc-300 text-[12px]">Cumulative Buffer</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-3 h-3 bg-[#7C3AED] shrink-0" />
-            <span className="text-zinc-300 text-[11px]">Net Left Over</span>
+            <span className="text-zinc-300 text-[12px]">Net Left Over</span>
           </div>
         </div>
 
-        <div className="w-full min-w-0 h-[260px] bg-[#0a0a0a] rounded-2xl p-2 overflow-hidden border-none outline-none relative">
-          <ResponsiveContainer width="100%" height={250} style={{ outline: 'none' }}>
+        <div className="w-full bg-[#111111] rounded-[16px] p-4 h-[220px]">
+          <ResponsiveContainer width="100%" height={188} style={{ outline: 'none' }}>
             <LineChart
               data={projectionData}
               margin={{ top: 10, right: 8, left: -10, bottom: 20 }}

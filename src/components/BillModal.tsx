@@ -4,12 +4,28 @@ import { Bill, BillCategory, BillType, SplitType } from '../types';
 import { usePayday } from '../context/PaydayContext';
 import { suggestEmoji, getCategoryEmoji } from '../utils/emojis';
 import { formatCurrency } from '../utils/dateUtils';
+import { CustomCategoryModal } from './CustomCategoryModal';
+import { ManageCategoriesModal } from './ManageCategoriesModal';
 
 interface BillModalProps {
   isOpen: boolean;
   onClose: () => void;
   billToEdit?: Bill | null;
 }
+
+const defaultBillCategories = [
+  { name: 'Housing', emoji: '🏠' },
+  { name: 'Phone & Internet', emoji: '💜' },
+  { name: 'Bills', emoji: '🧾' },
+  { name: 'Utilities', emoji: '⚡' },
+  { name: 'Car', emoji: '⛽' },
+  { name: 'Insurance', emoji: '🛡️' },
+  { name: 'Subscriptions', emoji: '🎬' },
+  { name: 'Food & Household', emoji: '🍔' },
+  { name: 'Debt & Credit', emoji: '💳' },
+  { name: 'Savings', emoji: '🏦' },
+  { name: 'Other', emoji: '📦' },
+];
 
 const CATEGORIES: BillCategory[] = [
   'Housing',
@@ -31,13 +47,15 @@ export const BillModal: React.FC<BillModalProps> = ({
   onClose,
   billToEdit,
 }) => {
-  const { addBill, updateBill } = usePayday();
+  const { addBill, updateBill, customBillCategories, addCustomBillCategory } = usePayday();
 
   const [name, setName] = useState('');
   const [customEmoji, setCustomEmoji] = useState('');
   const [dueDate, setDueDate] = useState('1');
   const [type, setType] = useState<BillType>('fixed');
   const [category, setCategory] = useState<BillCategory>('Housing');
+  const [isCustomCategoryModalOpen, setIsCustomCategoryModalOpen] = useState(false);
+  const [isManageCategoriesModalOpen, setIsManageCategoriesModalOpen] = useState(false);
   const [notes, setNotes] = useState('');
 
   // Standard or My Share Amount
@@ -209,9 +227,16 @@ export const BillModal: React.FC<BillModalProps> = ({
     onClose();
   };
 
+  const allBillCategories = Array.from(
+    new Map(
+      [...defaultBillCategories, ...(customBillCategories || []).map(c => ({ name: c.name, emoji: c.emoji }))]
+        .map(item => [item.name, item])
+    ).values()
+  );
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-[#121212] rounded-3xl shadow-2xl border border-[#2A2A2A] overflow-hidden max-h-[90vh] flex flex-col edit-bill-modal">
+    <div className="fixed inset-0 z-[9999] edit-modal-overlay flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="w-full max-w-lg bg-[#121212] rounded-3xl shadow-2xl border border-[#2A2A2A] overflow-hidden max-h-[90vh] flex flex-col edit-bill-modal edit-modal-content z-[10000] relative">
         
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#2A2A2A] bg-[#121212] shrink-0">
@@ -266,67 +291,57 @@ export const BillModal: React.FC<BillModalProps> = ({
               />
             </div>
 
-            {/* Emoji picker - make it scrollable, not cut off */}
-            <div className="mt-3 flex items-center gap-1 w-full min-w-0 max-w-full">
-              <span className="shrink-0 text-[12px] text-zinc-500 flex items-center gap-1">☺ Pick:</span>
-              <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide">
-                <div className="flex gap-1.5 w-max pr-4">
-                  {QUICK_EMOJIS.map(e => (
-                    <button
-                      key={e}
-                      type="button"
-                      onClick={() => setCustomEmoji(e)}
-                      data-selected={customEmoji === e}
-                      className="w-9 h-9 shrink-0 rounded-full bg-[#1f1f1f] border border-zinc-800 flex items-center justify-center text-[20px] leading-none hover:border-purple-500 data-[selected=true]:border-purple-500 data-[selected=true]:bg-purple-500/20 cursor-pointer transition-colors"
-                      style={{ fontFamily: '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif' }}
-                    >
-                      {e}
-                    </button>
-                  ))}
-                </div>
+          </div>
+
+          {/* Quick Fill Row / CATEGORIES */}
+          <div className="w-full min-w-0 max-w-full overflow-hidden border-y border-zinc-800/50 py-2.5 px-4 flex items-center gap-2 bg-[#181818] -mx-5 px-5" style={{ width: 'calc(100% + 40px)' }}>
+            <span className="shrink-0 text-[11px] font-bold tracking-widest text-zinc-500">CATEGORIES:</span>
+            <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide categories-slider" style={{ touchAction: 'pan-x', WebkitOverflowScrolling: 'touch' }}>
+              <div className="flex gap-2 w-max pr-4 pointer-events-auto">
+                {allBillCategories.map((cat, idx) => (
+                  <button
+                    key={cat.name + '-' + idx}
+                    type="button"
+                    onClick={() => {
+                      setCategory(cat.name as BillCategory);
+                      setCustomEmoji(cat.emoji);
+                    }}
+                    className={`cat-pill shrink-0 h-8 px-3.5 rounded-full border transition-colors whitespace-nowrap cursor-pointer ${
+                      category === cat.name 
+                        ? 'bg-[#7C3AED] text-white border-[#7C3AED] selected' 
+                        : 'bg-[#2A2A2A] border-zinc-800 text-[13px] text-white hover:border-[#7C3AED] hover:text-[#A78BFA]'
+                    }`}
+                  >
+                    {cat.emoji} {cat.name}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setIsCustomCategoryModalOpen(true)}
+                  className="shrink-0 h-8 px-3 rounded-full border border-dashed border-[#7C3AED]/50 bg-transparent text-[#7C3AED] text-[13px] hover:bg-[#7C3AED]/10 transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1 font-semibold"
+                >
+                  ✨ Custom...
+                </button>
               </div>
             </div>
           </div>
 
-          {/* Due Date & Category Row */}
-          <div className="grid grid-cols-2 gap-4 w-full min-w-0">
-            
-            {/* Due Date */}
-            <div className="min-w-0">
-              <label className="block text-[13px] font-medium text-white/80 whitespace-nowrap">
-                Due Date <span className="text-rose-400">*</span>
-              </label>
-              <p className="text-[11px] text-zinc-500">Day of month</p>
-              <input
-                type="number"
-                min="1"
-                max="31"
-                required
-                placeholder="1 - 31"
-                value={dueDate}
-                onChange={e => setDueDate(e.target.value)}
-                className="w-full mt-1.5 px-3.5 py-2.5 h-[48px] rounded-2xl border border-[#2A2A2A] bg-[#1E1E1E] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
-              />
-            </div>
-
-            {/* Category */}
-            <div className="min-w-0">
-              <label className="block text-[13px] font-medium text-white/80">
-                Category
-              </label>
-              <p className="text-[11px] text-transparent select-none">&nbsp;</p>
-              <select
-                value={category}
-                onChange={e => setCategory(e.target.value as BillCategory)}
-                className="w-full mt-1.5 px-3.5 py-2.5 h-[48px] rounded-2xl border border-[#2A2A2A] bg-[#1E1E1E] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
-              >
-                {CATEGORIES.map(cat => (
-                  <option key={cat} value={cat} className="bg-[#121212] text-white">
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* Due Date Row */}
+          <div className="w-full min-w-0">
+            <label className="block text-[13px] font-medium text-white/80 whitespace-nowrap">
+              Due Date <span className="text-rose-400">*</span>
+            </label>
+            <p className="text-[11px] text-zinc-500">Day of month (1-31)</p>
+            <input
+              type="number"
+              min="1"
+              max="31"
+              required
+              placeholder="1"
+              value={dueDate}
+              onChange={e => setDueDate(e.target.value)}
+              className="w-full mt-1.5 px-3.5 py-2.5 h-[48px] rounded-2xl border border-[#2A2A2A] bg-[#1E1E1E] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
+            />
 
           </div>
 
@@ -570,6 +585,25 @@ export const BillModal: React.FC<BillModalProps> = ({
         </form>
 
       </div>
+
+      {isCustomCategoryModalOpen && (
+        <CustomCategoryModal
+          isOpen={isCustomCategoryModalOpen}
+          onClose={() => setIsCustomCategoryModalOpen(false)}
+          onSave={(name, emoji) => {
+            addCustomBillCategory({ name, emoji });
+            setCategory(name as BillCategory);
+          }}
+        />
+      )}
+
+      {isManageCategoriesModalOpen && (
+        <ManageCategoriesModal
+          type="bill"
+          isOpen={isManageCategoriesModalOpen}
+          onClose={() => setIsManageCategoriesModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

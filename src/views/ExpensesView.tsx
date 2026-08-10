@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import { ManageCategoriesModal } from '../components/ManageCategoriesModal';
+import { Settings } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { DeleteExpenseModal } from '../components/DeleteExpenseModal';
 import { 
   PlusCircle, 
-  Trash2, 
+  Trash2,
+  Edit3, 
   Search, 
   DollarSign, 
   ShoppingBag,
@@ -11,9 +15,11 @@ import {
 } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
 import { formatDate, formatCurrency } from '../utils/dateUtils';
+import { getCategoryEmoji } from '../utils/emojis';
+import { tryCelebrate } from '../utils/celebrate';
 
 interface ExpensesViewProps {
-  onOpenExpenseModal: () => void;
+  onOpenExpenseModal: (paydayDate?: string, expenseToEdit?: any) => void;
 }
 
 export const ExpensesView: React.FC<ExpensesViewProps> = ({
@@ -22,8 +28,31 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
   const { extraExpenses, deleteExtraExpense, nextPaydaySummary, summaries } = usePayday();
   const [search, setSearch] = useState('');
   const [selectedPaydayFilter, setSelectedPaydayFilter] = useState<string>('CURRENT');
+  const [expenseToDelete, setExpenseToDelete] = useState<any>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isManageCategoriesModalOpen, setIsManageCategoriesModalOpen] = useState(false);
 
   const currentPaydayDate = nextPaydaySummary?.payday.date || (summaries[0]?.payday.date || '');
+
+  const exps = extraExpenses.filter(e => e.paydayDate === currentPaydayDate);
+  const allPaidNow = exps.length > 0 && exps.every((e: any) => e.isPaid);
+
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const prevExpensesAllPaidRef = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsInitialLoad(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (prevExpensesAllPaidRef.current === null) {
+      prevExpensesAllPaidRef.current = allPaidNow;
+      return;
+    }
+    const newPrev = tryCelebrate('expenses_' + currentPaydayDate, allPaidNow, prevExpensesAllPaidRef.current, isInitialLoad);
+    prevExpensesAllPaidRef.current = newPrev;
+  }, [allPaidNow, isInitialLoad, currentPaydayDate]);
 
   // Calculate metrics
   const now = new Date();
@@ -68,6 +97,10 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
 
   return (
     <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-3 sm:p-6 pb-28 space-y-5">
+      <ManageCategoriesModal 
+        isOpen={isManageCategoriesModalOpen} 
+        onClose={() => setIsManageCategoriesModalOpen(false)} 
+      />
       
       {/* 1. Live Expense Tracker Hero Card */}
       <div className="rounded-[28px] sm:rounded-[32px] border border-zinc-800/50 bg-[#121212] p-6 sm:p-7 space-y-5">
@@ -86,7 +119,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
         </div>
 
         <button
-          onClick={onOpenExpenseModal}
+          onClick={() => onOpenExpenseModal()}
           className="w-full h-[56px] flex items-center justify-center gap-2 rounded-2xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-[16px] mt-2 shadow-[0_8px_20px_rgba(124,58,237,0.3)] transition-all cursor-pointer"
         >
           <PlusCircle className="w-5 h-5" />
@@ -140,14 +173,14 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
               Biggest Expense
             </span>
             <div className="text-3xl font-extrabold text-[#A78BFA] leading-none">
-              {biggestExpenseObj ? formatCurrency(biggestExpenseObj.amount) : '$80.00'}
+              {biggestExpenseObj ? formatCurrency(biggestExpenseObj.amount) : '$0.00'}
             </div>
             <span className="text-[11px] text-white/40 block truncate max-w-[220px]">
-              {biggestExpenseObj ? biggestExpenseObj.description : 'Groceries & Household Supplies'}
+              {biggestExpenseObj ? biggestExpenseObj.description : 'No expenses logged yet'}
             </span>
           </div>
-          <div className="w-14 h-14 rounded-[16px] bg-[#1C1736] border border-[#3C2456] text-[#A78BFA] flex items-center justify-center shrink-0">
-            <Award className="w-6 h-6" />
+          <div className="w-14 h-14 rounded-[16px] bg-[#1C1736] border border-[#3C2456] text-2xl flex items-center justify-center shrink-0">
+            {biggestExpenseObj ? getCategoryEmoji(biggestExpenseObj.category) : <Award className="w-6 h-6 text-[#A78BFA]" />}
           </div>
         </div>
 
@@ -156,7 +189,8 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
       {/* Search & Filter Card */}
       <div className="w-full min-w-0 max-w-full px-4 py-3.5 bg-[#111111] rounded-[24px] border border-zinc-800/50 space-y-2.5">
         {/* Search */}
-        <div className="relative w-full min-w-0 max-w-full">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 min-w-0">
           <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none">🔍</span>
           <input
             type="text"
@@ -164,7 +198,15 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
             onChange={e => setSearch(e.target.value)}
             placeholder="Search merchant, gas, coffee..."
             className="w-full min-w-0 h-11 rounded-2xl bg-[#1e1e1e] border border-zinc-800 pl-10 pr-4 text-[14px] text-white placeholder-zinc-500 truncate focus:outline-none focus:border-[#7C3AED]"
-          />
+            />
+          </div>
+          <button
+            onClick={() => setIsManageCategoriesModalOpen(true)}
+            className="w-11 h-11 shrink-0 flex items-center justify-center rounded-2xl bg-[#1e1e1e] border border-zinc-800 text-zinc-400 hover:text-white hover:border-[#7C3AED] transition-colors"
+            title="Manage Categories"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Paycheck Filter */}
@@ -216,7 +258,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
           <div className="p-10 rounded-[16px] bg-[#1A1A1A] border border-dashed border-[#2A2A2A] text-center text-white/50 space-y-3">
             <p className="text-sm">No expenses logged yet.</p>
             <button
-              onClick={onOpenExpenseModal}
+              onClick={() => onOpenExpenseModal()}
               className="px-4 py-2 bg-[#7C3AED] text-white text-xs font-bold rounded-lg hover:bg-[#6D28D9] transition-all cursor-pointer"
             >
               + Add Expense
@@ -231,12 +273,13 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
               return (
                 <div 
                   key={exp.id}
-                  className="p-5 rounded-[16px] bg-[#1A1A1A] border border-[#2A2A2A]/40 space-y-4"
+                  onClick={() => onOpenExpenseModal(exp.paydayDate, exp)}
+                  className="p-5 rounded-[16px] bg-[#1A1A1A] hover:bg-[#1E1E1E] transition-colors border border-[#2A2A2A]/40 space-y-4 cursor-pointer"
                 >
                   {/* Top: Icon & Merchant info */}
                   <div className="flex items-start gap-3.5">
-                    <div className="w-12 h-12 rounded-full bg-[#121212] border border-[#2A2A2A]/60 flex items-center justify-center text-[#FF6B7A] shrink-0 mt-0.5">
-                      <DollarSign className="w-6 h-6 text-[#FF6B7A]" />
+                    <div className="w-12 h-12 rounded-full bg-[#121212] border border-[#2A2A2A]/60 flex items-center justify-center text-xl shrink-0 mt-0.5">
+                      {getCategoryEmoji(exp.category)}
                     </div>
 
                     <div className="space-y-2 flex-1">
@@ -265,14 +308,26 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                     <div className="text-2xl font-black text-[#FF6B7A]">
                       -{formatCurrency(exp.amount)}
                     </div>
-
-                    <button
-                      onClick={() => deleteExtraExpense(exp.id)}
-                      className="p-2 rounded-xl text-white/40 hover:text-[#FF6B7A] hover:bg-[#2D161B] transition-colors cursor-pointer"
-                      title="Delete expense"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onOpenExpenseModal(exp.paydayDate, exp); }}
+                        className="p-2 rounded-xl text-white/40 hover:text-[#7C3AED] hover:bg-[#7C3AED]/10 transition-colors cursor-pointer"
+                        title="Edit expense"
+                      >
+                        <Edit3 className="w-5 h-5" />
+                      </button>
+                      <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpenseToDelete(exp);
+                            setIsDeleteModalOpen(true);
+                          }}
+                          className="p-2 rounded-xl text-white/40 hover:text-[#FF6B7A] hover:bg-[#2D161B] transition-colors cursor-pointer"
+                          title="Delete expense"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                    </div>
                   </div>
 
                 </div>
@@ -280,8 +335,23 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
             })}
           </div>
         )}
-      </div>
+            </div>
 
+      <DeleteExpenseModal 
+        isOpen={isDeleteModalOpen}
+        expense={expenseToDelete}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setTimeout(() => setExpenseToDelete(null), 200); // slight delay for animation
+        }}
+        onConfirm={() => {
+          if (expenseToDelete) {
+            deleteExtraExpense(expenseToDelete.id);
+            setIsDeleteModalOpen(false);
+            setTimeout(() => setExpenseToDelete(null), 200);
+          }
+        }}
+      />
     </div>
   );
 };
