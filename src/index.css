@@ -1,0 +1,212 @@
+@import "tailwindcss";
+
+html, body, #root {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden !important;
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100vw;
+}
+
+body {
+  overscroll-behavior-x: none;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  
+  html {
+    font-size: 16px;
+  }
+  
+  @media (max-width: 768px) {
+    html {
+      font-size: 16px;
+    }
+  }
+
+  body {
+    background-color: #000000 !important;
+    color: rgba(255, 255, 255, 0.87);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+}
+
+/* Material Black & Purple Card & Input Utilities */
+.material-card {
+  background-color: #121212;
+  border: 1px solid #2A2A2A;
+  border-radius: 1.25rem; /* 20px */
+  transition: all 0.2s ease-in-out;
+}
+
+.material-card:hover {
+  border-color: rgba(124, 58, 237, 0.4);
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.12);
+}
+
+.material-card-surface {
+  background-color: #1E1E1E;
+  border: 1px solid #2A2A2A;
+  border-radius: 1rem; /* 16px */
+}
+
+.material-input {
+  background-color: #1E1E1E;
+  border: 1px solid #2A2A2A;
+  color: rgba(255, 255, 255, 0.9);
+  transition: all 0.15s ease-in-out;
+}
+
+.material-input:focus {
+  outline: none;
+  border-color: #7C3AED;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.25);
+}
+
+/* Hide scrollbars globally but keep scroll functionality */
+html, body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE */
+}
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+#root {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+#root::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.bills-page, .bill-hub-wrapper, .modal-content, .scrollbar-hide, .no-scrollbar {
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.bills-page::-webkit-scrollbar, .bill-hub-wrapper::-webkit-scrollbar, .modal-content::-webkit-scrollbar, .scrollbar-hide::-webkit-scrollbar, .no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.edit-bill-modal {
+  width: 92%;
+  max-width: 420px;
+  margin: 0 auto;
+  overflow-x: hidden !important;
+  box-sizing: border-box;
+}
+.edit-bill-modal * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* WebView Safety Styles */
+* { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+.allocation-card { min-height: auto; overflow: visible; line-height: 1.5; }
+
+/* Recharts Outline & Focus Fix */
+.recharts-wrapper,
+.recharts-surface,
+.recharts-responsive-container,
+.recharts-layer,
+.recharts-sector,
+.recharts-rectangle,
+.recharts-bar-rectangle {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.recharts-wrapper *:focus,
+.recharts-wrapper *:focus-visible {
+  outline: none !important;
+  border: none !important;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.paid-bill {
+  background: rgba(124, 58, 237, 0.1) !important;
+  border-color: rgba(124, 58, 237, 0.3) !important;
+}
+.paid-bill .bill-name {
+  text-decoration: line-through;
+  color: #a1a1aa;
+}
+
+/* Checkbox & Modal Stacking Context Fix */
+.bill-check-wrapper, .bill-checkbox, .check-btn, .bill-check-btn {
+  position: relative !important;
+  z-index: 5 !important;
+  pointer-events: auto !important;
+  opacity: 1 !important;
+}
+
+.paid-bill .bill-check-wrapper,
+.paid-bill .check-btn,
+.paid-bill .bill-check-btn {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+}
+
+.edit-modal-overlay, .modal-overlay, .edit-bill-modal-backdrop {
+  z-index: 9999 !important;
+  background: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  isolation: isolate !important;
+}
+
+.edit-modal-content, .edit-bill-modal, .modal-content-container {
+  z-index: 10000 !important;
+  position: relative !important;
+}
+
+
+

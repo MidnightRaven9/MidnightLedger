@@ -1,0 +1,9 @@
+If your APK is UNDER 100MB, delete this file and place the actual APK here as:
+public/MidnightLedger.apk
+
+If your APK is OVER 100MB:
+- Keep the docs/DOWNLOAD.md file
+- Go to GitHub.com → Your Repo → Releases → Create new release → Drag APK there
+- This folder method won't work for large files
+
+Current APK source: https://drive.google.com/file/d/1fGyyvMCUy5Hf2MXfFOUH8xbhFRzJArkR/view?usp=drivesdk

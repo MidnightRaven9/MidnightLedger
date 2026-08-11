@@ -1,0 +1,1 @@
+MidnightLedger is an offline-first, private paycheck budgeting app with bill splitting, paycheck allocation, and tax estimates. No trackers, no cloud, fully open source. Built for privacy.
