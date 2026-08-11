@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MidnightLedger</string>
+    <string name="title_activity_main">MidnightLedger</string>
+    <string name="package_name">com.midnightledger.app</string>
+    <string name="custom_url_scheme">com.midnightledger.app</string>
+</resources>

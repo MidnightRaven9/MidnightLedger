@@ -1,0 +1,1142 @@
+import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
+import { 
+  Bill, 
+  Payday, 
+  PaydaySchedule, 
+  ExtraExpense, 
+  ExtraIncome,
+  PaydaySummary 
+} from '../types';
+import { toISODateString, formatDate } from '../utils/dateUtils';
+import { generatePaydaysFromSchedule, calculatePaydaySummaries } from '../utils/paydayLogic';
+import { triggerConfetti, getCategoryEmoji } from '../utils/emojis';
+
+const STORAGE_KEY = 'midnightledger_v1';
+
+// UUID v4 contains no :: so split is safe
+const SPLIT_SEP = '::';
+const makeKey = (billId: string, paydayDate: string) => `${billId}${SPLIT_SEP}${paydayDate}`;
+const parseKey = (k: string) => {
+  const idx = k.lastIndexOf(SPLIT_SEP);
+  if (idx === -1) {
+    const parts = k.split('_');
+    return [parts[0] || '', parts.slice(1).join('_')] as const;
+  }
+  return [k.slice(0, idx), k.slice(idx + SPLIT_SEP.length)] as const;
+};
+
+function safeSave(key: string, value: string): boolean {
+  try {
+    // Test quota first
+    const testKey = '__quota_test__' + Date.now();
+    localStorage.setItem(testKey, 'test');
+    localStorage.removeItem(testKey);
+    
+    // Safe to save
+    localStorage.setItem(key, value);
+    return true;
+  } catch (err) {
+    if (err instanceof DOMException && (err.code === 22 || err.name === 'QuotaExceededError')) {
+      console.error('localStorage quota exceeded - data too large');
+      // Try to clear old versions or trim
+      try {
+        localStorage.removeItem('midnightledger_v0');
+        localStorage.removeItem('midnightledger_old');
+        localStorage.setItem(key, value);
+        return true;
+      } catch (e) {
+        alert('Storage full! Please export your data and clear some bills/history.');
+        return false;
+      }
+    }
+    console.error('localStorage save failed', err);
+    return false;
+  }
+}
+
+// Seed sample data
+const DEFAULT_SCHEDULE: PaydaySchedule = {
+  frequency: 'biweekly',
+  anchorDate: '2026-08-15',
+};
+
+const DEFAULT_PAYDAYS: Payday[] = [
+  { id: 'sample_payday_1', date: '2026-08-15', estimatedAmount: 1450, isManual: false, notes: 'Mid-month check' },
+  { id: 'sample_payday_2', date: '2026-08-29', estimatedAmount: 1450, isManual: false, notes: 'End of month check' },
+];
+
+const DEFAULT_BILLS: Bill[] = [
+  {
+    id: 'sample_bill_1',
+    name: 'Apartment Rent',
+    amount: 950,
+    dueDate: 1,
+    type: 'fixed',
+    category: 'Housing',
+    notes: 'Due on the 1st of every month',
+    isActive: true,
+    isRecurringTemplate: true,
+  },
+  {
+    id: 'sample_bill_2',
+    name: 'Electric Utility',
+    amount: 95.50,
+    myShare: 95.50,
+    fullTotal: 191.00,
+    isSplit: true,
+    splitType: 'even',
+    splitCount: 2,
+    splitWays: 2,
+    mySharePercentage: 50,
+    dueDate: 12,
+    type: 'variable',
+    category: 'Utilities',
+    notes: 'Split 2 ways with roommate ($191 total)',
+    isActive: true,
+    isRecurringTemplate: true,
+  },
+  {
+    id: 'sample_bill_3',
+    name: 'Car Insurance',
+    amount: 120,
+    dueDate: 18,
+    type: 'fixed',
+    category: 'Insurance',
+    notes: 'Auto-debit on the 18th',
+    isActive: true,
+    isRecurringTemplate: true,
+  },
+  {
+    id: 'sample_bill_4',
+    name: 'Phone & Internet',
+    amount: 65,
+    dueDate: 22,
+    type: 'fixed',
+    category: 'Phone & Internet',
+    notes: 'Fiber home connection',
+    isActive: true,
+    isRecurringTemplate: true,
+  },
+  {
+    id: 'sample_bill_5',
+    name: 'Subscriptions',
+    amount: 18,
+    dueDate: 27,
+    type: 'fixed',
+    category: 'Subscriptions',
+    notes: 'Netflix & Spotify bundle',
+    isActive: true,
+    isRecurringTemplate: true,
+  },
+];
+
+const DEFAULT_EXPENSES: ExtraExpense[] = [
+  {
+    id: 'sample_expense_1',
+    description: 'Groceries & Household Supplies',
+    amount: 80,
+    paydayDate: '2026-08-15',
+    category: 'Food & Household',
+    createdAt: '2026-08-05',
+  },
+];
+
+const migrateBills = (loadedBills: Bill[]): Bill[] => {
+  if (!Array.isArray(loadedBills)) return DEFAULT_BILLS;
+  return loadedBills.map(b => {
+    const nameLower = (b.name || '').toLowerCase();
+    const isStreamingSub = nameLower.includes('streaming') && nameLower.includes('subscript');
+    const isOldName = b.name === 'Streaming Subscriptions' || isStreamingSub;
+    const catIsOld = (b.category as string) === 'Streaming Subscriptions';
+    
+    if (isOldName || catIsOld) {
+      return {
+        ...b,
+        name: isOldName ? 'Subscriptions' : b.name,
+        category: catIsOld ? 'Subscriptions' : b.category,
+      };
+    }
+    return b;
+  });
+};
+
+const getSavedState = () => {
+  try {
+    let saved = localStorage.getItem('midnightledger_v1');
+    if (!saved) {
+      // Fallback migration from previous key
+      saved = localStorage.getItem('payday_planner_data_v1');
+    }
+    
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.isWiped) {
+        return {
+          schedule: { frequency: 'manual', anchorDate: '' } as PaydaySchedule,
+          paydays: [] as Payday[],
+          bills: [] as Bill[],
+          extraExpenses: [] as ExtraExpense[],
+          extraIncomes: [] as ExtraIncome[],
+          variableOverrides: {} as Record<string, number>,
+          variableFullTotalOverrides: {} as Record<string, number>,
+          paidStatuses: {} as Record<string, boolean | string>,
+          excludedOccurrences: {} as Record<string, boolean>,
+          lastSaved: parsed.lastSaved || null,
+        };
+      }
+      
+      let extraIncomes = parsed.extraIncomes || parsed.extraCash || [];
+      const extraIncSaved = localStorage.getItem('midnightledger_extra_income');
+      if (extraIncSaved) {
+        try {
+          const parsedInc = JSON.parse(extraIncSaved);
+          if (Array.isArray(parsedInc) && parsedInc.length > 0) {
+            extraIncomes = parsedInc;
+          }
+        } catch (_) {}
+      }
+
+      const rawBills = Array.isArray(parsed.bills) ? parsed.bills : DEFAULT_BILLS;
+
+      return {
+        schedule: parsed.schedule || DEFAULT_SCHEDULE,
+        paydays: Array.isArray(parsed.paydays) ? parsed.paydays : (Array.isArray(parsed.paychecks) ? parsed.paychecks : DEFAULT_PAYDAYS),
+        bills: migrateBills(rawBills),
+        extraExpenses: (Array.isArray(parsed.extraExpenses) ? parsed.extraExpenses : (Array.isArray(parsed.expenses) ? parsed.expenses : DEFAULT_EXPENSES)).map(e => {
+          if (e.emoji === '📌' || !e.emoji) {
+            const catEmoji = getCategoryEmoji(e.category);
+            if (catEmoji && catEmoji !== '📌') return { ...e, emoji: catEmoji };
+          }
+          return e;
+        }),
+        extraIncomes: extraIncomes,
+        variableOverrides: parsed.variableOverrides || {},
+        variableFullTotalOverrides: parsed.variableFullTotalOverrides || {},
+        paidStatuses: parsed.paidStatuses || {},
+        excludedOccurrences: parsed.excludedOccurrences || {},
+        lastSaved: parsed.lastSaved || null,
+      };
+    }
+  } catch (err) {
+    console.error('Failed to load initial state from local storage', err);
+  }
+  return null;
+};
+
+export interface CustomCategory {
+  name: string;
+  emoji: string;
+}
+
+interface PaydayContextType {
+  customExpenseCategories: CustomCategory[];
+  addCustomExpenseCategory: (cat: CustomCategory) => void;
+  deleteCustomExpenseCategory: (name: string) => void;
+  customBillCategories: CustomCategory[];
+  addCustomBillCategory: (cat: CustomCategory) => void;
+  deleteCustomBillCategory: (name: string) => void;
+  schedule: PaydaySchedule;
+  paydays: Payday[];
+  bills: Bill[];
+  extraExpenses: ExtraExpense[];
+  extraIncomes: ExtraIncome[];
+  variableOverrides: Record<string, number>;
+  variableFullTotalOverrides: Record<string, number>;
+  paidStatuses: Record<string, boolean | string>;
+  excludedOccurrences: Record<string, boolean>;
+  toastMessage: string | null;
+  lastSaved: string | null;
+  viewMode: 'myShare' | 'fullTotal';
+  setViewMode: (mode: 'myShare' | 'fullTotal') => void;
+  
+  summaries: PaydaySummary[];
+  nextPaydaySummary: PaydaySummary | null;
+  
+  // Actions
+  addBill: (bill: Omit<Bill, 'id'>) => void;
+  updateBill: (bill: Bill) => void;
+  deleteBill: (id: string) => void;
+  deleteBillOccurrence: (billId: string, paydayDate: string) => void;
+  showToast: (msg: string) => void;
+  
+  addPayday: (payday: Omit<Payday, 'id'>) => void;
+  updatePayday: (payday: Payday) => void;
+  updatePaydays: (paydays: Payday[]) => void;
+  deletePayday: (id: string) => void;
+  
+  addExtraExpense: (expense: Omit<ExtraExpense, 'id'>) => void;
+  updateExtraExpense: (expense: ExtraExpense) => void;
+  deleteExtraExpense: (id: string) => void;
+
+  addExtraIncome: (income: Omit<ExtraIncome, 'id'>) => void;
+  deleteExtraIncome: (id: string) => void;
+  
+  updateSchedule: (schedule: PaydaySchedule) => void;
+  setVariableOverride: (billId: string, paydayDate: string, amount: number, fullTotalOverride?: number) => void;
+  toggleBillPaid: (billId: string, paydayDate?: string) => void;
+  markAllBillsPaidInPayday: (paydayDate: string) => void;
+  unmarkAllBillsPaidInPayday: (paydayDate: string) => void;
+  
+  clearAllData: () => void;
+  exportData: () => string;
+  importData: (jsonStr: string) => boolean;
+}
+
+const PaydayContext = createContext<PaydayContextType | undefined>(undefined);
+
+export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [schedule, setSchedule] = useState<PaydaySchedule>(() => {
+    const saved = getSavedState();
+    return saved ? saved.schedule : DEFAULT_SCHEDULE;
+  });
+  const [paydays, setPaydays] = useState<Payday[]>(() => {
+    const saved = getSavedState();
+    return saved ? saved.paydays : DEFAULT_PAYDAYS;
+  });
+  const [bills, setBills] = useState<Bill[]>(() => {
+    const saved = getSavedState();
+    return saved ? saved.bills : DEFAULT_BILLS;
+  });
+  const [extraExpenses, setExtraExpenses] = useState<ExtraExpense[]>(() => {
+    const saved = getSavedState();
+    return saved ? saved.extraExpenses : DEFAULT_EXPENSES;
+  });
+  const [extraIncomes, setExtraIncomes] = useState<ExtraIncome[]>(() => {
+    const saved = getSavedState();
+    return saved ? saved.extraIncomes : [];
+  });
+  const [variableOverrides, setVariableOverrides] = useState<Record<string, number>>(() => {
+    const saved = getSavedState();
+    return saved ? saved.variableOverrides : {};
+  });
+  const [variableFullTotalOverrides, setVariableFullTotalOverrides] = useState<Record<string, number>>(() => {
+    const saved = getSavedState();
+    return saved ? saved.variableFullTotalOverrides : {};
+  });
+  const [paidStatuses, setPaidStatuses] = useState<Record<string, boolean | string>>(() => {
+    const saved = getSavedState();
+    return saved ? saved.paidStatuses : {};
+  });
+  const [excludedOccurrences, setExcludedOccurrences] = useState<Record<string, boolean>>(() => {
+    const saved = getSavedState();
+    return saved ? saved.excludedOccurrences : {};
+  });
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [lastSaved, setLastSaved] = useState<string | null>(() => {
+    const saved = getSavedState();
+    return saved ? saved.lastSaved : null;
+  });
+
+  const [viewMode, setViewModeState] = useState<'myShare' | 'fullTotal'>(() => {
+    try {
+      const saved = localStorage.getItem('midnightledger_viewMode');
+      if (saved === 'myShare' || saved === 'fullTotal') {
+        return saved;
+      }
+    } catch (_) {}
+    return 'myShare';
+  });
+
+  const [customExpenseCategories, setCustomExpenseCategories] = useState<CustomCategory[]>(() => {
+    try {
+      const savedCats = localStorage.getItem('midnightledger_customExpenseCategories');
+      if (savedCats) return JSON.parse(savedCats);
+      
+      const oldCats = localStorage.getItem('midnightledger_customCategories');
+      if (oldCats) {
+         const parsed = JSON.parse(oldCats);
+         if (parsed.length > 0) {
+            localStorage.setItem('midnightledger_customExpenseCategories', JSON.stringify(parsed));
+            localStorage.removeItem('midnightledger_customCategories');
+            return parsed;
+         }
+      }
+    } catch (_) {}
+    return [];
+  });
+
+  const [customBillCategories, setCustomBillCategories] = useState<CustomCategory[]>(() => {
+    try {
+      const savedCats = localStorage.getItem('customBillCategories') || localStorage.getItem('midnightledger_customBillCategories');
+      if (savedCats) return JSON.parse(savedCats);
+    } catch (_) {}
+    return [];
+  });
+
+  const setViewMode = (mode: 'myShare' | 'fullTotal') => {
+    setViewModeState(mode);
+    try {
+      localStorage.setItem('midnightledger_viewMode', mode);
+    } catch (_) {}
+  };
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(prev => (prev === msg ? null : prev));
+    }, 2000);
+  };
+
+  // Save changes to local storage
+  useEffect(() => {
+    try {
+      const savedTime = new Date().toISOString();
+      const stateToSave = {
+        schedule,
+        paydays,
+        paychecks: paydays,
+        bills,
+        expenses: extraExpenses,
+        extraExpenses,
+        extraIncomes,
+        extraCash: extraIncomes,
+        variableOverrides,
+        variableFullTotalOverrides,
+        paidStatuses,
+        excludedOccurrences,
+        lastSaved: savedTime,
+      };
+      safeSave('midnightledger_v1', JSON.stringify(stateToSave));
+      safeSave('midnightledger_extra_income', JSON.stringify(extraIncomes));
+      setLastSaved(savedTime);
+    } catch (err) {
+      console.error('Failed to save to local storage', err);
+    }
+  }, [schedule, paydays, bills, extraExpenses, extraIncomes, variableOverrides, variableFullTotalOverrides, paidStatuses, excludedOccurrences]);
+
+  // Generate full active paydays list based on schedule and custom manual entries
+  const activePaydays = useMemo(() => {
+    return generatePaydaysFromSchedule(schedule, paydays, 10);
+  }, [schedule, paydays]);
+
+  // Calculate dynamic summaries
+  const summaries = useMemo(() => {
+    return calculatePaydaySummaries(
+      activePaydays,
+      bills,
+      extraExpenses,
+      schedule.frequency,
+      variableOverrides,
+      paidStatuses,
+      variableFullTotalOverrides,
+      excludedOccurrences,
+      extraIncomes
+    );
+  }, [activePaydays, bills, extraExpenses, schedule.frequency, variableOverrides, paidStatuses, variableFullTotalOverrides, excludedOccurrences, extraIncomes]);
+
+  // Identify next payday summary (closest upcoming or current date)
+  const nextPaydaySummary = useMemo(() => {
+    if (!summaries.length) return null;
+    const todayStr = toISODateString(new Date());
+    // Find the most recent payday that is <= today
+    for (let i = summaries.length - 1; i >= 0; i--) {
+      if (summaries[i].payday.date <= todayStr) {
+        return summaries[i];
+      }
+    }
+    // Fallback to first if today is before the first payday
+    return summaries[0];
+  }, [summaries]);
+
+  // Handlers
+  const addBill = (billData: Omit<Bill, 'id'>) => {
+    const newBill: Bill = {
+      ...billData,
+      isRecurringTemplate: billData.isRecurringTemplate ?? true,
+      id: `bill_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+    };
+    setBills(prev => [...prev, newBill]);
+  };
+
+  const updateBill = (updated: Bill) => {
+    setBills(prev => {
+      const updatedBills = prev.map(b => {
+        const bAny = b as any;
+        const uAny = updated as any;
+        const matches = 
+          String(b.id) === String(updated.id) ||
+          (bAny._id && String(bAny._id) === String(updated.id)) ||
+          (uAny._id && String(b.id) === String(uAny._id)) ||
+          false;
+        if (matches) {
+          return {
+            ...b,
+            ...updated,
+            amount: updated.amount,
+            myShare: updated.amount,
+            fullTotal: updated.fullTotal ?? updated.amount,
+          };
+        }
+        return b;
+      });
+      try {
+        localStorage.setItem('bills', JSON.stringify(updatedBills));
+        localStorage.setItem('myBills', JSON.stringify(updatedBills));
+        localStorage.setItem('midnightledger_bills', JSON.stringify(updatedBills));
+      } catch (_) {}
+      return updatedBills;
+    });
+
+    setVariableOverrides(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(k => {
+        if (
+          k.startsWith(`${updated.id}_`) || 
+          k.startsWith(`${updated.id}::`) || 
+          (updated.name && (k.startsWith(`${updated.name}_`) || k.startsWith(`${updated.name}::`)))
+        ) {
+          delete next[k];
+        }
+      });
+      return next;
+    });
+
+    setVariableFullTotalOverrides(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(k => {
+        if (
+          k.startsWith(`${updated.id}_`) || 
+          k.startsWith(`${updated.id}::`) || 
+          (updated.name && (k.startsWith(`${updated.name}_`) || k.startsWith(`${updated.name}::`)))
+        ) {
+          delete next[k];
+        }
+      });
+      return next;
+    });
+  };
+
+  const deleteBill = (id: string) => {
+    setBills(prev => prev.filter(b => b.id !== id));
+    setVariableOverrides(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(k => { if (k.startsWith(`${id}_`)) delete next[k]; });
+      return next;
+    });
+    setVariableFullTotalOverrides(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(k => { if (k.startsWith(`${id}_`)) delete next[k]; });
+      return next;
+    });
+    setPaidStatuses(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(k => { if (k.startsWith(`${id}_`)) delete next[k]; });
+      return next;
+    });
+    setExcludedOccurrences(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(k => { if (k.startsWith(`${id}_`)) delete next[k]; });
+      return next;
+    });
+    showToast('Bill deleted');
+  };
+
+  const deleteBillOccurrence = (billId: string, paydayDate: string) => {
+    const key = makeKey(billId, paydayDate);
+    const month = paydayDate.slice(0, 7);
+    const monthKey = `${billId}_${month}`;
+    setExcludedOccurrences(prev => ({
+      ...prev,
+      [key]: true,
+      [monthKey]: true,
+    }));
+  };
+
+  const addPayday = (paydayData: Omit<Payday, 'id'>) => {
+    const newPayday: Payday = {
+      ...paydayData,
+      id: `payday_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      isManual: true,
+    };
+    setPaydays(prev => {
+      const filtered = prev.filter(p => p.date !== paydayData.date);
+      return [...filtered, newPayday].sort((a, b) => a.date.localeCompare(b.date));
+    });
+  };
+
+  const updatePayday = (updated: Payday) => {
+    setPaydays(prev => {
+      const exists = prev.some(p => p.id === updated.id || p.date === updated.date);
+      if (exists) {
+        return prev.map(p => (p.id === updated.id || p.date === updated.date ? { ...p, ...updated, isManual: true } : p));
+      }
+      return [...prev, { ...updated, isManual: true }];
+    });
+  };
+
+  const updatePaydays = (updates: Payday[]) => {
+    setPaydays(prev => {
+      let next = [...prev];
+      updates.forEach(updated => {
+        const idx = next.findIndex(p => p.id === updated.id || p.date === updated.date);
+        if (idx !== -1) {
+          next[idx] = { ...next[idx], ...updated, isManual: true };
+        } else {
+          next.push({ ...updated, isManual: true });
+        }
+      });
+      return next;
+    });
+  };
+
+  const deletePayday = (id: string) => {
+    setPaydays(prev => prev.filter(p => p.id !== id));
+  };
+
+  const addExtraExpense = (expenseData: Omit<ExtraExpense, 'id'>) => {
+    const newExpense: ExtraExpense = {
+      ...expenseData,
+      id: `exp_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      createdAt: toISODateString(new Date()),
+    };
+    setExtraExpenses(prev => [...prev, newExpense]);
+  };
+
+  const updateExtraExpense = (updated: ExtraExpense) => {
+    setExtraExpenses(prev => prev.map(e => (e.id === updated.id ? updated : e)));
+  };
+
+  const deleteExtraExpense = (id: string) => {
+    setExtraExpenses(prev => prev.filter(e => e.id !== id));
+  };
+
+  const addExtraIncome = (incomeData: Omit<ExtraIncome, 'id'>) => {
+    const newIncome: ExtraIncome = {
+      ...incomeData,
+      id: `inc_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      dateAdded: incomeData.dateAdded || toISODateString(new Date()),
+      timestamp: Date.now(),
+    };
+    setExtraIncomes(prev => [...prev, newIncome]);
+    showToast(`Added $${newIncome.amount.toFixed(2)} cash to this pay period!`);
+  };
+
+  const deleteExtraIncome = (id: string) => {
+    setExtraIncomes(prev => prev.filter(i => i.id !== id));
+    showToast('Removed extra income entry');
+  };
+
+  const updateSchedule = (newSchedule: PaydaySchedule) => {
+    setSchedule(newSchedule);
+  };
+
+  const setVariableOverride = (billId: string, paydayDate: string, amount: number, fullTotalOverride?: number) => {
+    const key = makeKey(billId, paydayDate);
+    setVariableOverrides(prev => ({
+      ...prev,
+      [key]: amount,
+    }));
+    if (fullTotalOverride !== undefined) {
+      setVariableFullTotalOverrides(prev => ({
+        ...prev,
+        [key]: fullTotalOverride,
+      }));
+    }
+  };
+
+  const markAllBillsPaidInPayday = (paydayDate: string) => {
+    const targetSummary = summaries.find(s => s.payday.date === paydayDate);
+    if (!targetSummary || targetSummary.assignedBills.length === 0) return;
+
+    setPaidStatuses(prev => {
+      const updated = { ...prev };
+      targetSummary.assignedBills.forEach(ab => {
+        const key = makeKey(ab.bill.id, paydayDate);
+        updated[key] = true;
+      });
+
+      try {
+        const historyList: Array<{ billId: string; paydayDate: string; paidAt: string }> = [];
+        Object.entries(updated).forEach(([k, isPaid]) => {
+          if (isPaid) {
+            const [bId, pDate] = parseKey(k);
+            if (bId && pDate) {
+              historyList.push({
+                billId: bId,
+                paydayDate: pDate,
+                paidAt: new Date().toISOString(),
+              });
+            }
+          }
+        });
+        localStorage.setItem('midnightledger_paid_history', JSON.stringify(historyList));
+      } catch (err) {
+        console.error('Error syncing midnightledger_paid_history:', err);
+      }
+
+
+
+      return updated;
+    });
+  };
+
+  const unmarkAllBillsPaidInPayday = (paydayDate: string) => {
+    const targetSummary = summaries.find(s => s.payday.date === paydayDate);
+    if (!targetSummary || targetSummary.assignedBills.length === 0) return;
+
+    setPaidStatuses(prev => {
+      const updated = { ...prev };
+      targetSummary.assignedBills.forEach(ab => {
+        const key = makeKey(ab.bill.id, paydayDate);
+        updated[key] = false;
+      });
+
+      try {
+        const historyList: Array<{ billId: string; paydayDate: string; paidAt: string }> = [];
+        Object.entries(updated).forEach(([k, isPaid]) => {
+          if (isPaid) {
+            const [bId, pDate] = parseKey(k);
+            if (bId && pDate) {
+              historyList.push({
+                billId: bId,
+                paydayDate: pDate,
+                paidAt: new Date().toISOString(),
+              });
+            }
+          }
+        });
+        localStorage.setItem('midnightledger_paid_history', JSON.stringify(historyList));
+      } catch (err) {
+        console.error('Error syncing midnightledger_paid_history:', err);
+      }
+
+      showToast(`↩️ All bills unmarked`);
+
+      return updated;
+    });
+  };
+
+  const toggleBillPaid = (billId: string, paydayDate?: string) => {
+    let targetPaydayDate = paydayDate;
+    if (!targetPaydayDate) {
+      const summaryWithBill = summaries.find(s => 
+        s.assignedBills.some(ab => {
+          const b = ab.bill as any;
+          return String(b.id) === String(billId) || String(b._id) === String(billId) || b.originalBillId === billId || b.billId === billId;
+        })
+      );
+      targetPaydayDate = summaryWithBill ? summaryWithBill.payday.date : (nextPaydaySummary?.payday.date || '');
+    }
+
+    const targetSummary = summaries.find(s => s.payday.date === targetPaydayDate) || summaries[0];
+    const effectivePaydayDate = targetPaydayDate || (targetSummary ? targetSummary.payday.date : '');
+
+    const assignedItem = targetSummary?.assignedBills.find(ab => {
+      const b = ab.bill as any;
+      return String(b.id) === String(billId) || String(b._id) === String(billId) || b.originalBillId === billId || b.billId === billId;
+    });
+
+    const canonicalBillId = assignedItem ? assignedItem.bill.id : billId;
+
+    const billObj = bills.find(b => {
+      const bAny = b as any;
+      return String(b.id) === String(billId) ||
+        String(bAny._id) === String(billId) ||
+        String(b.id) === String(canonicalBillId) ||
+        
+        false;
+    });
+
+    const billIdentifiers = Array.from(new Set([
+      canonicalBillId,
+      billId,
+      billObj?.id,
+      
+      (billObj as any)?._id,
+      assignedItem?.bill?.id,
+      
+    ].filter(Boolean) as string[]));
+    
+    const key = makeKey(canonicalBillId, effectivePaydayDate);
+    const altKey = makeKey(billId, effectivePaydayDate);
+    const uKey1 = `${canonicalBillId}_${effectivePaydayDate}`;
+    const uKey2 = `${billId}_${effectivePaydayDate}`;
+    
+    const currentPaid = !!(
+      paidStatuses[key] ||
+      paidStatuses[altKey] ||
+      paidStatuses[uKey1] ||
+      paidStatuses[uKey2] ||
+      paidStatuses[canonicalBillId] ||
+      paidStatuses[billId] ||
+      false ||
+      false ||
+      false ||
+      assignedItem?.isPaid ||
+      billObj?.paid ||
+      (billObj as any)?.isPaid ||
+      (assignedItem?.bill as any)?.paid ||
+      (assignedItem?.bill as any)?.isPaid
+    );
+    
+    if (currentPaid) {
+      // UNCHECK
+      (window as any).prevBillsAllPaid = false;
+
+      setPaidStatuses(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(k => {
+          const matches = billIdentifiers.some(id => 
+            k === id || 
+            k.startsWith(`${id}::`) || 
+            k.startsWith(`${id}_`) || 
+            k.endsWith(`::${id}`) || 
+            k.endsWith(`_${id}`) ||
+            k === `${id}::${effectivePaydayDate}` ||
+            k === `${id}_${effectivePaydayDate}`
+          );
+          if (matches) {
+            updated[k] = false;
+          }
+        });
+        updated[key] = false;
+        updated[altKey] = false;
+        updated[uKey1] = false;
+        updated[uKey2] = false;
+        updated[canonicalBillId] = false;
+        updated[billId] = false;
+        try {
+          localStorage.setItem('midnightledger_paid_history', JSON.stringify(updated));
+          localStorage.setItem('midnightledger_paidStatuses', JSON.stringify(updated));
+
+          let savedPaid: string[] = [];
+          try {
+            const raw = localStorage.getItem('paidBills');
+            if (raw) savedPaid = JSON.parse(raw);
+          } catch (_) {}
+          const filtered = savedPaid.filter(id => !billIdentifiers.some(bid => String(bid).toLowerCase() === String(id).toLowerCase()));
+          localStorage.setItem('paidBills', JSON.stringify(filtered));
+        } catch (err) {
+          console.error('Error syncing paidStatuses:', err);
+        }
+        
+        return updated;
+      });
+
+      setBills(prev => {
+        const updatedBills = prev.map(b => {
+          const bAny = b as any;
+          const matches = billIdentifiers.some(id => 
+            String(b.id) === String(id) || 
+            String(bAny._id) === String(id) || 
+            false
+          );
+          if (matches) {
+            return { ...b, paid: false, isPaid: false, paidAt: null };
+          }
+          return b;
+        });
+        try {
+          localStorage.setItem('bills', JSON.stringify(updatedBills));
+          localStorage.setItem('myBills', JSON.stringify(updatedBills));
+        } catch (_) {}
+        return updatedBills;
+      });
+    } else {
+      // CHECK
+      const currentActiveDate = nextPaydaySummary?.payday.date || effectivePaydayDate;
+      const isFuture = effectivePaydayDate > currentActiveDate;
+      const valToSet = isFuture ? currentActiveDate : true;
+
+      setPaidStatuses(prev => {
+        const updated = { ...prev };
+        updated[key] = valToSet;
+        updated[altKey] = valToSet;
+        updated[uKey1] = valToSet;
+        updated[uKey2] = valToSet;
+        if (billObj?.name) {
+          updated[`${billObj.name}::${effectivePaydayDate}`] = valToSet;
+          updated[`${billObj.name}_${effectivePaydayDate}`] = valToSet;
+        }
+        
+        try {
+          localStorage.setItem('midnightledger_paid_history', JSON.stringify(updated));
+          localStorage.setItem('midnightledger_paidStatuses', JSON.stringify(updated));
+        } catch (err) {
+          console.error('Error syncing paidStatuses:', err);
+        }
+
+        if (targetSummary) {
+          const remainingUnpaid = targetSummary.assignedBills.filter(ab => {
+            const abId = ab.bill.id;
+            if (abId === canonicalBillId || abId === billId) return false;
+            const abKey = makeKey(abId, effectivePaydayDate);
+            const abAlt = makeKey(abId, effectivePaydayDate);
+            return !updated[abKey] && !updated[abAlt] && !ab.isPaid;
+          });
+          if (remainingUnpaid.length === 0) {
+            triggerConfetti();
+          }
+        }
+
+        return updated;
+      });
+
+      setBills(prev => {
+        const updatedBills = prev.map(b => {
+          const bAny = b as any;
+          const matches = billIdentifiers.some(id => 
+            String(b.id) === String(id) || 
+            String(bAny._id) === String(id) || 
+            false
+          );
+          if (matches) {
+            return { ...b, paid: true, isPaid: true, paidAt: new Date().toISOString() };
+          }
+          return b;
+        });
+        try {
+          localStorage.setItem('bills', JSON.stringify(updatedBills));
+          localStorage.setItem('myBills', JSON.stringify(updatedBills));
+        } catch (_) {}
+        return updatedBills;
+      });
+    }
+  };
+
+  const addCustomExpenseCategory = (cat: CustomCategory) => {
+    setCustomExpenseCategories(prev => {
+      const next = [...prev, cat];
+      localStorage.setItem('midnightledger_customExpenseCategories', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const deleteCustomExpenseCategory = (name: string) => {
+    setCustomExpenseCategories(prev => {
+      const next = prev.filter(c => c.name !== name);
+      localStorage.setItem('midnightledger_customExpenseCategories', JSON.stringify(next));
+      return next;
+    });
+    setExtraExpenses(prev => prev.map(e => e.category === name ? { ...e, category: 'Other' } : e));
+  };
+
+  const addCustomBillCategory = (cat: CustomCategory) => {
+    setCustomBillCategories(prev => {
+      const next = [...prev, cat];
+      localStorage.setItem('customBillCategories', JSON.stringify(next));
+      localStorage.setItem('midnightledger_customBillCategories', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const deleteCustomBillCategory = (name: string) => {
+    setCustomBillCategories(prev => {
+      const next = prev.filter(c => c.name !== name);
+      localStorage.setItem('customBillCategories', JSON.stringify(next));
+      localStorage.setItem('midnightledger_customBillCategories', JSON.stringify(next));
+      return next;
+    });
+    setBills(prev => prev.map(b => b.category === name ? { ...b, category: 'Other' } : b));
+  };
+
+  const clearAllData = () => {
+    setBills([]);
+    setPaydays([]);
+    setExtraExpenses([]);
+    setExtraIncomes([]);
+    setVariableOverrides({});
+    setVariableFullTotalOverrides({});
+    setPaidStatuses({});
+    setExcludedOccurrences({});
+    setSchedule({ frequency: 'manual', anchorDate: '' });
+
+    try {
+      // Remove all keys starting with midnightledger_
+      const keysToRemove = Object.keys(localStorage).filter(
+        k => k.startsWith('midnightledger') || k === 'STORAGE_KEY' || k.includes('midnightledger')
+      );
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+
+      // Specific keys mentioned in requirements
+      const specificKeys = [
+        'midnightledger_data',
+        'midnightledger_bills',
+        'midnightledger_paydays',
+        'midnightledger_expenses',
+        'midnightledger_extra_expenses',
+        'midnightledger_paid_history',
+        'midnightledger_skipped_bills',
+        'midnightledger_extra_income',
+        'midnightledger_payday_assignments',
+        'midnightledger_settings',
+        'midnightledger_onboarding_complete',
+        'midnightledger_deletedBillIds',
+        'midnightledger_payday_schedule_rule',
+        'midnightledger_custom_paydays',
+        'midnightledger_projected_paydays',
+        'midnightledger_paycheck_amount',
+        'midnightledger_payday_history',
+        'midnightledger_past_allocations',
+        'midnightledger_default_check_amount',
+        'midnightledger_schedule_config',
+      ];
+      specificKeys.forEach(k => localStorage.removeItem(k));
+
+      // Save explicit clean empty state into STORAGE_KEY so reloads remain clean at 0
+      const wipedState = {
+        schedule: { frequency: 'manual', anchorDate: '' },
+        paydays: [],
+        bills: [],
+        extraExpenses: [],
+        extraIncomes: [],
+        variableOverrides: {},
+        variableFullTotalOverrides: {},
+        paidStatuses: {},
+        excludedOccurrences: {},
+        isWiped: true,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(wipedState));
+      localStorage.setItem('midnightledger_bills', JSON.stringify([]));
+      localStorage.setItem('midnightledger_paydays', JSON.stringify([]));
+      localStorage.setItem('midnightledger_expenses', JSON.stringify([]));
+      localStorage.setItem('midnightledger_extra_expenses', JSON.stringify([]));
+      localStorage.setItem('midnightledger_extra_income', JSON.stringify([]));
+      localStorage.setItem('midnightledger_skipped_bills', JSON.stringify([]));
+      localStorage.setItem('midnightledger_paid_history', JSON.stringify([]));
+      localStorage.setItem('midnightledger_payday_assignments', JSON.stringify([]));
+      localStorage.setItem('midnightledger_settings', JSON.stringify({}));
+      localStorage.setItem('midnightledger_deletedBillIds', JSON.stringify([]));
+      localStorage.setItem('midnightledger_payday_schedule_rule', JSON.stringify(null));
+      localStorage.setItem('midnightledger_custom_paydays', JSON.stringify([]));
+      localStorage.setItem('midnightledger_projected_paydays', JSON.stringify([]));
+      localStorage.setItem('midnightledger_paycheck_amount', JSON.stringify(0));
+      localStorage.setItem('midnightledger_payday_history', JSON.stringify([]));
+      localStorage.setItem('midnightledger_past_allocations', JSON.stringify([]));
+      localStorage.setItem('midnightledger_default_check_amount', JSON.stringify(0));
+      localStorage.setItem('midnightledger_schedule_config', JSON.stringify(null));
+    } catch (err) {
+      console.error('Error in clearAllData:', err);
+    }
+
+    showToast('App wiped clean - ready to share!');
+  };
+
+
+
+  const exportData = () => {
+    return JSON.stringify({
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      schedule,
+      paydays,
+      bills,
+      extraExpenses,
+      extraIncomes,
+      variableOverrides,
+      variableFullTotalOverrides,
+      paidStatuses,
+    }, null, 2);
+  };
+
+  const importData = (jsonStr: string): boolean => {
+    try {
+      const parsed = JSON.parse(jsonStr);
+      if (!parsed.version || parsed.version !== '1.0') {
+        console.error('Invalid import version');
+        return false;
+      }
+      if (!Array.isArray(parsed.bills)) return false;
+      if (parsed.bills.length > 500) return false; // DoS limit
+
+      const sanitizeBills = (bills: any[]) => bills.map(b => ({
+        ...b,
+        id: /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(b.id) ? b.id : crypto.randomUUID(),
+        name: String(b.name || '').slice(0, 100).replace(/[<>]/g, ''),
+        amount: Math.min(1000000, Math.max(0, Number(b.amount) || 0)),
+        due_day: Math.min(31, Math.max(1, parseInt(b.due_day || b.dueDay || 1))),
+        category: String(b.category || 'Other').slice(0, 50),
+        recurring: String(b.recurring || 'monthly').slice(0, 20)
+      }));
+
+      if (Array.isArray(parsed.bills)) setBills(sanitizeBills(parsed.bills));
+      if (Array.isArray(parsed.paychecks)) {
+        const cleanPays = parsed.paychecks.map((p: any) => ({
+          ...p,
+          id: /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(p.id) ? p.id : crypto.randomUUID(),
+          date: String(p.date || '').slice(0, 20),
+          amount: Math.min(1000000, Math.max(0, Number(p.amount || p.estimatedAmount || 0)))
+        }));
+        setPaydays(cleanPays);
+      } else if (Array.isArray(parsed.paydays)) {
+        const cleanPays = parsed.paydays.map((p: any) => ({
+          ...p,
+          id: /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(p.id) ? p.id : crypto.randomUUID(),
+          date: String(p.date || '').slice(0, 20),
+          amount: Math.min(1000000, Math.max(0, Number(p.amount || p.estimatedAmount || 0)))
+        }));
+        setPaydays(cleanPays);
+      }
+      if (parsed.schedule) setSchedule(parsed.schedule);
+      if (Array.isArray(parsed.extraExpenses)) setExtraExpenses(parsed.extraExpenses);
+      if (Array.isArray(parsed.extraIncomes)) setExtraIncomes(parsed.extraIncomes);
+      if (parsed.variableOverrides) setVariableOverrides(parsed.variableOverrides);
+      if (parsed.variableFullTotalOverrides) setVariableFullTotalOverrides(parsed.variableFullTotalOverrides);
+      if (parsed.paidStatuses) setPaidStatuses(parsed.paidStatuses);
+      return true;
+    } catch (e) {
+      console.error('Import failed', e);
+      return false;
+    }
+  };
+
+  return (
+    <PaydayContext.Provider
+      value={{
+        schedule,
+        paydays,
+        bills,
+        extraExpenses,
+        extraIncomes,
+        variableOverrides,
+        variableFullTotalOverrides,
+        paidStatuses,
+        excludedOccurrences,
+        toastMessage,
+        lastSaved,
+        viewMode,
+        setViewMode,
+        summaries,
+        nextPaydaySummary,
+        addBill,
+        updateBill,
+        deleteBill,
+        deleteBillOccurrence,
+        showToast,
+        addPayday,
+        updatePayday,
+        updatePaydays,
+        deletePayday,
+        addExtraExpense,
+        updateExtraExpense,
+        deleteExtraExpense,
+        addExtraIncome,
+        deleteExtraIncome,
+        updateSchedule,
+        setVariableOverride,
+        toggleBillPaid,
+        markAllBillsPaidInPayday,
+        unmarkAllBillsPaidInPayday,
+        customExpenseCategories,
+        addCustomExpenseCategory,
+        deleteCustomExpenseCategory,
+        customBillCategories,
+        addCustomBillCategory,
+        deleteCustomBillCategory,
+        clearAllData,
+        exportData,
+        importData,
+      }}
+    >
+      {children}
+    </PaydayContext.Provider>
+  );
+};
+
+export const usePayday = () => {
+  const context = useContext(PaydayContext);
+  if (!context) {
+    throw new Error('usePayday must be used within a PaydayProvider');
+  }
+  return context;
+};
