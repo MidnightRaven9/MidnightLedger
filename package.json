@@ -12,6 +12,7 @@
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
+    "preview": "vite preview",
     "screenshots": "node scripts/capture-screenshots.mjs"
   },
   "dependencies": {
@@ -27,8 +28,7 @@
     "motion": "^12.23.24",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
-    "recharts": "^3.10.1",
-    "vite": "^6.2.3"
+    "recharts": "^3.10.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
@@ -38,10 +38,11 @@
     "@vitejs/plugin-react": "^4.3.4",
     "esbuild": "^0.25.0",
     "playwright": "^1.62.1",
-    "sharp": "^0.35.4",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4.0.0",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
-    "wrangler": "3.114.17"
+    "vite": "^6.4.6",
+    "wrangler": "^4.164.0"
   }
 }

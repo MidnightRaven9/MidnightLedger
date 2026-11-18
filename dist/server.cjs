@@ -90,8 +90,21 @@ CREATE TABLE IF NOT EXISTS history ( id TEXT PRIMARY KEY, user_id TEXT, bill_id 
 `);
 async function startServer() {
   const app = (0, import_express.default)();
+  app.disable("x-powered-by");
+  app.use((req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("Referrer-Policy", "no-referrer");
+    next();
+  });
+  app.use((req, res, next) => {
+    if (checkRateLimit(req.ip || "unknown")) {
+      return res.status(429).json({ error: "Rate limited - try again in 1 min" });
+    }
+    next();
+  });
   app.use((0, import_cors.default)({ origin: ["https://midnightledger.justicegraff6.workers.dev", "http://localhost:5173", "http://localhost:3000"], allowedHeaders: ["Content-Type", "x-user-id"] }));
-  app.use(import_express.default.json());
+  app.use(import_express.default.json({ limit: "100kb" }));
   const requireUser = (req, res, next) => {
     const rawUserId = req.headers["x-user-id"] || "";
     const userId = rawUserId.toLowerCase();
@@ -218,7 +231,8 @@ async function startServer() {
     app.use(import_express.default.static(distPath));
     app.get("*", (req, res) => res.sendFile(import_path.default.join(distPath, "index.html")));
   }
-  app.listen(3e3, "0.0.0.0", () => console.log(`Midnight Ledger server running on http://0.0.0.0:3000`));
+  const host = process.env.HOST || "127.0.0.1";
+  app.listen(3e3, host, () => console.log(`Midnight Ledger server running on http://${host}:3000`));
 }
 startServer();
 var server_default = {

@@ -3,7 +3,9 @@
 ## Supported Versions
 | Version | Supported |
 | ------- | --------- |
-| 1.x | ✅ Yes |
+| 3.x | ✅ Yes |
+| 2.x | ⚠️ Security fixes only |
+| 1.x | ❌ No |
 
 ## Reporting a Vulnerability
 

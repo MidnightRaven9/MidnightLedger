@@ -18,4 +18,4 @@ Perfect for:
 - 💵 Seeing what's *actually* available after bills
 
 Built by MidnightRaven9 ✨
-Live: https://ai.studio/apps/7f0453b7-b342-442b-94e5-33cdef6ada62
+Live: https://midnightledger.justicegraff6.workers.dev

@@ -15,11 +15,11 @@ Dark-mode budget app for paycheck-to-paycheck planning 🌃 Built for split bill
 
 If you see sample bills after installing:
 
-1. Open the app → Go to **History** and **Allocations**
+1. Open the app → Go to **History**
 2. Scroll to the **very bottom** of the page
 3. Tap **Wipe All Data** → Confirm
 
-This clears all sample/demo bills and gives you a fresh start. Your real bills will still save to the cloud after this.
+This clears all sample/demo bills and gives you a fresh start. Everything is stored locally on this device (localStorage).
 
 ---
 
@@ -31,7 +31,7 @@ This clears all sample/demo bills and gives you a fresh start. Your real bills w
 - 💳 **Paycheck Allocation** - See available after bills: `$1,450 available • 3 bills assigned` 💜
 - 💸 **Expenses & Reports** - Track spending per paycheck cycle 📈📉
 - 🕰️ **History** - Past paycheck allocations 📚
-- 🔒 Cloud-Synced - Bills saved to Cloudflare D1/KV, works offline too ☁️
+- 📵 **100% Local-First** - No trackers, no cloud, no account — everything stays on your device 🏠
 - 🌑 **OLED Dark Theme** - True black #0A0A0A with purple #7C3AED accents, PWA installs as "MidnightLedger" 🌙💜🖤
 
 ### 📸 Screenshots

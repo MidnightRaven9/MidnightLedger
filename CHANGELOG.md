@@ -2,6 +2,31 @@
 
 All notable changes to MidnightLedger ✨
 
+## [3.0.2] - 2026-11-18 🎨
+### 🐛 Fixed
+- Repaired every corrupted image asset in the repo (bytes ≥ 0x80 had been rewritten to U+FFFD upstream)
+- Android launcher icon was Capacitor's default teal placeholder; now uses the branded crescent-moon icon across all densities + adaptive icons
+
+### ✨ Changed
+- Icon set (web, PWA, Android launcher/adaptive/splash) generated from one SVG via `scripts/generate-icons.mjs`
+
+## [3.0.1] - 2026-11-18 🚫
+### 🐛 Fixed
+- App no longer runs edge-to-edge / immersive; status bar & navigation bar stay visible on Android 15+
+- Mobile bottom navigation rendered at the top of the screen (trapped inside the blurred sticky header)
+
+### 💅 Polished
+- Sample data now anchored to the install date instead of hardcoded August 2026
+- Thin brand scrollbars, focus-visible rings, tabular numerals, reduced-motion support, safe-area insets
+
+## [3.0.0] - 2026-11-18 📵
+### ✨ Added
+- Offline Android APK release — the app is 100% local-first, zero network calls; all assets bundled in the APK
+- README screenshots (all six tabs) + regeneration script (`npm run screenshots`)
+
+### 🐛 Fixed
+- Corrupt `android/gradle/wrapper/gradle-wrapper.jar` broke all Gradle builds; regenerated with Gradle 8.14.3
+
 ## [1.0.0] - 2026-08-06 🌙🚀
 
 ### ✨ Added

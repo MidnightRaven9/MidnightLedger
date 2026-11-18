@@ -10,7 +10,7 @@ if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
 }
 
-const rl = new Map();
+const rl = new Map<string, { count: number; reset: number }>();
 function checkRateLimit(key: string) {
   const now = Date.now();
   const entry = rl.get(key);
@@ -67,8 +67,23 @@ CREATE TABLE IF NOT EXISTS history ( id TEXT PRIMARY KEY, user_id TEXT, bill_id 
 
 async function startServer() {
   const app = express();
+  app.disable('x-powered-by');
+  // Basic security headers (dev/preview server only; static hosting is on Cloudflare)
+  app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    next();
+  });
+  // Simple per-IP rate limiter (100 req / min) — mirrors the worker path
+  app.use((req, res, next) => {
+    if (checkRateLimit(req.ip || 'unknown')) {
+      return res.status(429).json({ error: 'Rate limited - try again in 1 min' });
+    }
+    next();
+  });
   app.use(cors({ origin: ["https://midnightledger.justicegraff6.workers.dev", "http://localhost:5173", "http://localhost:3000"], allowedHeaders: ["Content-Type", "x-user-id"] }));
-  app.use(express.json());
+  app.use(express.json({ limit: '100kb' }));
   const requireUser = (req: any, res: any, next: any) => {
     const rawUserId = (req.headers['x-user-id'] as string) || '';
     const userId = rawUserId.toLowerCase();
@@ -200,7 +215,8 @@ async function startServer() {
     app.use(express.static(distPath));
     app.get('*', (req, res) => res.sendFile(path.join(distPath, 'index.html')));
   }
-  app.listen(3000, '0.0.0.0', () => console.log(`Midnight Ledger server running on http://0.0.0.0:3000`));
+  const host = process.env.HOST || '127.0.0.1';
+  app.listen(3000, host, () => console.log(`Midnight Ledger server running on http://${host}:3000`));
 }
 startServer();
 

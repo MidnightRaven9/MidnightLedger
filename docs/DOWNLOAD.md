@@ -1,11 +1,10 @@
 # 📲 Download MidnightLedger 🌙💜
 
 ### 📦 Android APK
-- 🚀 **Recommended:** Download from GitHub Releases → https://github.com/MidnightRaven9/MidnightLedger/releases ✨
-- 📱 Direct link (Google Drive backup): https://drive.google.com/file/d/1fGyyvMCUy5Hf2MXfFOUH8xbhFRzJArkR/view?usp=drivesdk 💜
+- 🚀 **Recommended:** Download the latest APK from GitHub Releases → https://github.com/MidnightRaven9/MidnightLedger/releases/latest ✨
 
 ### 🌐 PWA (Works on iPhone + Android, no download needed)
-1. Open: https://ai.studio/apps/7f0453b7-b342-442b-94e5-33cdef6ada62 💻
+1. Open: https://midnightledger.justicegraff6.workers.dev 💻
 2. iPhone: Share → Add to Home Screen 📱
 3. Android: Menu → Install App 🤖
 4. Installs as **MidnightLedger** 🌙💜

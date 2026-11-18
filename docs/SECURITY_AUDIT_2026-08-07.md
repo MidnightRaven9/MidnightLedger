@@ -1,5 +1,7 @@
 # 🌙🔒 Code Audit & Security Assessment - MidnightLedger
 
+> ⚠️ **Historical document.** This audit reflects v3.0.0 (Aug 7, 2026). The deployed web app is a fully static, local-first SPA — the optional Express/Worker sync backend is not deployed in production and the app makes no network calls. Rate-limiting is enforced on both backend paths since 2026-11-18. Current releases: v3.0.2+.
+
 **Date:** August 7, 2026
 **Auditor:** GitHub Copilot
 **Status:** ✅ APPROVED FOR PRODUCTION
