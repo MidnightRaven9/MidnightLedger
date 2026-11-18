@@ -133,7 +133,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
             <Calendar className="w-7 h-7 text-[#A78BFA]" />
           </div>
           <div>
-            <h1 className="text-[26px] sm:text-[30px] leading-[1.1] font-black tracking-tight text-white whitespace-nowrap">
+            <h1 className="text-[clamp(19px,6.2vw,30px)] leading-[1.1] font-black tracking-tight text-white">
               Payday Schedule
             </h1>
             <p className="text-[15px] leading-6 text-zinc-400 mt-3 max-w-[90%]">

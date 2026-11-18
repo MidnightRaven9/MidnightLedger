@@ -877,7 +877,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           </button>
                         </div>
                       ) : (
-                        <p style={{ fontSize: '22px', fontWeight: 800, color: '#ffffff', margin: '4px 0 2px 0', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
+                        <p style={{ fontSize: 'clamp(15px, 5vw, 22px)', fontWeight: 800, color: '#ffffff', margin: '4px 0 2px 0', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
                           {sEstimatedCheck !== null ? formatCurrency(sEstimatedCheck) : 'TBD'}
                         </p>
                       )}
@@ -892,7 +892,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           {sAssignedBills.length} Bills
                         </span>
                       </div>
-                      <p style={{ fontSize: '22px', fontWeight: 800, color: '#c4b5fd', margin: '4px 0 2px 0', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
+                      <p style={{ fontSize: 'clamp(15px, 5vw, 22px)', fontWeight: 800, color: '#c4b5fd', margin: '4px 0 2px 0', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
                         {formatCurrency(sDisplayTotalBills)}
                       </p>
                       <p style={{ fontSize: '11px', color: '#6b7280', whiteSpace: 'nowrap' }}>
@@ -908,7 +908,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           {sExtraExpenses.length} Items
                         </span>
                       </div>
-                      <p style={{ fontSize: '22px', fontWeight: 800, color: '#fb7185', margin: '4px 0 2px 0', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
+                      <p style={{ fontSize: 'clamp(15px, 5vw, 22px)', fontWeight: 800, color: '#fb7185', margin: '4px 0 2px 0', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
                         {formatCurrency(sTotalExtraExpenses)}
                       </p>
                       <p style={{ fontSize: '10px', color: '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Non-recurring</p>
@@ -919,7 +919,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.04em', color: '#c4b5fd', whiteSpace: 'nowrap', display: 'block' }}>
                         MONEY LEFT OVER ✓
                       </span>
-                      <p style={{ fontSize: '22px', fontWeight: 800, color: '#ffffff', margin: '4px 0 2px 0', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
+                      <p style={{ fontSize: 'clamp(15px, 5vw, 22px)', fontWeight: 800, color: '#ffffff', margin: '4px 0 2px 0', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
                         {sLeftOver !== null ? formatCurrency(sLeftOver) : 'TBD'}
                       </p>
                       <p style={{ fontSize: '10px', color: '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Safe to spend</p>
