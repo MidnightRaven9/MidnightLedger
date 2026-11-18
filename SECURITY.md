@@ -8,7 +8,7 @@
 ## Reporting a Vulnerability
 
 If you find a security vulnerability, please open a GitHub Issue with the `security` label or use GitHub's Private Vulnerability Reporting:
-https://github.com/MidnightMarie9/MidnightLedger/security/advisories/new
+https://github.com/MidnightRaven9/MidnightLedger/security/advisories/new
 
 Please do not publicly disclose vulnerabilities until we've had a chance to review.
 

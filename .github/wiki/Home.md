@@ -17,5 +17,5 @@ Perfect for:
 - 👥 Splitting rent/bills with someone
 - 💵 Seeing what's *actually* available after bills
 
-Built by MidnightMarie9 ✨
+Built by MidnightRaven9 ✨
 Live: https://ai.studio/apps/7f0453b7-b342-442b-94e5-33cdef6ada62

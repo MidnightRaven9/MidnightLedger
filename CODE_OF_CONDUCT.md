@@ -13,6 +13,6 @@ We pledge to make participation in MidnightLedger a harassment-free experience f
 - Trolling or personal attacks
 
 ### 📧 Reporting
-Contact: MidnightMarie9 on GitHub 💌
+Contact: MidnightRaven9 on GitHub 💌
 
 We’re building a cozy corner of the internet for budgeting 🌃💜

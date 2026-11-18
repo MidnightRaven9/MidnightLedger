@@ -1,7 +1,7 @@
 # 📲 Download MidnightLedger 🌙💜
 
 ### 📦 Android APK
-- 🚀 **Recommended:** Download from GitHub Releases → https://github.com/MidnightMarie9/midnight-ledger/releases ✨
+- 🚀 **Recommended:** Download from GitHub Releases → https://github.com/MidnightRaven9/MidnightLedger/releases ✨
 - 📱 Direct link (Google Drive backup): https://drive.google.com/file/d/1fGyyvMCUy5Hf2MXfFOUH8xbhFRzJArkR/view?usp=drivesdk 💜
 
 ### 🌐 PWA (Works on iPhone + Android, no download needed)

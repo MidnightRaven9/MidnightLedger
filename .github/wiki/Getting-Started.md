@@ -2,8 +2,8 @@
 
 ### 🏁 Quick Start
 ```bash
-git clone https://github.com/MidnightMarie9/midnight-ledger.git
-cd midnight-ledger
+git clone https://github.com/MidnightRaven9/MidnightLedger.git
+cd MidnightLedger
 npm install
 npm run dev
 ```

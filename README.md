@@ -66,4 +66,4 @@ Manifest sets name to `MidnightLedger` so it installs with correct name and icon
 
 ### 📄 License
 
-MIT © 2026 MidnightMarie9 💜🌙
+MIT © 2026 MidnightRaven9 💜🌙
