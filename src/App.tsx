@@ -7,7 +7,6 @@ import { PaydaysView } from './views/PaydaysView';
 import { ExpensesView } from './views/ExpensesView';
 import { ReportsView } from './views/ReportsView';
 import { HistoryView } from './views/HistoryView';
-import { SettingsView } from './views/SettingsView';
 
 import { BillModal } from './components/BillModal';
 import { ExpenseModal } from './components/ExpenseModal';
@@ -57,7 +56,7 @@ function MainApp() {
   };
 
   return (
-    <div className="min-h-screen bg-[#000000] text-white/90 transition-colors duration-200 selection:bg-violet-600/30 selection:text-violet-200">
+    <div className="min-h-screen bg-[var(--bg)] text-white/90 transition-colors duration-200 selection:bg-[var(--accent-soft)] selection:text-[var(--text)]">
       
       {/* Navbar */}
       <Navbar

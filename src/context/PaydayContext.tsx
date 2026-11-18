@@ -713,7 +713,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         console.error('Error syncing midnightledger_paid_history:', err);
       }
 
-      showToast(`↩️ All bills unmarked`);
+      showToast(`All bills unmarked`);
 
       return updated;
     });

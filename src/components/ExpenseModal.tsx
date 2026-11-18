@@ -123,12 +123,12 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full min-w-0 max-w-lg bg-[#121212] rounded-[24px] shadow-2xl border border-[#2A2A2A] overflow-hidden mx-2 sm:mx-auto max-h-[90vh] flex flex-col edit-expense-modal">
+      <div className="w-full min-w-0 max-w-lg bg-[var(--surface)] rounded-[24px] shadow-2xl border border-[var(--border)] overflow-hidden mx-2 sm:mx-auto max-h-[90vh] flex flex-col edit-expense-modal">
         
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-[#2A2A2A] bg-[#121212] shrink-0">
+        <div className="flex items-center justify-between p-5 border-b border-[var(--border)] bg-[var(--surface)] shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-[var(--accent-soft)] border border-[var(--border-strong)] text-[var(--accent)] flex items-center justify-center font-bold">
               <PlusCircle className="w-5 h-5" />
             </div>
             <div>
@@ -142,7 +142,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-white/40 hover:text-white hover:bg-[#1E1E1E] transition-colors"
+            className="p-2 rounded-xl text-white/40 hover:text-white hover:bg-[var(--surface-2)] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -163,7 +163,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                 onChange={e => setCustomEmoji(e.target.value)}
                 maxLength={2}
                 title="Expense Emoji"
-                className="w-[56px] h-[56px] min-w-[56px] shrink-0 rounded-2xl bg-[#1f1f1f] border border-zinc-700 text-center text-[28px] leading-none text-white focus:outline-none focus:border-purple-500 overflow-hidden box-border"
+                className="w-[56px] h-[56px] min-w-[56px] shrink-0 rounded-2xl bg-[#1f1f1f] border border-zinc-700 text-center text-[28px] leading-none text-white focus:outline-none focus:border-[var(--accent)] overflow-hidden box-border"
                 style={{ fontFamily: '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif' }}
               />
               <input
@@ -172,13 +172,13 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                 placeholder="e.g. Walmart, Gas, Coffee"
                 value={description}
                 onChange={e => handleDescriptionChange(e.target.value)}
-                className="flex-1 min-w-0 h-[56px] rounded-2xl bg-[#1f1f1f] border border-zinc-700 px-4 text-[16px] text-white truncate focus:outline-none focus:border-[#7C3AED] box-border"
+                className="flex-1 min-w-0 h-[56px] rounded-2xl bg-[#1f1f1f] border border-zinc-700 px-4 text-[16px] text-white truncate focus:outline-none focus:border-[var(--accent)] box-border"
               />
             </div>
           </div>
 
           {/* Quick Fill Row / CATEGORIES */}
-          <div className="w-full min-w-0 max-w-full overflow-hidden border-y border-zinc-800/50 py-2.5 px-4 flex items-center gap-2 bg-[#181818] -mx-5 px-5" style={{ width: 'calc(100% + 40px)' }}>
+          <div className="w-full min-w-0 max-w-full overflow-hidden border-y border-zinc-800/50 py-2.5 px-4 flex items-center gap-2 bg-[var(--surface-2)] -mx-5 px-5" style={{ width: 'calc(100% + 40px)' }}>
             <span className="shrink-0 text-[11px] font-bold tracking-widest text-zinc-500">CATEGORIES:</span>
             <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide" style={{ touchAction: 'pan-x', WebkitOverflowScrolling: 'touch' }}>
               <div className="flex gap-2 w-max pr-4 pointer-events-auto">
@@ -192,8 +192,8 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                     }}
                     className={`shrink-0 h-8 px-3 rounded-full border transition-colors whitespace-nowrap cursor-pointer ${
                       category === c.name 
-                        ? 'bg-[#1C1736] text-[#A78BFA] border-[#7C3AED]' 
-                        : 'bg-[#1f1f1f] border-zinc-800 text-[13px] text-white hover:border-[#7C3AED] hover:text-[#A78BFA]'
+                        ? 'bg-[#1C1736] text-[var(--accent)] border-[var(--accent)]' 
+                        : 'bg-[#1f1f1f] border-zinc-800 text-[13px] text-white hover:border-[var(--accent)] hover:text-[var(--accent)]'
                     }`}
                   >
                     {c.emoji} {c.name}
@@ -209,8 +209,8 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                     }}
                     className={`shrink-0 h-8 px-3 rounded-full border transition-colors whitespace-nowrap cursor-pointer ${
                       category === p.cat 
-                        ? 'bg-[#1C1736] text-[#A78BFA] border-[#7C3AED]' 
-                        : 'bg-[#1f1f1f] border-zinc-800 text-[13px] text-white hover:border-[#7C3AED] hover:text-[#A78BFA]'
+                        ? 'bg-[#1C1736] text-[var(--accent)] border-[var(--accent)]' 
+                        : 'bg-[#1f1f1f] border-zinc-800 text-[13px] text-white hover:border-[var(--accent)] hover:text-[var(--accent)]'
                     }`}
                   >
                     {p.label}
@@ -219,9 +219,9 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsCustomCategoryModalOpen(true)}
-                  className="shrink-0 h-8 px-3 rounded-full border border-dashed border-[#7C3AED]/50 bg-transparent text-[#7C3AED] text-[13px] hover:bg-[#7C3AED]/10 transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1 font-semibold"
+                  className="shrink-0 h-8 px-3 rounded-full border border-dashed border-[var(--accent)]/50 bg-transparent text-[var(--accent)] text-[13px] hover:bg-[var(--accent)]/10 transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1 font-semibold"
                 >
-                  ✨ Custom...
+                  Custom...
                 </button>
               </div>
             </div>
@@ -241,7 +241,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                 placeholder="0.00"
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
-                className="w-full pl-8 pr-3 py-2.5 h-[48px] rounded-2xl border border-[#2A2A2A] bg-[#1E1E1E] text-white text-base font-bold focus:outline-none focus:border-[#7C3AED]"
+                className="w-full pl-8 pr-3 py-2.5 h-[48px] rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] text-white text-base font-bold focus:outline-none focus:border-[var(--accent)]"
               />
             </div>
           </div>
@@ -257,7 +257,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                 required
                 value={date}
                 onChange={e => setDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 h-[48px] rounded-2xl border border-[#2A2A2A] bg-[#1E1E1E] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
+                className="w-full px-3.5 py-2.5 h-[48px] rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"
               />
             </div>
             
@@ -270,10 +270,10 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                   required
                   value={paydayDate}
                   onChange={e => setPaydayDate(e.target.value)}
-                  className="w-full min-w-0 max-w-full h-[48px] rounded-2xl bg-[#1E1E1E] border border-[#2A2A2A] px-4 pr-10 text-[14px] text-white truncate appearance-none focus:outline-none focus:border-[#7C3AED]"
+                  className="w-full min-w-0 max-w-full h-[48px] rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] px-4 pr-10 text-[14px] text-white truncate appearance-none focus:outline-none focus:border-[var(--accent)]"
                 >
                   {summaries.map(s => (
-                    <option key={s.payday.date} value={s.payday.date} className="bg-[#121212] text-white">
+                    <option key={s.payday.date} value={s.payday.date} className="bg-[var(--surface)] text-white">
                       Paycheck on {formatDate(s.payday.date, 'medium')}
                     </option>
                   ))}
@@ -281,7 +281,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none">⌄</span>
               </div>
               <div className="flex justify-end pt-0.5">
-                <span className="text-[11px] text-purple-400 truncate font-semibold">⚡ Auto-matched by date</span>
+                <span className="text-[11px] text-[var(--accent)] truncate font-semibold">⚡ Auto-matched by date</span>
               </div>
             </div>
           </div>
@@ -299,8 +299,8 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                   onClick={() => setPaymentMethod(method)}
                   className={`py-2 h-[40px] rounded-xl text-xs font-bold border transition-all ${
                     paymentMethod === method
-                      ? 'bg-[#7C3AED] text-white border-[#7C3AED] shadow-md shadow-violet-900/30'
-                      : 'bg-[#1E1E1E] text-white/60 border-[#2A2A2A] hover:border-white/30 cursor-pointer hover:bg-[#2A2A2A]'
+                      ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-md'
+                      : 'bg-[var(--surface-2)] text-white/60 border-[var(--border)] hover:border-white/30 cursor-pointer hover:bg-[var(--border)]'
                   }`}
                 >
                   {method}
@@ -310,17 +310,17 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="pt-4 flex items-center justify-end gap-3 border-t border-[#2A2A2A]">
+          <div className="pt-4 flex items-center justify-end gap-3 border-t border-[var(--border)]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-white/60 hover:bg-[#1E1E1E] transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-white/60 hover:bg-[var(--surface-2)] transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-xs shadow-lg shadow-violet-900/30 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-press)] text-white font-bold text-xs shadow-lg transition-all cursor-pointer"
             >
               <Save className="w-4 h-4" />
               {expenseToEdit ? 'Save Changes' : 'Save Expense'}

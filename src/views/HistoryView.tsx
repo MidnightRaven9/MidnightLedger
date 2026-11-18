@@ -195,13 +195,13 @@ export const HistoryView: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-3 sm:p-6 pb-28 space-y-5">
+    <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[var(--bg)] text-white p-3 sm:p-6 pb-28 space-y-5">
       
       {/* 1. Hero Card */}
-      <div className="rounded-[28px] sm:rounded-[32px] border border-zinc-800/50 bg-[#121212] p-6 sm:p-7 space-y-5">
+      <div className="rounded-[28px] sm:rounded-[32px] border border-zinc-800/50 bg-[var(--surface)] p-6 sm:p-7 space-y-5">
         <div className="flex gap-4 items-start">
-          <div className="w-14 h-14 rounded-2xl bg-[#7C3AED]/20 flex items-center justify-center shrink-0">
-            <History className="w-7 h-7 text-[#A78BFA]" />
+          <div className="w-14 h-14 rounded-2xl bg-[var(--accent)]/20 flex items-center justify-center shrink-0">
+            <History className="w-7 h-7 text-[var(--accent)]" />
           </div>
           <div>
             <h1 className="text-[30px] leading-[1.1] font-black tracking-tight text-white">
@@ -217,15 +217,15 @@ export const HistoryView: React.FC = () => {
         <div className="flex items-center gap-3 pt-2">
           <button
             onClick={handleExport}
-            className="flex-1 h-[48px] flex items-center justify-center gap-2 rounded-2xl bg-[#1E1E1E] hover:bg-[#2A2A2A] text-white font-bold text-xs border border-zinc-800 transition-colors cursor-pointer"
+            className="flex-1 h-[48px] flex items-center justify-center gap-2 rounded-2xl bg-[var(--surface-2)] hover:bg-[var(--border)] text-white font-bold text-xs border border-zinc-800 transition-colors cursor-pointer"
             title="Export full budget backup as JSON file"
           >
-            <Download className="w-4 h-4 text-[#C084FC]" />
+            <Download className="w-4 h-4 text-[var(--accent)]" />
             Export JSON
           </button>
 
           <label 
-            className="flex-1 h-[48px] flex items-center justify-center gap-2 rounded-2xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-xs cursor-pointer transition-all shadow-[0_4px_16px_rgba(124,58,237,0.3)]"
+            className="flex-1 h-[48px] flex items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] hover:bg-[var(--accent-press)] text-white font-bold text-xs cursor-pointer transition-all shadow-[0_4px_16px_rgba(124,58,237,0.3)]"
             title="Import budget backup JSON file"
           >
             <Upload className="w-4 h-4 text-white" />
@@ -236,19 +236,19 @@ export const HistoryView: React.FC = () => {
       </div>
 
       {/* 2. Time Control Bar Card */}
-      <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 space-y-3">
+      <div className="rounded-[24px] border border-zinc-800/50 bg-[var(--surface)] p-5 sm:p-6 space-y-3">
         <div className="flex items-center gap-2 text-xs font-bold text-white/70">
-          <Filter className="w-4 h-4 text-[#A78BFA]" />
+          <Filter className="w-4 h-4 text-[var(--accent)]" />
           Filter History:
         </div>
 
         {/* Segmented Controls */}
-        <div className="flex items-center p-1 rounded-2xl bg-[#1E1E1E] border border-zinc-800 flex-wrap gap-1">
+        <div className="flex items-center p-1 rounded-2xl bg-[var(--surface-2)] border border-zinc-800 flex-wrap gap-1">
           <button
             onClick={() => setFilterMode('all')}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               filterMode === 'all'
-                ? 'bg-[#7C3AED] text-white shadow-md'
+                ? 'bg-[var(--accent)] text-white shadow-md'
                 : 'text-white/60 hover:text-white'
             }`}
           >
@@ -264,7 +264,7 @@ export const HistoryView: React.FC = () => {
             }}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               filterMode === 'month'
-                ? 'bg-[#7C3AED] text-white shadow-md'
+                ? 'bg-[var(--accent)] text-white shadow-md'
                 : 'text-white/60 hover:text-white'
             }`}
           >
@@ -277,7 +277,7 @@ export const HistoryView: React.FC = () => {
               onClick={() => setFilterMode(year)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 filterMode === year
-                  ? 'bg-[#7C3AED] text-white shadow-md'
+                  ? 'bg-[var(--accent)] text-white shadow-md'
                   : 'text-white/60 hover:text-white'
               }`}
             >
@@ -301,8 +301,8 @@ export const HistoryView: React.FC = () => {
                 onClick={() => setSelectedMonth(moStr)}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 border ${
                   isSelected
-                    ? 'bg-[#7C3AED] text-white border-[#7C3AED] shadow-md shadow-violet-950/50'
-                    : 'bg-[#1E1B2E] text-white/70 border-[#3B236E] hover:text-white hover:border-[#7C3AED]'
+                    ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-md'
+                    : 'bg-[var(--accent-soft)] text-white/70 border-[var(--border-strong)] hover:text-white hover:border-[var(--accent)]'
                 }`}
               >
                 {label} {isCurrent ? '(Current)' : ''}
@@ -316,16 +316,16 @@ export const HistoryView: React.FC = () => {
       <div className="space-y-4" id="paycheck-history-top">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-base font-extrabold text-white flex items-center gap-2">
-            <Receipt className="w-5 h-5 text-[#A78BFA]" />
+            <Receipt className="w-5 h-5 text-[var(--accent)]" />
             Past Paycheck Allocations
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#1E1B2E] border border-[#3B236E] text-[#C084FC]">
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--accent-soft)] border border-[var(--border-strong)] text-[var(--accent)]">
               {filteredSummaries.length}
             </span>
           </h3>
         </div>
 
         {filteredSummaries.length === 0 ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>
+          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>
             No past paychecks yet<br/>
             <span style={{ fontSize: '12px' }}>Allocations will appear here after your first paycheck date</span>
           </div>
@@ -347,7 +347,7 @@ export const HistoryView: React.FC = () => {
               return (
                 <div 
                   key={paydayId}
-                  className="rounded-[24px] bg-[#121212] border border-zinc-800/50 p-5 sm:p-6 mb-3 w-full overflow-visible transition-all hover:border-[#3B236E]/60 allocation-card"
+                  className="rounded-[24px] bg-[var(--surface)] border border-zinc-800/50 p-5 sm:p-6 mb-3 w-full overflow-visible transition-all hover:border-[var(--border-strong)]/60 allocation-card"
                 >
                   {/* Card Header clickable to toggle expansion */}
                   <div 
@@ -367,14 +367,14 @@ export const HistoryView: React.FC = () => {
                               No amount set
                             </span>
                           ) : (
-                            <span className="text-[#B794F6] font-semibold text-[16px] leading-[1.4]">
+                            <span className="text-[var(--accent)] font-semibold text-[16px] leading-[1.4]">
                               Allocated: {formatCurrency(summary.totalBills)} / {formatCurrency(checkAmount)}
                             </span>
                           )}
                           <span className="w-1 h-1 bg-white/30 rounded-full"></span>
                           
                           {totalAssigned === 0 ? (
-                            <span className="bg-[#1E1E1E] text-white/50 text-xs px-2.5 py-1 rounded-full border border-[#2A2A2A] font-semibold">
+                            <span className="bg-[var(--surface-2)] text-white/50 text-xs px-2.5 py-1 rounded-full border border-[var(--border)] font-semibold">
                               No Bills
                             </span>
                           ) : isAllPaid ? (
@@ -402,7 +402,7 @@ export const HistoryView: React.FC = () => {
                       </div>
 
                       {/* Dropdown chevron button */}
-                      <button className="p-1.5 rounded-xl bg-[#1E1E1E] text-white/60 hover:text-white transition-colors shrink-0">
+                      <button className="p-1.5 rounded-xl bg-[var(--surface-2)] text-white/60 hover:text-white transition-colors shrink-0">
                         {isPaydayExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </button>
                     </div>
@@ -410,7 +410,7 @@ export const HistoryView: React.FC = () => {
 
                   {/* Expanded Content Drawer */}
                   {isPaydayExpanded && (
-                    <div className="border-t border-[#2A2A2A]/60 bg-[#0A0A0A] space-y-4 pt-4 mt-4 rounded-2xl p-3 overflow-visible">
+                    <div className="border-t border-[var(--border)]/60 bg-[var(--bg)] space-y-4 pt-4 mt-4 rounded-2xl p-3 overflow-visible">
                       
                       {/* Bills Assigned Table */}
                       <div>
@@ -446,7 +446,7 @@ export const HistoryView: React.FC = () => {
                           </h4>
                           <div className="space-y-1.5">
                             {summary.extraExpenses.map(expense => (
-                              <div key={expense.id} className="p-2.5 rounded-xl bg-[#121212] border border-[#2A2A2A] flex items-center justify-between text-xs">
+                              <div key={expense.id} className="p-2.5 rounded-xl bg-[var(--surface)] border border-[var(--border)] flex items-center justify-between text-xs">
                                 <span className="font-semibold text-white/90">{expense.description}</span>
                                 <span className="font-bold text-rose-400">-{formatCurrency(expense.amount)}</span>
                               </div>
@@ -456,7 +456,7 @@ export const HistoryView: React.FC = () => {
                       )}
 
                       {/* Financial Summary Strip */}
-                      <div className="p-3 rounded-2xl bg-[#121212] border border-[#2A2A2A] grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                      <div className="p-3 rounded-2xl bg-[var(--surface)] border border-[var(--border)] grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
                         <div>
                           <span className="text-[10px] text-white/50 block">Check Estimate</span>
                           <span className="text-xs font-extrabold text-white">
@@ -469,7 +469,7 @@ export const HistoryView: React.FC = () => {
                         </div>
                         <div>
                           <span className="text-[10px] text-white/50 block">Total Bills</span>
-                          <span className="text-xs font-extrabold text-[#A78BFA]">{formatCurrency(summary.totalBills)}</span>
+                          <span className="text-xs font-extrabold text-[var(--accent)]">{formatCurrency(summary.totalBills)}</span>
                         </div>
                         <div>
                           <span className="text-[10px] text-white/50 block">Net Left Over</span>
@@ -493,7 +493,7 @@ export const HistoryView: React.FC = () => {
               {visibleCount < totalCount ? (
                 <button 
                   onClick={handleToggle} 
-                  className="bg-violet-600 hover:bg-violet-700 text-white px-6 py-3 rounded-full flex items-center gap-2 shadow-lg shadow-violet-900/50 text-xs font-extrabold cursor-pointer border border-violet-500"
+                  className="bg-[var(--accent)] hover:bg-[var(--accent-press)] text-white px-6 py-3 rounded-full flex items-center gap-2 shadow-lg text-xs font-extrabold cursor-pointer border border-[var(--accent)]"
                 >
                   <ChevronDown className="w-4 h-4" /> Show 5 more ({totalCount - visibleCount} remaining)
                 </button>
@@ -514,13 +514,13 @@ export const HistoryView: React.FC = () => {
       <div className="mt-6 space-y-4">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-base font-extrabold text-white flex items-center gap-2">
-            <Activity className="w-5 h-5 text-[#C084FC]" />
+            <Activity className="w-5 h-5 text-[var(--accent)]" />
             Bill Payment History & Timeline
           </h3>
         </div>
 
         {bills.length === 0 ? (
-          <div className="p-8 text-center rounded-3xl bg-[#121212] border border-[#2A2A2A] text-white/50">
+          <div className="p-8 text-center rounded-3xl bg-[var(--surface)] border border-[var(--border)] text-white/50">
             <p className="text-xs font-semibold">No bills configured in MidnightLedger.</p>
           </div>
         ) : (
@@ -548,7 +548,7 @@ export const HistoryView: React.FC = () => {
               const lastPaidOccurrence = [...billOccurrences].reverse().find(o => o.isPaid);
 
               return (
-                <div key={bill.id} className="p-3 rounded-3xl bg-[#121212] border border-[#2A2A2A] shadow-md space-y-3">
+                <div key={bill.id} className="p-3 rounded-3xl bg-[var(--surface)] border border-[var(--border)] shadow-md space-y-3">
                   
                   {/* Bill Info */}
                   <div className="flex items-start justify-between">
@@ -559,13 +559,13 @@ export const HistoryView: React.FC = () => {
                       </p>
                     </div>
 
-                    <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-[#1E1B2E] border border-[#3B236E] text-[#C084FC]">
+                    <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-[var(--accent-soft)] border border-[var(--border-strong)] text-[var(--accent)]">
                       {bill.category}
                     </span>
                   </div>
 
                   {/* Payment Stats */}
-                  <div className="flex items-center justify-between text-[13px] pt-1 border-t border-[#2A2A2A]/60">
+                  <div className="flex items-center justify-between text-[13px] pt-1 border-t border-[var(--border)]/60">
                     <span className="text-white/70 font-semibold">
                       Paid {paidCount}/{totalAssigned} instances
                     </span>
@@ -581,7 +581,7 @@ export const HistoryView: React.FC = () => {
                   {/* Dot History Timeline */}
                   <div className="pt-1">
                     {billOccurrences.length === 0 ? (
-                      <div className="p-3 rounded-xl bg-[#0D0D0D] border border-dashed border-[#2A2A2A]">
+                      <div className="p-3 rounded-xl bg-[#0D0D0D] border border-dashed border-[var(--border)]">
                         <p className="text-xs text-white/50 italic">No paycheck history yet - dots will appear after your first allocation</p>
                       </div>
                     ) : (
@@ -599,7 +599,7 @@ export const HistoryView: React.FC = () => {
                               <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
                                 occ.isPaid 
                                   ? 'bg-emerald-500/20 border border-emerald-500 text-emerald-400 shadow-sm shadow-emerald-950' 
-                                  : 'bg-[#1E1E1E] border border-[#3B236E] text-white/30'
+                                  : 'bg-[var(--surface-2)] border border-[var(--border-strong)] text-white/30'
                               }`}>
                                 {occ.isPaid ? (
                                   <Check className="w-2.5 h-2.5 stroke-[3]" />
@@ -610,7 +610,7 @@ export const HistoryView: React.FC = () => {
 
                               {/* Hover Tooltip */}
                               <div className="absolute bottom-full mb-1 hidden group-hover:flex flex-col items-center z-20 pointer-events-none">
-                                <div className="px-2 py-1 rounded-lg bg-[#1E1B2E] border border-[#3B236E] text-[10px] text-white font-bold whitespace-nowrap shadow-xl">
+                                <div className="px-2 py-1 rounded-lg bg-[var(--accent-soft)] border border-[var(--border-strong)] text-[10px] text-white font-bold whitespace-nowrap shadow-xl">
                                   {formatDate(occ.paydayDate)}: {occ.isPaid ? `Paid (${formatCurrency(occ.amount)})` : 'Unpaid'}
                                 </div>
                               </div>
@@ -655,7 +655,7 @@ export const HistoryView: React.FC = () => {
           <p className="text-[11px] text-white/50 text-center font-medium mt-2">
             This will wipe ALL data to share a clean app - bills, paydays, expenses, history, everything. You will start at 0.
           </p>
-          <div className="text-[11px] text-[#A78BFA] text-center font-semibold mt-2.5">
+          <div className="text-[11px] text-[var(--accent)] text-center font-semibold mt-2.5">
             {saveStatusText}
           </div>
         </div>

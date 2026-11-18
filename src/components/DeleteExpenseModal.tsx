@@ -22,16 +22,16 @@ export const DeleteExpenseModal: React.FC<DeleteExpenseModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
       <div 
-        className="w-full max-w-sm bg-[#1a1a1a] rounded-[20px] border border-[#2a2a2a] shadow-2xl overflow-hidden p-6 relative flex flex-col"
+        className="w-full max-w-sm bg-[var(--surface-2)] rounded-[20px] border border-[var(--border)] shadow-2xl overflow-hidden p-6 relative flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <div className="w-12 h-12 rounded-full bg-[#2a1f3a] border border-[#7C3AED] flex items-center justify-center text-xl">
-            🗑️
+          <div className="w-12 h-12 rounded-full bg-[#2a1f3a] border border-[var(--accent)] flex items-center justify-center">
+            <Trash2 className="w-5 h-5 text-[var(--accent)]" />
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-transparent flex items-center justify-center text-white/50 hover:bg-[#2A2A2A] hover:text-white transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-transparent flex items-center justify-center text-white/50 hover:bg-[var(--border)] hover:text-white transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -40,7 +40,7 @@ export const DeleteExpenseModal: React.FC<DeleteExpenseModalProps> = ({
         <h2 className="text-[28px] font-bold text-white mb-2 leading-tight">
           Delete {expense.description}?
         </h2>
-        <p className="text-[#a78bfa] text-[14px] font-medium mb-6">
+        <p className="text-[var(--accent)] text-[14px] font-medium mb-6">
           {expense.emoji || getCategoryEmoji(expense.category)} {expense.category || 'Other'} • -${expense.amount.toFixed(2)} • Paycheck: {formatDate(expense.paydayDate, 'short')}
         </p>
 
@@ -50,7 +50,7 @@ export const DeleteExpenseModal: React.FC<DeleteExpenseModalProps> = ({
             className="w-full bg-[#2a1a1f] border border-[#4a2a2f] rounded-[16px] p-4 text-left hover:bg-[#3a1c22] transition-colors cursor-pointer group"
           >
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-[#f87171]">🗑️</span>
+              <Trash2 className="w-4 h-4 text-[#f87171]" />
               <span className="text-[#f87171] font-bold text-[15px]">Delete This Expense</span>
               <span className="ml-auto bg-red-500/20 text-red-400 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
                 Permanent
@@ -64,7 +64,7 @@ export const DeleteExpenseModal: React.FC<DeleteExpenseModalProps> = ({
 
         <button 
           onClick={onClose}
-          className="w-full bg-[#2a2a2a] hover:bg-[#333] text-white font-bold rounded-[12px] h-[48px] transition-colors cursor-pointer"
+          className="w-full bg-[var(--border)] hover:bg-[#333] text-white font-bold rounded-[12px] h-[48px] transition-colors cursor-pointer"
         >
           Cancel
         </button>

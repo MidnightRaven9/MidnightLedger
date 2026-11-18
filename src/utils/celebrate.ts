@@ -1,4 +1,4 @@
-import { triggerConfetti, triggerPurpleHearts } from './emojis';
+import { triggerConfetti } from './emojis';
 
 let globalInitialLoad = true;
 if (typeof window !== 'undefined') {
@@ -20,8 +20,7 @@ export function tryCelebrate(
   if (isInitialLoad) return allPaidNow; // block pop on page open
   const wasJustCompleted = prevAllPaidValue === false && allPaidNow === true;
   if (wasJustCompleted) {
-    triggerConfetti(); // existing 🎉 - DO NOT CHANGE
-    triggerPurpleHearts(); // existing 💜 - DO NOT CHANGE
+    triggerConfetti();
   }
   return allPaidNow;
 }

@@ -6,7 +6,7 @@ Dark-mode budget app for paycheck-to-paycheck planning 🌃 Built for split bill
 → https://midnightledger.justicegraff6.workers.dev ✨
 
 ### 📲 Download
-- 🤖 Android APK: [v3.0.2 Offline Edition](https://github.com/MidnightRaven9/MidnightLedger/releases/tag/v3.0.2) 🔒✨ — **100% offline, no server or internet needed** 📵💾
+- 🤖 Android APK: [v3.1.0 Offline Edition](https://github.com/MidnightRaven9/MidnightLedger/releases/tag/v3.1.0) 🔒✨ — **100% offline, no server or internet needed** 📵💾
 - 📱 PWA: Open live demo → Add to Home Screen
 
 ---
@@ -62,7 +62,7 @@ npm run build
 
 ### 🎨 App Icon
 
-🌙 Horizontal gradient fill — purple #7C3AED → #A78BFA on black rounded square with ledger lines 💜🖤
+🌙 Horizontal gradient fill — champagne #A8843A → #C8A24B → #E9D8A6 on #101012 rounded square with ledger lines
 
 Every icon and splash (web, PWA, Android mipmaps, adaptive foregrounds, splashes) is generated from a single SVG in `scripts/generate-icons.mjs` — regenerate any time with:
 

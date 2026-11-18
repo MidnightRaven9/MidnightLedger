@@ -100,13 +100,13 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
     'Housing': 'bg-emerald-500',
     'Utilities': 'bg-amber-400',
     'Insurance': 'bg-blue-400',
-    'Phone & Internet': 'bg-purple-400',
+    'Phone & Internet': 'bg-[var(--accent)]',
     'Subscriptions': 'bg-rose-400',
     'Streaming Subscriptions': 'bg-rose-400',
     'Food & Household': 'bg-cyan-400',
     'Debt & Credit': 'bg-orange-400',
     'Savings': 'bg-teal-400',
-    'General': 'bg-violet-400',
+    'General': 'bg-[var(--accent)]',
   };
 
   const sortedAndFilteredBills = (() => {
@@ -213,7 +213,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
   );
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-3 sm:p-6 pb-28 space-y-5">
+    <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[var(--bg)] text-white p-3 sm:p-6 pb-28 space-y-5">
       <ManageCategoriesModal 
         type="bill"
         isOpen={isManageCategoriesModalOpen} 
@@ -221,10 +221,10 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
       />
       
       {/* 1. Bill Management Hub Hero Card */}
-      <div className="rounded-[28px] sm:rounded-[32px] border border-zinc-800/50 bg-[#121212] p-6 sm:p-7 space-y-5">
+      <div className="rounded-[28px] sm:rounded-[32px] border border-zinc-800/50 bg-[var(--surface)] p-6 sm:p-7 space-y-5">
         <div className="flex gap-4 items-start">
-          <div className="w-14 h-14 rounded-2xl bg-[#7C3AED]/20 flex items-center justify-center shrink-0">
-            <Receipt className="w-7 h-7 text-[#A78BFA]" />
+          <div className="w-14 h-14 rounded-2xl bg-[var(--accent)]/20 flex items-center justify-center shrink-0">
+            <Receipt className="w-7 h-7 text-[var(--accent)]" />
           </div>
           <div>
             <h1 className="text-[24px] sm:text-[30px] font-black leading-tight tracking-tight text-white">
@@ -245,7 +245,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
               {formatCurrency(totalBaseMonthly)}
             </span>
             {viewMode === 'fullTotal' && (
-              <span className="text-[11px] text-[#A78BFA] font-semibold">
+              <span className="text-[11px] text-[var(--accent)] font-semibold">
                 • Calculations always use your share
               </span>
             )}
@@ -254,7 +254,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
 
         <button
           onClick={() => onOpenBillModal(null)}
-          className="w-full h-[56px] flex items-center justify-center gap-2 rounded-2xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-[16px] mt-2 shadow-[0_8px_20px_rgba(124,58,237,0.3)] transition-all cursor-pointer"
+          className="w-full h-[56px] flex items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] hover:bg-[var(--accent-press)] text-white font-bold text-[16px] mt-2 shadow-[0_8px_20px_rgba(124,58,237,0.3)] transition-all cursor-pointer"
         >
           <Plus className="w-5 h-5" />
           Add New Bill
@@ -262,10 +262,10 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
       </div>
 
       {/* 2. Monthly Category Allocation Card */}
-      <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-5 sm:p-6 space-y-4">
+      <div className="rounded-[24px] border border-zinc-800/50 bg-[var(--surface)] p-5 sm:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <PieChart className="w-4 h-4 text-[#A78BFA]" />
+            <PieChart className="w-4 h-4 text-[var(--accent)]" />
             Monthly Category Allocation
           </h3>
           <span className="text-xs text-white/50 font-semibold">{bills.length} Total Bills</span>
@@ -273,10 +273,10 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
 
         {/* Multi-color Allocation Bar (12px tall) */}
         {totalBaseMonthly > 0 && (
-          <div className="w-full h-3 rounded-full bg-[#1A1A1A] overflow-hidden flex border border-[#2A2A2A]">
+          <div className="w-full h-3 rounded-full bg-[var(--surface-2)] overflow-hidden flex border border-[var(--border)]">
             {Object.entries(categoryTotals).map(([cat, amt]) => {
               const pct = (amt / totalBaseMonthly) * 100;
-              const colorClass = categoryColors[cat] || 'bg-violet-500';
+              const colorClass = categoryColors[cat] || 'bg-[var(--accent)]';
               return (
                 <div 
                   key={cat}
@@ -292,7 +292,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
         {/* Legend (grid-cols-1 sm:grid-cols-2 gap-3) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
           {Object.entries(categoryTotals).map(([cat, amt]) => {
-            const colorClass = categoryColors[cat] || 'bg-violet-500';
+            const colorClass = categoryColors[cat] || 'bg-[var(--accent)]';
             const emoji = getCategoryEmoji(cat);
             return (
               <div 
@@ -312,7 +312,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
       </div>
 
       {/* 3. Search & Dropdown Filters Card */}
-      <div className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-4 sm:p-6 space-y-3.5 w-full min-w-0 max-w-full overflow-hidden box-border">
+      <div className="rounded-[24px] border border-zinc-800/50 bg-[var(--surface)] p-4 sm:p-6 space-y-3.5 w-full min-w-0 max-w-full overflow-hidden box-border">
         {/* Search */}
         <div className="relative w-full min-w-0">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
@@ -321,7 +321,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
             placeholder="Search bills..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full h-11 rounded-2xl bg-[#1a1a1a] border border-zinc-800 pl-10 pr-4 text-[14px] text-white placeholder-zinc-500 focus:outline-none focus:border-purple-600 box-border"
+            className="w-full h-11 rounded-2xl bg-[var(--surface-2)] border border-zinc-800 pl-10 pr-4 text-[14px] text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--accent)] box-border"
           />
         </div>
 
@@ -331,7 +331,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
             onClick={() => setViewMode('myShare')}
             className={`h-10 rounded-full text-[13px] font-bold flex items-center justify-center gap-1.5 truncate transition-all cursor-pointer box-border px-2 ${
               viewMode === 'myShare'
-                ? 'bg-[#7C3AED] text-white shadow-lg shadow-purple-600/20'
+                ? 'bg-[var(--accent)] text-white shadow-lg shadow-none'
                 : 'bg-[#1f1f1f] border border-zinc-800 text-zinc-400 hover:text-white'
             }`}
           >
@@ -341,7 +341,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
             onClick={() => setViewMode('fullTotal')}
             className={`h-10 rounded-full text-[13px] font-bold flex items-center justify-center gap-1.5 truncate transition-all cursor-pointer box-border px-2 ${
               viewMode === 'fullTotal'
-                ? 'bg-[#7C3AED] text-white shadow-lg shadow-purple-600/20'
+                ? 'bg-[var(--accent)] text-white shadow-lg shadow-none'
                 : 'bg-[#1f1f1f] border border-zinc-800 text-zinc-400 hover:text-white'
             }`}
           >
@@ -354,7 +354,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
           <select
             value={selectedCategory}
             onChange={e => setSelectedCategory(e.target.value)}
-            className="w-full min-w-0 h-10 rounded-full bg-[#1f1f1f] border border-zinc-800 px-3 text-[13px] text-white focus:outline-none focus:border-purple-600 truncate cursor-pointer box-border"
+            className="w-full min-w-0 h-10 rounded-full bg-[#1f1f1f] border border-zinc-800 px-3 text-[13px] text-white focus:outline-none focus:border-[var(--accent)] truncate cursor-pointer box-border"
           >
             <option value="ALL">🏷️ All Categories</option>
             {(categories as string[]).map(c => (
@@ -365,7 +365,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
           <select
             value={selectedType}
             onChange={e => setSelectedType(e.target.value)}
-            className="w-full min-w-0 h-10 rounded-full bg-[#1f1f1f] border border-zinc-800 px-3 text-[13px] text-white focus:outline-none focus:border-purple-600 truncate cursor-pointer box-border"
+            className="w-full min-w-0 h-10 rounded-full bg-[#1f1f1f] border border-zinc-800 px-3 text-[13px] text-white focus:outline-none focus:border-[var(--accent)] truncate cursor-pointer box-border"
           >
             <option value="ALL">💳 All Types</option>
             <option value="fixed">Fixed</option>
@@ -380,7 +380,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
             <select
               value={billSort}
               onChange={e => handleSortChange(e.target.value)}
-              className="h-10 rounded-full bg-[#1f1f1f] border border-zinc-800 px-4 text-[13px] text-white focus:outline-none focus:border-purple-600 cursor-pointer truncate"
+              className="h-10 rounded-full bg-[#1f1f1f] border border-zinc-800 px-4 text-[13px] text-white focus:outline-none focus:border-[var(--accent)] cursor-pointer truncate"
             >
               <option value="due">Due Date</option>
               <option value="low">Amount: Low to High</option>
@@ -389,7 +389,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
           </div>
           <button
             onClick={() => setIsManageCategoriesModalOpen(true)}
-            className="w-11 h-11 shrink-0 flex items-center justify-center rounded-2xl bg-[#1f1f1f] border border-zinc-800 text-zinc-400 hover:text-white hover:border-[#7C3AED] transition-colors cursor-pointer"
+            className="w-11 h-11 shrink-0 flex items-center justify-center rounded-2xl bg-[#1f1f1f] border border-zinc-800 text-zinc-400 hover:text-white hover:border-[var(--accent)] transition-colors cursor-pointer"
             title="Manage Categories"
           >
             <Settings className="w-5 h-5" />
@@ -399,7 +399,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
 
       {/* 4. Bill Cards List */}
       {sortedAndFilteredBills.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl bg-[#121212] border border-[#2A2A2A] text-white/50">
+        <div className="p-12 text-center rounded-2xl bg-[var(--surface)] border border-[var(--border)] text-white/50">
           <p className="text-sm">No bills found matching your criteria.</p>
         </div>
       ) : (
@@ -449,7 +449,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
                   width: '100%',
                   padding: '16px',
                   borderRadius: '16px',
-                  background: '#1a1a1a',
+                  background: 'var(--surface-2)',
                   border: '1px dashed #3a3a3a',
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -474,7 +474,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
 
               {showNextCycle && (
                 <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '12px', opacity: 0.85 }}>
-                  <div style={{ fontSize: '12px', color: '#6b7280', padding: '0 4px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--faint)', padding: '0 4px' }}>
                     These will cycle back to top when their due date comes around again next month.
                   </div>
                   <div className="space-y-3">

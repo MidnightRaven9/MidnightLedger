@@ -54,12 +54,12 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
     'Utilities': 'bg-amber-950/40 text-amber-400 border-amber-900/50',
     'Car': 'bg-blue-950/40 text-blue-400 border-blue-900/50',
     'Insurance': 'bg-cyan-950/40 text-cyan-400 border-cyan-900/50',
-    'Phone & Internet': 'bg-purple-950/40 text-purple-400 border-purple-900/50',
+    'Phone & Internet': 'bg-[var(--accent-soft)] text-[var(--accent)] border-[var(--accent)]',
     'Subscriptions': 'bg-rose-950/40 text-rose-400 border-rose-900/50',
     'Streaming Subscriptions': 'bg-rose-950/40 text-rose-400 border-rose-900/50',
     'Food & Household': 'bg-teal-950/40 text-teal-400 border-teal-900/50',
     'Debt & Credit': 'bg-orange-950/40 text-orange-400 border-orange-900/50',
-    'Savings': 'bg-violet-950/40 text-violet-400 border-violet-900/50',
+    'Savings': 'bg-[var(--accent-soft)] text-[var(--accent)] border-[var(--border-strong)]',
   };
 
   const catColorClass = categoryColors[bill.category] || 'bg-zinc-950/40 text-zinc-400 border-zinc-900/50';
@@ -72,8 +72,8 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
       <div 
         className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
           isPaid 
-            ? 'bg-[#121212]/50 border-purple-900/40' 
-            : 'bg-[#1E1E1E]/80 border-[#2A2A2A] hover:border-[#7C3AED]/40'
+            ? 'bg-[var(--surface)]/50 border-[var(--accent)]' 
+            : 'bg-[var(--surface-2)]/80 border-[var(--border)] hover:border-[var(--accent)]/40'
         } ${className}`}
       >
         <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -94,8 +94,8 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
                   width: '44px',
                   height: '44px',
                   borderRadius: '50%',
-                  background: isPaid ? '#a855f7' : '#1a1a1a',
-                  border: '2px solid #a855f7',
+                  background: isPaid ? 'var(--accent)' : 'var(--surface-2)',
+                  border: '2px solid var(--accent)',
                   color: 'white',
                   fontSize: '20px',
                   display: 'grid',
@@ -117,12 +117,12 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
 
           <div className="min-w-0 flex-1">
             <span className={`text-xs font-bold block truncate ${isPaid ? 'line-through text-white/50' : 'text-white'}`}>
-              {isPaid ? '💜 ' : `${billEmoji} `}{bill.name}
+              {isPaid ? '' : `${billEmoji} `}{bill.name}
             </span>
             
             {/* Display correct split math in interactive mode */}
             {bill.isSplit && (
-              <span className="text-[10px] text-[#A78BFA] block mt-0.5 font-semibold">
+              <span className="text-[10px] text-[var(--accent)] block mt-0.5 font-semibold">
                 Full Bill: {formatCurrency(fullTotalVal)} ÷ {splitWays} = {formatCurrency(myShareVal)} your share
               </span>
             )}
@@ -133,8 +133,8 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
 
             <div className="mt-1 flex items-center gap-1.5">
               {isPaid ? (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-950/80 text-purple-300 border border-purple-500/40 inline-flex items-center gap-1">
-                  <span className="animate-pulse">💜</span> Paid
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--accent)] inline-flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[var(--accent)]" /> Paid
                 </span>
               ) : (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-950/40 text-amber-400 border border-amber-900/50">
@@ -159,7 +159,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
             {bill.type === 'variable' && onAdjust && !isPaid && (
               <button
                 onClick={onAdjust}
-                className="text-[9px] text-[#A78BFA] hover:underline block cursor-pointer ml-auto"
+                className="text-[9px] text-[var(--accent)] hover:underline block cursor-pointer ml-auto"
               >
                 Adjust
               </button>
@@ -186,10 +186,10 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
   return (
     <div 
       id={`bill-${bill.id}`}
-      className={`w-full min-w-0 max-w-full overflow-hidden rounded-[18px] p-4 border shadow-lg space-y-3 relative hover:border-[#7C3AED]/40 transition-all box-border ${
+      className={`w-full min-w-0 max-w-full overflow-hidden rounded-[18px] p-4 border shadow-lg space-y-3 relative hover:border-[var(--accent)]/40 transition-all box-border ${
         isPaid 
-          ? 'paid-bill bg-purple-600/10 border-purple-600/30' 
-          : 'bg-[#111111] border-zinc-800'
+          ? 'paid-bill bg-[var(--accent-soft)] border-[var(--accent)]' 
+          : 'bg-[var(--surface-2)] border-zinc-800'
       } ${className}`}
     >
       {/* Top Header Row */}
@@ -212,8 +212,8 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
                   width: '44px',
                   height: '44px',
                   borderRadius: '50%',
-                  background: isPaid ? '#a855f7' : '#1a1a1a',
-                  border: '2px solid #a855f7',
+                  background: isPaid ? 'var(--accent)' : 'var(--surface-2)',
+                  border: '2px solid var(--accent)',
                   color: 'white',
                   fontSize: '20px',
                   display: 'grid',
@@ -235,17 +235,17 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
 
           <div className="min-w-0 flex-1 overflow-hidden">
             <p className={`text-[15px] font-bold truncate max-w-[155px] sm:max-w-[220px] ${isPaid ? 'line-through text-zinc-400' : 'text-white'}`}>
-              {isPaid ? '💜 ' : `${billEmoji} `}{bill.name}
+              {isPaid ? '' : `${billEmoji} `}{bill.name}
             </p>
             <div className="flex flex-wrap gap-1.5 mt-1.5">
               <span className={`px-2.5 py-0.5 rounded-full border text-[11px] font-bold ${catColorClass}`}>
                 {(bill.category as string) === 'Streaming Subscriptions' ? 'Subscriptions' : bill.category}
               </span>
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-500/15 text-purple-400 border border-purple-500/30">
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--accent)]">
                 {bill.type === 'fixed' || bill.type === 'Fixed' ? 'Fixed' : 'Variable'}
               </span>
               {isPaid && (
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-950/80 text-purple-300 border border-purple-500/40 inline-flex items-center gap-1">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--accent)] inline-flex items-center gap-1">
                   Paid
                 </span>
               )}
@@ -277,7 +277,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
                   <span className={`text-[14px] font-bold ${isPaid ? 'line-through text-zinc-400' : 'text-white'}`}>
                     {formatCurrency(myShareVal)} <span className="text-zinc-500 font-normal text-[11px]">My Share</span>
                   </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-[#7c3aed]/20 text-purple-300 text-[11px] font-bold border border-purple-500/30">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent)]/20 text-[var(--accent)] text-[11px] font-bold border border-[var(--accent)]">
                     Full: {formatCurrency(fullTotalVal)}
                   </span>
                 </>
@@ -286,7 +286,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
                   <span className={`text-[14px] font-bold ${isPaid ? 'line-through text-zinc-400' : 'text-[#F59E0B]'}`}>
                     {formatCurrency(fullTotalVal)} <span className="text-zinc-500 font-normal text-[11px]">Full Total</span>
                   </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-[#7c3aed]/20 text-purple-300 text-[11px] font-bold border border-purple-500/30">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent)]/20 text-[var(--accent)] text-[11px] font-bold border border-[var(--accent)]">
                     My Share: {formatCurrency(myShareVal)}
                   </span>
                 </>

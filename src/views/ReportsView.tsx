@@ -47,7 +47,7 @@ const CustomDot = (props: any) => {
   if (cx === undefined || cy === undefined) return null;
   const isNegative = value < 0;
   const dotColor = isNegative ? '#FF4D6A' : '#FFFFFF';
-  const strokeColor = isNegative ? '#FF4D6A' : '#7C3AED';
+  const strokeColor = isNegative ? '#FF4D6A' : 'var(--accent)';
   return (
     <circle 
       cx={cx} 
@@ -65,7 +65,7 @@ const CustomActiveDot = (props: any) => {
   if (cx === undefined || cy === undefined) return null;
   const isNegative = value < 0;
   const dotColor = isNegative ? '#FF4D6A' : '#FFFFFF';
-  const strokeColor = isNegative ? '#FF4D6A' : '#7C3AED';
+  const strokeColor = isNegative ? '#FF4D6A' : 'var(--accent)';
   return (
     <circle 
       cx={cx} 
@@ -209,7 +209,7 @@ export const ReportsView: React.FC = () => {
   const BarTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-[#111111] text-white p-3 rounded-2xl border border-zinc-800 shadow-xl text-xs space-y-1.5 z-50 pointer-events-none max-w-[220px]">
+        <div className="bg-[var(--surface-2)] text-white p-3 rounded-2xl border border-zinc-800 shadow-xl text-xs space-y-1.5 z-50 pointer-events-none max-w-[220px]">
           <div className="font-bold border-b border-zinc-800 pb-1 text-zinc-400">
             Paycheck: {label}
           </div>
@@ -234,7 +234,7 @@ export const ReportsView: React.FC = () => {
       const netVal = Number(data['Net Left Over'] || 0);
       const cumVal = Number(data['Cumulative Buffer'] || 0);
       
-      const netColor = netVal < 0 ? '#FF4D6A' : '#A78BFA';
+      const netColor = netVal < 0 ? '#FF4D6A' : 'var(--accent)';
       const cumColor = '#00FF94';
       
       const formatVal = (v: number) => {
@@ -244,7 +244,7 @@ export const ReportsView: React.FC = () => {
       };
 
       return (
-        <div className="bg-[#111111] text-white p-3 rounded-2xl border border-zinc-800 shadow-2xl text-xs space-y-1.5 z-50 pointer-events-none max-w-[220px]">
+        <div className="bg-[var(--surface-2)] text-white p-3 rounded-2xl border border-zinc-800 shadow-2xl text-xs space-y-1.5 z-50 pointer-events-none max-w-[220px]">
           <div className="font-bold pb-1 text-white border-b border-zinc-800">
             {data.fullLabel || data.shortLabel}
           </div>
@@ -269,13 +269,13 @@ export const ReportsView: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-[600px] mx-auto overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-4 pb-[100px]">
+    <div className="w-full max-w-[600px] mx-auto overflow-x-hidden min-h-screen bg-[var(--bg)] text-white p-4 pb-[100px]">
       
       {/* 1. Header Section */}
-      <div className="rounded-[20px] bg-[#151515] border border-[#2a2a2a] p-6 flex flex-col gap-4 mb-4">
+      <div className="rounded-[20px] bg-[#151515] border border-[var(--border)] p-6 flex flex-col gap-4 mb-4">
         <div className="flex gap-4 items-start">
-          <div style={{ width: '52px', height: '52px', background: '#2a1f4a', borderRadius: '16px', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <div style={{ width: '52px', height: '52px', background: 'var(--accent-soft)', borderRadius: '16px', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 3v18h18"></path>
               <path d="M7 16V8"></path>
               <path d="M12 16V4"></path>
@@ -284,7 +284,7 @@ export const ReportsView: React.FC = () => {
           </div>
           <div>
             <h1 className="text-[32px] font-extrabold leading-[1.1] text-white">Analytics</h1>
-            <p className="text-[15px] text-[#9ca3af] mt-2 leading-[1.4]">
+            <p className="text-[15px] text-[var(--muted)] mt-2 leading-[1.4]">
               Visual breakdown of your category allocations, income vs expense balance, and projected net left over.
             </p>
           </div>
@@ -292,51 +292,51 @@ export const ReportsView: React.FC = () => {
       </div>
 
       {/* 2. Filter Bar */}
-      <div className="p-4 rounded-[16px] bg-[#1a1a1a] border border-[#2a2a2a] flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
+      <div className="p-4 rounded-[16px] bg-[var(--surface-2)] border border-[var(--border)] flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
         <div className="flex gap-2 items-center w-full sm:w-auto">
-          <span className="text-[12px] text-[#a78bfa]">▽</span>
-          <span className="text-[13px] text-[#9ca3af] font-medium">Filter:</span>
+          <span className="text-[12px] text-[var(--accent)]">▽</span>
+          <span className="text-[13px] text-[var(--muted)] font-medium">Filter:</span>
           <select
             value={selectedCategory}
             onChange={e => setSelectedCategory(e.target.value)}
-            className="flex-1 sm:w-[200px] h-[40px] rounded-full bg-[#2a2a2a] border border-[#333333] px-4 text-[14px] font-semibold text-white cursor-pointer focus:outline-none"
+            className="flex-1 sm:w-[200px] h-[40px] rounded-full bg-[var(--border)] border border-[#333333] px-4 text-[14px] font-semibold text-white cursor-pointer focus:outline-none"
           >
             <option value="ALL">All Categories</option>
             {allCategories.map(cat => (
-              <option key={cat} value={cat} className="bg-[#1a1a1a]">
+              <option key={cat} value={cat} className="bg-[var(--surface-2)]">
                 {cat}
               </option>
             ))}
           </select>
         </div>
-        <div className="text-[13px] text-[#6b7280] font-medium whitespace-nowrap">
+        <div className="text-[13px] text-[var(--faint)] font-medium whitespace-nowrap">
           Check: {activeSummary ? formatDate(activeSummary.payday.date, 'short') : 'Current'}
         </div>
       </div>
 
       {/* 3. CHART A SECTION */}
-      <div className="p-5 rounded-[20px] bg-[#1a1a1a] border border-[#2a2a2a] mb-4 flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#2a2a2a]">
+      <div className="p-5 rounded-[20px] bg-[var(--surface-2)] border border-[var(--border)] mb-4 flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[var(--border)]">
           <div>
             <h2 className="text-[18px] font-bold text-white leading-[1.2] flex items-center gap-2">
-              <PieChartIcon className="w-5 h-5 text-[#A78BFA]" />
+              <PieChartIcon className="w-5 h-5 text-[var(--accent)]" />
               Chart A — Category Allocation
             </h2>
-            <p className="text-[14px] text-[#9ca3af] mt-1 leading-[1.4]">
+            <p className="text-[14px] text-[var(--muted)] mt-1 leading-[1.4]">
               Interactive percentage & dollar breakdown of bills for selected check.
             </p>
           </div>
 
           {/* Payday Selector dropdown */}
           <div className="flex items-center gap-2 min-w-0">
-            <span className="shrink-0 text-[13px] text-[#9ca3af] font-medium">Check:</span>
+            <span className="shrink-0 text-[13px] text-[var(--muted)] font-medium">Check:</span>
             <select
               value={selectedPaydayDate}
               onChange={e => setSelectedPaydayDate(e.target.value)}
-              className="flex-1 h-[38px] rounded-full bg-[#2a2a2a] border border-[#333] px-3 text-[13px] font-semibold text-white truncate focus:outline-none cursor-pointer"
+              className="flex-1 h-[38px] rounded-full bg-[var(--border)] border border-[#333] px-3 text-[13px] font-semibold text-white truncate focus:outline-none cursor-pointer"
             >
               {summaries.map(s => (
-                <option key={s.payday.date} value={s.payday.date} className="bg-[#1a1a1a]">
+                <option key={s.payday.date} value={s.payday.date} className="bg-[var(--surface-2)]">
                   {formatDate(s.payday.date, 'short')}
                 </option>
               ))}
@@ -351,31 +351,31 @@ export const ReportsView: React.FC = () => {
           showLegend={false}
         />
 
-        <div className="pt-2 border-t border-[#2a2a2a]">
-          <div style={{ fontSize: '11px', letterSpacing: '0.08em', color: '#6b7280', margin: '14px 0 10px', fontWeight: 700, textTransform: 'uppercase' }}>
+        <div className="pt-2 border-t border-[var(--border)]">
+          <div style={{ fontSize: '11px', letterSpacing: '0.08em', color: 'var(--faint)', margin: '14px 0 10px', fontWeight: 700, textTransform: 'uppercase' }}>
             CATEGORY BREAKDOWN ( {activeSummary ? formatDate(activeSummary.payday.date, 'short') : ''} )
           </div>
           <div className="space-y-2">
             {activePeriodCategoriesList.length === 0 ? (
-              <p className="text-[13px] text-[#9ca3af] italic py-2">No spending in this period.</p>
+              <p className="text-[13px] text-[var(--muted)] italic py-2">No spending in this period.</p>
             ) : (
               activePeriodCategoriesList.map(cat => (
                 <div
                   key={cat.name}
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', background: '#1a1a1a', borderRadius: '14px', marginBottom: '8px', border: '1px solid #2a2a2a' }}
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', background: 'var(--surface-2)', borderRadius: '14px', marginBottom: '8px', border: '1px solid var(--border)' }}
                 >
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', minWidth: 0 }}>
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: cat.color, flexShrink: 0 }} />
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontWeight: 600, color: '#ffffff', fontSize: '15px' }} className="truncate">{cat.name}</div>
-                      <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
                         {cat.count} item{cat.count > 1 ? 's' : ''} ({cat.itemPctInt}%)
                       </div>
                     </div>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
                     <div style={{ fontWeight: 700, color: '#ffffff', fontSize: '16px' }}>{formatCurrency(cat.amount)}</div>
-                    <div style={{ fontSize: '12px', color: '#9ca3af' }}>{cat.itemPctDec}%</div>
+                    <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{cat.itemPctDec}%</div>
                   </div>
                 </div>
               ))
@@ -385,13 +385,13 @@ export const ReportsView: React.FC = () => {
       </div>
 
       {/* 4. CHART B SECTION */}
-      <div className="p-5 rounded-[20px] bg-[#1a1a1a] border border-[#2a2a2a] mb-4 flex flex-col gap-4">
-        <div className="pb-2 border-b border-[#2a2a2a]">
+      <div className="p-5 rounded-[20px] bg-[var(--surface-2)] border border-[var(--border)] mb-4 flex flex-col gap-4">
+        <div className="pb-2 border-b border-[var(--border)]">
           <h2 className="text-[18px] font-bold text-white leading-[1.2] flex items-center gap-2">
-            <BarChart2 className="w-5 h-5 text-[#A78BFA]" />
+            <BarChart2 className="w-5 h-5 text-[var(--accent)]" />
             Chart B — Income vs Expenses
           </h2>
-          <p className="text-[14px] text-[#9ca3af] mt-1 leading-[1.4]">
+          <p className="text-[14px] text-[var(--muted)] mt-1 leading-[1.4]">
             Compare expected paycheck income against total obligations across upcoming pay periods.
           </p>
         </div>
@@ -399,25 +399,25 @@ export const ReportsView: React.FC = () => {
         {/* Custom Legend */}
         <div className="flex gap-4 justify-center items-center py-1 text-[12px] font-semibold">
           <span className="flex items-center gap-1.5 text-zinc-300">
-            <span className="w-3 h-3 bg-[#7C3AED] rounded-xs shrink-0" /> Income
+            <span className="w-3 h-3 bg-[var(--accent)] rounded-xs shrink-0" /> Income
           </span>
           <span className="flex items-center gap-1.5 text-zinc-300">
-            <span className="w-3 h-3 bg-[#C084FC] rounded-xs shrink-0" /> Bills
+            <span className="w-3 h-3 bg-[var(--accent)] rounded-xs shrink-0" /> Bills
           </span>
         </div>
 
-        <div className="w-full bg-[#111111] rounded-[16px] p-4 h-[220px]">
+        <div className="w-full bg-[var(--surface-2)] rounded-[16px] p-4 h-[220px]">
           <ResponsiveContainer width="100%" height={188} style={{ outline: 'none' }}>
             <BarChart
               data={incomeVsExpensesData}
               margin={{ top: 10, right: 8, left: -10, bottom: 20 }}
               style={{ outline: 'none' }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#2A2A2A" opacity={0.6} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.6} />
               <XAxis 
                 dataKey="label" 
                 tick={{ fill: '#71717a', fontSize: 10 }}
-                axisLine={{ stroke: '#2A2A2A' }}
+                axisLine={{ stroke: 'var(--border)' }}
                 interval={0}
                 angle={-25}
                 textAnchor="end"
@@ -425,25 +425,25 @@ export const ReportsView: React.FC = () => {
               />
               <YAxis 
                 tick={{ fill: '#71717a', fontSize: 10 }}
-                axisLine={{ stroke: '#2A2A2A' }}
+                axisLine={{ stroke: 'var(--border)' }}
                 tickFormatter={(val) => `$${val}`}
               />
               <Tooltip content={<BarTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-              <Bar dataKey="Income" fill="#7C3AED" barSize={12} radius={[4, 4, 0, 0]} name="Expected Check Income" />
-              <Bar dataKey="Expenses" fill="#C084FC" barSize={12} radius={[4, 4, 0, 0]} name="Total Bills & Expenses" />
+              <Bar dataKey="Income" fill="var(--accent)" barSize={12} radius={[4, 4, 0, 0]} name="Expected Check Income" />
+              <Bar dataKey="Expenses" fill="var(--accent)" barSize={12} radius={[4, 4, 0, 0]} name="Total Bills & Expenses" />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       {/* CHART C SECTION */}
-      <div className="p-5 rounded-[20px] bg-[#1a1a1a] border border-[#2a2a2a] mb-4 flex flex-col gap-4">
-        <div className="pb-2 border-b border-[#2a2a2a]">
+      <div className="p-5 rounded-[20px] bg-[var(--surface-2)] border border-[var(--border)] mb-4 flex flex-col gap-4">
+        <div className="pb-2 border-b border-[var(--border)]">
           <h2 className="text-[18px] font-bold text-white leading-[1.2] flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-[#C084FC]" />
+            <TrendingUp className="w-5 h-5 text-[var(--accent)]" />
             Chart C — Future Net Left Over
           </h2>
-          <p className="text-[14px] text-[#9ca3af] mt-1 leading-[1.4]">
+          <p className="text-[14px] text-[var(--muted)] mt-1 leading-[1.4]">
             Projection of remaining net funds and cumulative savings buffer across future paydays.
           </p>
         </div>
@@ -455,23 +455,23 @@ export const ReportsView: React.FC = () => {
             <span className="text-zinc-300 text-[12px]">Cumulative Buffer</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 bg-[#7C3AED] shrink-0" />
+            <span className="w-3 h-3 bg-[var(--accent)] shrink-0" />
             <span className="text-zinc-300 text-[12px]">Net Left Over</span>
           </div>
         </div>
 
-        <div className="w-full bg-[#111111] rounded-[16px] p-4 h-[220px]">
+        <div className="w-full bg-[var(--surface-2)] rounded-[16px] p-4 h-[220px]">
           <ResponsiveContainer width="100%" height={188} style={{ outline: 'none' }}>
             <LineChart
               data={projectionData}
               margin={{ top: 10, right: 8, left: -10, bottom: 20 }}
               style={{ outline: 'none' }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#2A2A2A" opacity={0.25} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.25} />
               <XAxis 
                 dataKey="shortLabel" 
                 tick={{ fill: '#71717a', fontSize: 10 }}
-                axisLine={{ stroke: '#2A2A2A' }}
+                axisLine={{ stroke: 'var(--border)' }}
                 interval={1}
                 angle={-25}
                 textAnchor="end"
@@ -479,7 +479,7 @@ export const ReportsView: React.FC = () => {
               />
               <YAxis 
                 tick={{ fill: '#71717a', fontSize: 10 }}
-                axisLine={{ stroke: '#2A2A2A' }}
+                axisLine={{ stroke: 'var(--border)' }}
                 tickFormatter={(val) => val < 0 ? `-$${Math.abs(val)}` : `$${val}`}
               />
               <Tooltip content={<LineTooltip />} offset={15} cursor={{ stroke: 'rgba(255,255,255,0.1)' }} />
@@ -487,7 +487,7 @@ export const ReportsView: React.FC = () => {
               <Line 
                 type="monotone" 
                 dataKey="Net Left Over" 
-                stroke="#7C3AED" 
+                stroke="var(--accent)" 
                 strokeWidth={3}
                 dot={<CustomDot />}
                 activeDot={<CustomActiveDot />}

@@ -10,7 +10,7 @@ interface FullTotalPillProps {
 export const FullTotalPill: React.FC<FullTotalPillProps> = React.memo(({ amount, label = 'Full:', className = '' }) => {
   return (
     <span 
-      className={`px-2.5 py-1 rounded-lg border border-[#7C3AED] bg-[#2A1B4B] text-[#C4B5FD] text-[12px] font-semibold inline-flex items-center gap-1 ${className}`}
+      className={`px-2.5 py-1 rounded-lg border border-[var(--accent)] bg-[#2A1B4B] text-[var(--accent)] text-[12px] font-semibold inline-flex items-center gap-1 ${className}`}
     >
       {label} {formatCurrency(amount)}
     </span>

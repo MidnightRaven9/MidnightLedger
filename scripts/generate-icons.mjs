@@ -21,17 +21,17 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFS = `
   <defs>
     <linearGradient id="purple-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#7C3AED"/>
-      <stop offset="55%" stop-color="#A78BFA"/>
-      <stop offset="100%" stop-color="#C084FC"/>
+      <stop offset="0%" stop-color="#A8843A"/>
+      <stop offset="55%" stop-color="#C8A24B"/>
+      <stop offset="100%" stop-color="#E9D8A6"/>
     </linearGradient>
     <radialGradient id="glow" cx="50%" cy="40%" r="55%">
-      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.45"/>
-      <stop offset="100%" stop-color="#7C3AED" stop-opacity="0"/>
+      <stop offset="0%" stop-color="#C8A24B" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#C8A24B" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="line-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#7C3AED"/>
-      <stop offset="100%" stop-color="#C084FC"/>
+      <stop offset="0%" stop-color="#A8843A"/>
+      <stop offset="100%" stop-color="#E9D8A6"/>
     </linearGradient>
     <mask id="moon-mask">
       <circle cx="256" cy="206" r="118" fill="#FFFFFF"/>
@@ -47,11 +47,11 @@ const ARTWORK = `
   <rect x="88" y="398" width="252" height="16" rx="8" fill="url(#line-grad)" opacity="0.85"/>
   <rect x="88" y="440" width="168" height="16" rx="8" fill="url(#line-grad)" opacity="0.7"/>`;
 
-// Web icons: full-bleed #0A0A0A, artwork inside the 80% maskable safe zone
+// Web icons: full-bleed #101012, artwork inside the 80% maskable safe zone
 const webIconMaskableSvg = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   ${DEFS}
-  <rect width="512" height="512" fill="#0A0A0A"/>
+  <rect width="512" height="512" fill="#101012"/>
   <g transform="translate(51 51) scale(0.8)">
     ${ARTWORK}
   </g>
@@ -61,7 +61,7 @@ const webIconMaskableSvg = `
 const appleIconSvg = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180">
   ${DEFS}
-  <rect width="180" height="180" fill="#0A0A0A"/>
+  <rect width="180" height="180" fill="#101012"/>
   <g transform="translate(18 18) scale(0.28)">
     ${ARTWORK}
   </g>
@@ -71,7 +71,7 @@ const appleIconSvg = `
 const iconSvg = ({ rounded }) => `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   ${DEFS}
-  ${rounded ? `<rect width="512" height="512" rx="112" fill="#0A0A0A"/>` : ''}
+  ${rounded ? `<rect width="512" height="512" rx="112" fill="#101012"/>` : ''}
   ${ARTWORK}
 </svg>`;
 
@@ -88,7 +88,7 @@ const adaptiveForegroundSvg = `
 const splashSvg = (w, h, artworkPx) => `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">
   ${DEFS}
-  <rect width="${w}" height="${h}" fill="#0A0A0A"/>
+  <rect width="${w}" height="${h}" fill="#101012"/>
   <g transform="translate(${(w - artworkPx) / 2} ${(h - artworkPx) / 2 - h * 0.02}) scale(${artworkPx / 512})">
     ${ARTWORK}
   </g>

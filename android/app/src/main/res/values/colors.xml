@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- MidnightLedger brand palette -->
-    <color name="colorPrimary">#0A0A0A</color>
-    <color name="colorPrimaryDark">#0A0A0A</color>
-    <color name="colorAccent">#7C3AED</color>
+    <color name="colorPrimary">#101012</color>
+    <color name="colorPrimaryDark">#101012</color>
+    <color name="colorAccent">#C8A24B</color>
 </resources>

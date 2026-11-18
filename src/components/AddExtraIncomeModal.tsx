@@ -78,17 +78,17 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
       <div 
-        className="w-full max-w-md rounded-3xl bg-[#121212] border border-[#7C3AED]/40 p-6 sm:p-7 text-white shadow-2xl shadow-violet-950/50 relative overflow-hidden"
+        className="w-full max-w-md rounded-3xl bg-[var(--surface)] border border-[var(--accent)]/40 p-6 sm:p-7 text-white shadow-2xl relative overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Glow background accent */}
-        <div className="absolute -top-20 -right-20 w-56 h-56 bg-violet-600/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-20 -right-20 w-56 h-56 bg-[var(--accent-soft)] rounded-full blur-3xl pointer-events-none" />
 
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-[#2A2A2A] pb-4 mb-5">
+        <div className="flex items-center justify-between border-b border-[var(--border)] pb-4 mb-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex items-center justify-center font-bold shadow-md">
-              <Coins className="w-5 h-5 text-[#C084FC]" />
+            <div className="w-10 h-10 rounded-2xl bg-[var(--accent-soft)] border border-[var(--border-strong)] text-[var(--accent)] flex items-center justify-center font-bold shadow-md">
+              <Coins className="w-5 h-5 text-[var(--accent)]" />
             </div>
             <div>
               <h2 className="text-lg font-extrabold text-white">
@@ -102,7 +102,7 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-white/50 hover:text-white hover:bg-[#1E1E1E] transition-colors"
+            className="p-2 rounded-xl text-white/50 hover:text-white hover:bg-[var(--surface-2)] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -123,7 +123,7 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
               Amount Received ($)
             </label>
             <div className="relative">
-              <span className="absolute left-3.5 top-3 text-[#A78BFA] font-bold text-base">$</span>
+              <span className="absolute left-3.5 top-3 text-[var(--accent)] font-bold text-base">$</span>
               <input
                 type="number"
                 step="0.01"
@@ -134,7 +134,7 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
                   if (error) setError(null);
                 }}
                 placeholder="0.00"
-                className="w-full pl-8 pr-4 py-3 rounded-2xl bg-[#1E1E1E] border border-[#2A2A2A] focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] text-white font-bold text-lg focus:outline-none transition-all placeholder:text-white/20"
+                className="w-full pl-8 pr-4 py-3 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] text-white font-bold text-lg focus:outline-none transition-all placeholder:text-white/20"
                 autoFocus
               />
             </div>
@@ -156,7 +156,7 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
                 }}
                 placeholder="Ex: Friend paid me back, Sold PS5, Tips"
                 maxLength={50}
-                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-[#1E1E1E] border border-[#2A2A2A] focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] text-white text-sm focus:outline-none transition-all placeholder:text-white/30"
+                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] text-white text-sm focus:outline-none transition-all placeholder:text-white/30"
               />
             </div>
           </div>
@@ -173,7 +173,7 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
                   type="date"
                   value={dateAdded}
                   onChange={e => setDateAdded(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 rounded-2xl bg-[#1E1E1E] border border-[#2A2A2A] focus:border-[#7C3AED] text-white text-xs focus:outline-none"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] focus:border-[var(--accent)] text-white text-xs focus:outline-none"
                 />
               </div>
             </div>
@@ -185,7 +185,7 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
               <select
                 value={targetPaydayDate}
                 onChange={e => setTargetPaydayDate(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-2xl bg-[#1E1E1E] border border-[#2A2A2A] focus:border-[#7C3AED] text-white text-xs focus:outline-none"
+                className="w-full px-3 py-2.5 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] focus:border-[var(--accent)] text-white text-xs focus:outline-none"
               >
                 {summaries.map(s => (
                   <option key={s.payday.date} value={s.payday.date}>
@@ -197,20 +197,20 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="pt-3 flex items-center justify-end gap-2 border-t border-[#2A2A2A] mt-5">
+          <div className="pt-3 flex items-center justify-end gap-2 border-t border-[var(--border)] mt-5">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-xs font-semibold text-white/70 hover:text-white hover:bg-[#1E1E1E] transition-colors"
+              className="px-4 py-2.5 rounded-xl text-xs font-semibold text-white/70 hover:text-white hover:bg-[var(--surface-2)] transition-colors"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-xs shadow-lg shadow-violet-900/40 flex items-center gap-1.5 transition-all"
+              className="px-5 py-2.5 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-press)] text-white font-bold text-xs shadow-lg flex items-center gap-1.5 transition-all"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#DDD6FE]" />
+              <Sparkles className="w-3.5 h-3.5 text-[var(--muted)]" />
               {displayBtnAmount ? `Add ${displayBtnAmount} to Period` : 'Add Extra Cash'}
             </button>
           </div>

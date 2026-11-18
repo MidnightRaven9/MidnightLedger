@@ -34,7 +34,7 @@ export const CustomCategoryModal: React.FC<CustomCategoryModalProps> = ({
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       
       {/* Modal Content */}
-      <div className="relative w-full max-w-sm bg-[#0A0A0A] border border-zinc-800 rounded-[28px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-sm bg-[var(--bg)] border border-zinc-800 rounded-[28px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-zinc-800">
@@ -59,7 +59,7 @@ export const CustomCategoryModal: React.FC<CustomCategoryModalProps> = ({
                 value={emoji}
                 onChange={e => setEmoji(e.target.value)}
                 maxLength={2}
-                className="w-full h-12 rounded-xl bg-[#1E1E1E] border border-[#2A2A2A] text-center text-2xl text-white focus:outline-none focus:border-[#7C3AED]"
+                className="w-full h-12 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] text-center text-2xl text-white focus:outline-none focus:border-[var(--accent)]"
                 style={{ fontFamily: '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif' }}
               />
             </div>
@@ -73,14 +73,14 @@ export const CustomCategoryModal: React.FC<CustomCategoryModalProps> = ({
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="e.g. Kids, Pets, Side Hustle"
-                className="w-full h-12 px-3 rounded-xl border border-[#2A2A2A] bg-[#1E1E1E] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
+                className="w-full h-12 px-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"
                 autoFocus
                 required
               />
             </div>
           </div>
 
-          <div className="p-4 rounded-xl border border-zinc-800 bg-[#121212] flex items-center gap-3">
+          <div className="p-4 rounded-xl border border-zinc-800 bg-[var(--surface)] flex items-center gap-3">
             <div className="text-2xl">{emoji || '🪶'}</div>
             <div className="text-white font-medium">{name || 'My Category'}</div>
           </div>
@@ -96,7 +96,7 @@ export const CustomCategoryModal: React.FC<CustomCategoryModalProps> = ({
             <button
               type="submit"
               disabled={!name.trim()}
-              className="flex-1 py-3 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold disabled:opacity-50 transition-colors"
+              className="flex-1 py-3 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-press)] text-white font-bold disabled:opacity-50 transition-colors"
             >
               Save
             </button>

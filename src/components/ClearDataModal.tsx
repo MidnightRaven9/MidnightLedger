@@ -37,7 +37,7 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
       <div 
-        className="w-full max-w-md bg-[#121212] rounded-3xl shadow-2xl border border-rose-900/60 overflow-hidden p-6 text-white space-y-5"
+        className="w-full max-w-md bg-[var(--surface)] rounded-3xl shadow-2xl border border-rose-900/60 overflow-hidden p-6 text-white space-y-5"
         onClick={e => e.stopPropagation()}
       >
         
@@ -48,7 +48,7 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-white/40 hover:text-white hover:bg-[#1E1E1E] transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-white/40 hover:text-white hover:bg-[var(--surface-2)] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -83,7 +83,7 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-[#2A2A2A] bg-[#1E1E1E] hover:bg-[#2A2A2A] text-white/80 font-bold text-xs transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] hover:bg-[var(--border)] text-white/80 font-bold text-xs transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -94,7 +94,7 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({
                 className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-lg ${
                   isConfirmed
                     ? 'bg-[#7F1D1D] hover:bg-rose-900 text-rose-100 border border-rose-600 shadow-rose-950/80'
-                    : 'bg-[#1E1E1E] text-white/30 border border-[#2A2A2A] cursor-not-allowed'
+                    : 'bg-[var(--surface-2)] text-white/30 border border-[var(--border)] cursor-not-allowed'
                 }`}
               >
                 <Trash2 className="w-3.5 h-3.5" />

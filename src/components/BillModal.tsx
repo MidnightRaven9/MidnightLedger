@@ -15,7 +15,7 @@ interface BillModalProps {
 
 const defaultBillCategories = [
   { name: 'Housing', emoji: '🏠' },
-  { name: 'Phone & Internet', emoji: '💜' },
+  { name: 'Phone & Internet', emoji: '📱' },
   { name: 'Bills', emoji: '🧾' },
   { name: 'Utilities', emoji: '⚡' },
   { name: 'Car', emoji: '⛽' },
@@ -236,12 +236,12 @@ export const BillModal: React.FC<BillModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[9999] edit-modal-overlay flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-[#121212] rounded-3xl shadow-2xl border border-[#2A2A2A] overflow-hidden max-h-[90vh] flex flex-col edit-bill-modal edit-modal-content z-[10000] relative">
+      <div className="w-full max-w-lg bg-[var(--surface)] rounded-3xl shadow-2xl border border-[var(--border)] overflow-hidden max-h-[90vh] flex flex-col edit-bill-modal edit-modal-content z-[10000] relative">
         
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[#2A2A2A] bg-[#121212] shrink-0">
+        <div className="flex items-center justify-between p-6 border-b border-[var(--border)] bg-[var(--surface)] shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-[var(--accent-soft)] border border-[var(--border-strong)] text-[var(--accent)] flex items-center justify-center font-bold">
               <Receipt className="w-5 h-5" />
             </div>
             <div>
@@ -256,7 +256,7 @@ export const BillModal: React.FC<BillModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-white/40 hover:text-white hover:bg-[#1E1E1E] transition-colors"
+            className="p-2 rounded-xl text-white/40 hover:text-white hover:bg-[var(--surface-2)] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -278,7 +278,7 @@ export const BillModal: React.FC<BillModalProps> = ({
                 onChange={e => setCustomEmoji(e.target.value)}
                 maxLength={2}
                 title="Bill Emoji"
-                className="w-[56px] h-[56px] min-w-[56px] shrink-0 rounded-2xl bg-[#1f1f1f] border border-zinc-700 text-center text-[28px] leading-none text-white focus:outline-none focus:border-purple-500 overflow-hidden box-border"
+                className="w-[56px] h-[56px] min-w-[56px] shrink-0 rounded-2xl bg-[#1f1f1f] border border-zinc-700 text-center text-[28px] leading-none text-white focus:outline-none focus:border-[var(--accent)] overflow-hidden box-border"
                 style={{ fontFamily: '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif' }}
               />
               <input
@@ -287,14 +287,14 @@ export const BillModal: React.FC<BillModalProps> = ({
                 placeholder="Movie"
                 value={name}
                 onChange={e => handleNameChange(e.target.value)}
-                className="flex-1 min-w-0 h-[56px] rounded-2xl bg-[#1f1f1f] border border-zinc-700 px-4 text-[16px] text-white truncate focus:outline-none focus:border-[#7C3AED] box-border"
+                className="flex-1 min-w-0 h-[56px] rounded-2xl bg-[#1f1f1f] border border-zinc-700 px-4 text-[16px] text-white truncate focus:outline-none focus:border-[var(--accent)] box-border"
               />
             </div>
 
           </div>
 
           {/* Quick Fill Row / CATEGORIES */}
-          <div className="w-full min-w-0 max-w-full overflow-hidden border-y border-zinc-800/50 py-2.5 px-4 flex items-center gap-2 bg-[#181818] -mx-5 px-5" style={{ width: 'calc(100% + 40px)' }}>
+          <div className="w-full min-w-0 max-w-full overflow-hidden border-y border-zinc-800/50 py-2.5 px-4 flex items-center gap-2 bg-[var(--surface-2)] -mx-5 px-5" style={{ width: 'calc(100% + 40px)' }}>
             <span className="shrink-0 text-[11px] font-bold tracking-widest text-zinc-500">CATEGORIES:</span>
             <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide categories-slider" style={{ touchAction: 'pan-x', WebkitOverflowScrolling: 'touch' }}>
               <div className="flex gap-2 w-max pr-4 pointer-events-auto">
@@ -308,8 +308,8 @@ export const BillModal: React.FC<BillModalProps> = ({
                     }}
                     className={`cat-pill shrink-0 h-8 px-3.5 rounded-full border transition-colors whitespace-nowrap cursor-pointer ${
                       category === cat.name 
-                        ? 'bg-[#7C3AED] text-white border-[#7C3AED] selected' 
-                        : 'bg-[#2A2A2A] border-zinc-800 text-[13px] text-white hover:border-[#7C3AED] hover:text-[#A78BFA]'
+                        ? 'bg-[var(--accent)] text-white border-[var(--accent)] selected' 
+                        : 'bg-[var(--border)] border-zinc-800 text-[13px] text-white hover:border-[var(--accent)] hover:text-[var(--accent)]'
                     }`}
                   >
                     {cat.emoji} {cat.name}
@@ -318,9 +318,9 @@ export const BillModal: React.FC<BillModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsCustomCategoryModalOpen(true)}
-                  className="shrink-0 h-8 px-3 rounded-full border border-dashed border-[#7C3AED]/50 bg-transparent text-[#7C3AED] text-[13px] hover:bg-[#7C3AED]/10 transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1 font-semibold"
+                  className="shrink-0 h-8 px-3 rounded-full border border-dashed border-[var(--accent)]/50 bg-transparent text-[var(--accent)] text-[13px] hover:bg-[var(--accent)]/10 transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1 font-semibold"
                 >
-                  ✨ Custom...
+                  Custom...
                 </button>
               </div>
             </div>
@@ -340,7 +340,7 @@ export const BillModal: React.FC<BillModalProps> = ({
               placeholder="1"
               value={dueDate}
               onChange={e => setDueDate(e.target.value)}
-              className="w-full mt-1.5 px-3.5 py-2.5 h-[48px] rounded-2xl border border-[#2A2A2A] bg-[#1E1E1E] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
+              className="w-full mt-1.5 px-3.5 py-2.5 h-[48px] rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"
             />
 
           </div>
@@ -356,8 +356,8 @@ export const BillModal: React.FC<BillModalProps> = ({
                 onClick={() => setType('fixed')}
                 className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all ${
                   type === 'fixed'
-                    ? 'border-[#7C3AED] bg-[#1E1B2E] text-white'
-                    : 'border-[#2A2A2A] bg-[#1E1E1E] text-white/60 hover:border-violet-500/30'
+                    ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-white'
+                    : 'border-[var(--border)] bg-[var(--surface-2)] text-white/60 hover:border-[var(--border-strong)]'
                 }`}
               >
                 <span className="text-xs font-bold">Fixed</span>
@@ -369,8 +369,8 @@ export const BillModal: React.FC<BillModalProps> = ({
                 onClick={() => setType('variable')}
                 className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all ${
                   type === 'variable'
-                    ? 'border-[#7C3AED] bg-[#1E1B2E] text-white'
-                    : 'border-[#2A2A2A] bg-[#1E1E1E] text-white/60 hover:border-violet-500/30'
+                    ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-white'
+                    : 'border-[var(--border)] bg-[var(--surface-2)] text-white/60 hover:border-[var(--border-strong)]'
                 }`}
               >
                 <span className="text-xs font-bold">Variable</span>
@@ -380,11 +380,11 @@ export const BillModal: React.FC<BillModalProps> = ({
           </div>
 
           {/* --- SPLIT BILL OPTION TOGGLE --- */}
-          <div className="p-4 rounded-2xl bg-[#1E1E1E] border border-[#2A2A2A] space-y-4">
+          <div className="p-4 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] space-y-4">
             
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-[#A78BFA]" />
+                <Users className="w-4 h-4 text-[var(--accent)]" />
                 <span className="text-xs font-bold text-white">
                   Split this bill?
                 </span>
@@ -403,7 +403,7 @@ export const BillModal: React.FC<BillModalProps> = ({
                   }}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-[#2A2A2A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#7C3AED]" />
+                <div className="w-11 h-6 bg-[var(--border)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]" />
               </label>
             </div>
 
@@ -422,13 +422,13 @@ export const BillModal: React.FC<BillModalProps> = ({
                     placeholder="0.00"
                     value={amount}
                     onChange={e => setAmount(e.target.value)}
-                    className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-[#2A2A2A] bg-[#121212] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
+                    className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"
                   />
                 </div>
               </div>
             ) : (
               /* Expanded Split Options Section */
-              <div className="space-y-4 pt-2 border-t border-[#2A2A2A] animate-in fade-in duration-150">
+              <div className="space-y-4 pt-2 border-t border-[var(--border)] animate-in fade-in duration-150">
                 
                 {/* Split ways selection dropdown */}
                 <div>
@@ -438,7 +438,7 @@ export const BillModal: React.FC<BillModalProps> = ({
                   <select
                     value={splitCount}
                     onChange={e => setSplitCount(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#2A2A2A] bg-[#121212] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"
                   >
                     <option value="2">2 ways</option>
                     <option value="3">3 ways</option>
@@ -461,14 +461,14 @@ export const BillModal: React.FC<BillModalProps> = ({
                       placeholder="e.g. 191.00"
                       value={fullTotal}
                       onChange={e => setFullTotal(e.target.value)}
-                      className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-[#2A2A2A] bg-[#121212] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
+                      className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"
                     />
                   </div>
                 </div>
 
                 {/* Live Auto-Calculated My Share Readout */}
-                <div className="p-3.5 rounded-xl bg-[#1E1B2E] border border-[#3B236E] space-y-1">
-                  <div className="flex items-center justify-between text-xs font-bold text-[#A78BFA]">
+                <div className="p-3.5 rounded-xl bg-[var(--accent-soft)] border border-[var(--border-strong)] space-y-1">
+                  <div className="flex items-center justify-between text-xs font-bold text-[var(--accent)]">
                     <span>Full Bill Total: {formatCurrency(fullTotalNum)}</span>
                     <span className="text-sm text-emerald-400 font-extrabold">
                       My Share: {formatCurrency(calculatedMyShare)} (calculated)
@@ -485,10 +485,10 @@ export const BillModal: React.FC<BillModalProps> = ({
           </div>
 
           {/* --- DEBT & LOAN OPTIONS --- */}
-          <div className="p-4 rounded-2xl bg-[#1E1E1E] border border-[#2A2A2A] space-y-3">
+          <div className="p-4 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-[#C084FC]" />
+                <CreditCard className="w-4 h-4 text-[var(--accent)]" />
                 <div>
                   <span className="text-xs font-bold text-white block">
                     Mark as Debt / Loan?
@@ -506,12 +506,12 @@ export const BillModal: React.FC<BillModalProps> = ({
                   onChange={e => setIsDebt(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-[#2A2A2A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#7C3AED]" />
+                <div className="w-11 h-6 bg-[var(--border)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]" />
               </label>
             </div>
 
             {(isDebt || category === 'Debt & Credit') && (
-              <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#2A2A2A] animate-in fade-in duration-150">
+              <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[var(--border)] animate-in fade-in duration-150">
                 <div>
                   <label className="block text-xs font-semibold text-white/80 mb-1">
                     Total Balance Owed ($)
@@ -524,7 +524,7 @@ export const BillModal: React.FC<BillModalProps> = ({
                       placeholder="e.g. 1500.00"
                       value={totalBalance}
                       onChange={e => setTotalBalance(e.target.value)}
-                      className="w-full pl-7 pr-3 py-2 rounded-xl border border-[#2A2A2A] bg-[#121212] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
+                      className="w-full pl-7 pr-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"
                     />
                   </div>
                 </div>
@@ -540,7 +540,7 @@ export const BillModal: React.FC<BillModalProps> = ({
                       placeholder="e.g. 19.9"
                       value={interestRate}
                       onChange={e => setInterestRate(e.target.value)}
-                      className="w-full pr-7 pl-3 py-2 rounded-xl border border-[#2A2A2A] bg-[#121212] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
+                      className="w-full pr-7 pl-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"
                     />
                     <span className="absolute right-3 top-2 text-white/40 text-sm font-semibold">%</span>
                   </div>
@@ -559,23 +559,23 @@ export const BillModal: React.FC<BillModalProps> = ({
               placeholder="e.g. Account #, Auto-debit on 15th"
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#2A2A2A] bg-[#1E1E1E] text-white text-sm focus:outline-none focus:border-[#7C3AED]"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"
             />
           </div>
 
           {/* Actions */}
-          <div className="pt-4 flex items-center justify-end gap-3 border-t border-[#2A2A2A]">
+          <div className="pt-4 flex items-center justify-end gap-3 border-t border-[var(--border)]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-white/60 hover:bg-[#1E1E1E] transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-white/60 hover:bg-[var(--surface-2)] transition-colors"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold text-xs shadow-lg shadow-violet-900/30 transition-all"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-press)] text-white font-semibold text-xs shadow-lg transition-all"
             >
               <Save className="w-4 h-4" />
               {billToEdit ? 'Save Changes' : 'Create Bill'}

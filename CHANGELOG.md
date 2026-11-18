@@ -2,6 +2,20 @@
 
 All notable changes to MidnightLedger ✨
 
+## [3.1.0] - 2026-11-18 🎨
+### ✨ Changed
+- Complete visual redesign — "Editorial Midnight": near-black surfaces (#101012), off-white type, one champagne-gold accent (#C8A24B), flat cards with hairline borders, no gradients/glows/glassmorphism
+- Typography and spacing made systematic (tabular numerals, consistent radii and label scale)
+- Wordmark now uses a Lucide moon in a quiet icon tile; toolbar "Bill Optimizer" badge removed
+
+### 🐛 Fixed
+- 360dp phones clipped stat values and card titles — responsive clamp() fixes
+- Mobile bottom navigation rendered at the top of the screen (stuck inside backdrop-filter header)
+
+### 🗑️ Removed
+- Dead code: NextPaydayHero, TaxBadge, SettingsView, useBills/usePaydays/useLocalStorage hooks, utils/storage.ts
+- Purple confetti/heart-rain celebration animation (replaced with restrained gold confetti)
+
 ## [3.0.2] - 2026-11-18 🎨
 ### 🐛 Fixed
 - Repaired every corrupted image asset in the repo (bytes ≥ 0x80 had been rewritten to U+FFFD upstream)

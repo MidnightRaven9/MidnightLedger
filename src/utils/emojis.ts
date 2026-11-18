@@ -87,7 +87,7 @@ export const triggerConfetti = () => {
         particleCount: 150, 
         spread: 70, 
         origin: { y: 0.6 }, 
-        colors: ['#a855f7', '#ec4899', '#8b5cf6'],
+        colors: ['#c8a24b', '#e8d5a0', '#ececf0', '#a8843a'],
         zIndex: 9999,
       });
     }
@@ -96,28 +96,3 @@ export const triggerConfetti = () => {
   }
 };
 
-export const triggerPurpleHearts = () => {
-  document.querySelectorAll('.purple-heart-anim').forEach(el => el.remove());
-  
-  // Create stylesheet for keyframes if it doesn't exist
-  if (!document.getElementById('purple-heart-styles')) {
-    const style = document.createElement('style');
-    style.id = 'purple-heart-styles';
-    style.textContent = `
-      @keyframes fallHearts {
-        0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
-        100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  for (let i = 0; i < 20; i++) {
-    const el = document.createElement('div');
-    el.className = 'purple-heart-anim';
-    el.textContent = '💜';
-    el.style.cssText = `position:fixed;left:${Math.random() * 100}vw;top:-20px;font-size:${20 + Math.random() * 14}px;animation:fallHearts ${2.5 + Math.random() * 1.5}s linear forwards;z-index:9999;pointer-events:none;`;
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 4000);
-  }
-};

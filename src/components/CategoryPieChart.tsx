@@ -81,7 +81,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
     return (
       <div 
         style={{ height }} 
-        className="flex flex-col items-center justify-center p-6 bg-[#121212] rounded-2xl border border-dashed border-[#2A2A2A] text-center text-xs text-white/50"
+        className="flex flex-col items-center justify-center p-6 bg-[var(--surface)] rounded-2xl border border-dashed border-[var(--border)] text-center text-xs text-white/50"
       >
         <p className="font-medium">No bills or tracked expenses for this pay period.</p>
         <p className="text-[11px] mt-1 text-white/40">Add bills or log expenses to see category allocation.</p>
@@ -203,7 +203,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
         {chartData.map((item) => (
           <div
             key={item.name}
-            className="flex justify-between items-center gap-3 w-full min-w-0 px-4 py-3.5 rounded-xl bg-[#222222] border border-[#2a2a2a] text-[14px] min-h-[56px] mb-2"
+            className="flex justify-between items-center gap-3 w-full min-w-0 px-4 py-3.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] text-[14px] min-h-[56px] mb-2"
             title={item.bills.map(b => b.isSplit ? `${b.name}: ${formatCurrency(b.myShare)} (Full: ${formatCurrency(b.fullTotal)})` : `${b.name}: ${formatCurrency(b.myShare)}`).join(', ')}
           >
             <div className="flex items-center gap-2.5 min-w-0 flex-1">

@@ -124,20 +124,20 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
 
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[#0A0A0A] text-white p-3 sm:p-6 pb-28 space-y-5">
+    <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[var(--bg)] text-white p-3 sm:p-6 pb-28 space-y-5">
       
       {/* Top Hero Card: Payday Schedule & Projections */}
-      <div className="rounded-[28px] sm:rounded-[32px] border border-zinc-800/50 bg-[#121212] p-6 sm:p-7 space-y-5">
+      <div className="rounded-[28px] sm:rounded-[32px] border border-zinc-800/50 bg-[var(--surface)] p-6 sm:p-7 space-y-5">
         <div className="flex gap-4 items-start">
-          <div className="w-14 h-14 rounded-2xl bg-[#7C3AED]/20 flex items-center justify-center shrink-0">
-            <Calendar className="w-7 h-7 text-[#A78BFA]" />
+          <div className="w-14 h-14 rounded-2xl bg-[var(--accent)]/20 flex items-center justify-center shrink-0">
+            <Calendar className="w-7 h-7 text-[var(--accent)]" />
           </div>
           <div>
             <h1 className="text-[clamp(19px,6.2vw,30px)] leading-[1.1] font-black tracking-tight text-white">
               Payday Schedule
             </h1>
             <p className="text-[15px] leading-6 text-zinc-400 mt-3 max-w-[90%]">
-              Current Rule: <span className="font-semibold text-[#A78BFA]">{getScheduleLabel()}</span>
+              Current Rule: <span className="font-semibold text-[var(--accent)]">{getScheduleLabel()}</span>
             </p>
           </div>
         </div>
@@ -145,17 +145,17 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
         <div className="grid grid-cols-2 gap-2 w-full pt-2">
           <button
             onClick={onOpenPaydayModal}
-            className="h-11 rounded-2xl bg-[#1A1A1A] hover:bg-[#252525] border border-zinc-800 text-white font-bold text-[13px] transition-all flex items-center justify-center gap-1.5 cursor-pointer truncate px-2 box-border w-full"
+            className="h-11 rounded-2xl bg-[var(--surface-2)] hover:bg-[#252525] border border-zinc-800 text-white font-bold text-[13px] transition-all flex items-center justify-center gap-1.5 cursor-pointer truncate px-2 box-border w-full"
           >
-            <Plus className="w-4 h-4 text-[#A78BFA] shrink-0" />
+            <Plus className="w-4 h-4 text-[var(--accent)] shrink-0" />
             <span className="truncate">Add Custom Date</span>
           </button>
           
           <button
             onClick={onOpenScheduleModal}
-            className="h-11 rounded-2xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-[13px] transition-all flex items-center justify-center gap-1.5 shadow-[0_8px_20px_rgba(124,58,237,0.3)] cursor-pointer truncate px-2 box-border w-full"
+            className="h-11 rounded-2xl bg-[var(--accent)] hover:bg-[var(--accent-press)] text-white font-bold text-[13px] transition-all flex items-center justify-center gap-1.5 shadow-[0_8px_20px_rgba(124,58,237,0.3)] cursor-pointer truncate px-2 box-border w-full"
           >
-            <Settings className="w-4 h-4 text-[#DDD6FE] shrink-0" />
+            <Settings className="w-4 h-4 text-[var(--muted)] shrink-0" />
             <span className="truncate">Change Rule</span>
           </button>
         </div>
@@ -164,15 +164,15 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
       {/* Projected Upcoming Paydays Section Header */}
       <div className="flex items-center justify-between px-1">
         <h3 className="text-sm font-bold text-white flex items-center gap-2">
-          <Clock className="w-4 h-4 text-[#A78BFA]" />
+          <Clock className="w-4 h-4 text-[var(--accent)]" />
           Projected Upcoming Paydays ({summaries.length})
         </h3>
       </div>
 
       {/* Payday Cards Grid / Stack */}
       {summaries.length === 0 ? (
-        <div className="p-8 text-center rounded-[24px] border border-zinc-800/50 bg-[#121212] text-white space-y-3">
-          <div className="w-12 h-12 rounded-xl bg-[#1E1B2E] border border-[#3B236E] text-[#A78BFA] flex items-center justify-center mx-auto">
+        <div className="p-8 text-center rounded-[24px] border border-zinc-800/50 bg-[var(--surface)] text-white space-y-3">
+          <div className="w-12 h-12 rounded-xl bg-[var(--accent-soft)] border border-[var(--border-strong)] text-[var(--accent)] flex items-center justify-center mx-auto">
             <Calendar className="w-6 h-6" />
           </div>
           <h4 className="text-sm font-bold text-white">No pay schedule configured</h4>
@@ -192,14 +192,14 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
             return (
               <div 
                 key={payday.date}
-                className="rounded-[24px] border border-zinc-800/50 bg-[#121212] p-4 sm:p-5 space-y-3 hover:border-[#7C3AED]/40 transition-all w-full max-w-full overflow-hidden box-border"
+                className="rounded-[24px] border border-zinc-800/50 bg-[var(--surface)] p-4 sm:p-5 space-y-3 hover:border-[var(--accent)]/40 transition-all w-full max-w-full overflow-hidden box-border"
               >
                 {/* Top Row: Date Badge + Title/Bills */}
                 <div className="w-full min-w-0 max-w-full overflow-hidden flex items-start justify-between gap-2">
                   <div className="flex gap-2.5 min-w-0 flex-1 overflow-hidden">
-                    {/* Big purple date badge */}
-                    <div className="w-12 h-12 shrink-0 rounded-2xl bg-[#2a1f4a] border border-[#3B236E] flex flex-col items-center justify-center shadow-inner">
-                      <span className="text-[10px] font-black text-purple-400 uppercase">
+                    {/* Date badge */}
+                    <div className="w-12 h-12 shrink-0 rounded-2xl bg-[var(--accent-soft)] border border-[var(--border-strong)] flex flex-col items-center justify-center shadow-inner">
+                      <span className="text-[10px] font-black text-[var(--accent)] uppercase">
                         {formatDate(payday.date, 'short').split('/')[0]}
                       </span>
                       <span className="text-[22px] font-black text-white leading-none">
@@ -213,7 +213,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                           {formatDate(payday.date, 'medium')}
                         </p>
                         {isUserAdded && (
-                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#2E1B3E] text-[#C084FC] border border-[#58236E] shrink-0">
+                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#2E1B3E] text-[var(--accent)] border border-[#58236E] shrink-0">
                             Custom
                           </span>
                         )}
@@ -228,7 +228,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                   </div>
 
                   <div className="shrink-0 flex flex-col items-end gap-1">
-                    <span className="text-[14px] font-black text-purple-400">
+                    <span className="text-[14px] font-black text-[var(--accent)]">
                       {hasAmount && leftOver !== null ? formatCurrency(leftOver) : formatCurrency(totalBills)}
                     </span>
                     {isUserAdded && (
@@ -248,7 +248,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                 </div>
 
                 {/* Bottom Row: Est. Check / Left Over */}
-                <div className="pt-2.5 border-t border-[#2A2A2A] flex items-center justify-between gap-2 w-full max-w-full overflow-hidden">
+                <div className="pt-2.5 border-t border-[var(--border)] flex items-center justify-between gap-2 w-full max-w-full overflow-hidden">
                   
                   {/* Est. Check (Clickable to edit) */}
                   <div 
@@ -258,19 +258,19 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                     className="cursor-pointer group flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden"
                   >
                     <div className="min-w-0 overflow-hidden">
-                      <span className="text-[10px] text-[#9CA3AF] font-medium block group-hover:text-white transition-colors flex items-center gap-1 truncate">
-                        Est. Check <Edit3 className="w-2.5 h-2.5 text-[#A78BFA] shrink-0" />
+                      <span className="text-[10px] text-[var(--muted)] font-medium block group-hover:text-white transition-colors flex items-center gap-1 truncate">
+                        Est. Check <Edit3 className="w-2.5 h-2.5 text-[var(--accent)] shrink-0" />
                       </span>
                       {hasAmount ? (
                         <div className="flex flex-col min-w-0">
-                          <span className="text-xs sm:text-sm font-bold text-white group-hover:text-[#C084FC] transition-colors leading-tight truncate">
+                          <span className="text-xs sm:text-sm font-bold text-white group-hover:text-[var(--accent)] transition-colors leading-tight truncate">
                             {formatCurrency(estimatedCheck)}
                           </span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-1 mt-0.5">
-                          <span className="text-xs font-bold text-[#9CA3AF]">TBD</span>
-                          <span className="px-2 py-0.5 rounded-full bg-[#7C3AED]/20 border border-[#7C3AED] text-[#A78BFA] font-semibold text-[10px] shrink-0">
+                          <span className="text-xs font-bold text-[var(--muted)]">TBD</span>
+                          <span className="px-2 py-0.5 rounded-full bg-[var(--accent)]/20 border border-[var(--accent)] text-[var(--accent)] font-semibold text-[10px] shrink-0">
                             Set
                           </span>
                         </div>
@@ -280,11 +280,11 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
 
                   {/* Left Over */}
                   <div className="text-right shrink-0 min-w-0">
-                    <span className="text-[10px] text-[#9CA3AF] font-medium block truncate">
+                    <span className="text-[10px] text-[var(--muted)] font-medium block truncate">
                       Left Over
                     </span>
                     {hasAmount && leftOver !== null ? (
-                      <span className={`text-xs sm:text-sm font-bold truncate block ${status === 'positive' ? 'text-[#A78BFA]' : status === 'negative' ? 'text-rose-400' : 'text-white'}`}>
+                      <span className={`text-xs sm:text-sm font-bold truncate block ${status === 'positive' ? 'text-[var(--accent)]' : status === 'negative' ? 'text-rose-400' : 'text-white'}`}>
                         {formatCurrency(leftOver)}
                       </span>
                     ) : (
@@ -332,7 +332,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                                 id={`bill-${bill.id}`}
                                 onClick={() => toggleBillPaid(bill.id, payday.date)}
                                 className={`w-full min-w-0 max-w-full overflow-hidden flex items-center gap-2 p-3 rounded-2xl border cursor-pointer transition-all box-border ${
-                                  isPaid ? 'paid-bill bg-purple-600/10 border-purple-600/30' : 'bg-[#1a1a1a] border-zinc-800 hover:border-zinc-700'
+                                  isPaid ? 'paid-bill bg-[var(--accent-soft)] border-[var(--accent)]' : 'bg-[var(--surface-2)] border-zinc-800 hover:border-zinc-700'
                                 }`}
                               >
                                 <button
@@ -341,7 +341,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                                     toggleBillPaid(bill.id, payday.date);
                                   }}
                                   className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                                    isPaid ? 'bg-purple-600 border-purple-600' : 'border-zinc-600 hover:border-zinc-400'
+                                    isPaid ? 'bg-[var(--accent)] border-[var(--accent)]' : 'border-zinc-600 hover:border-zinc-400'
                                   }`}
                                   title={isPaid ? "Mark Unpaid" : "Mark Paid"}
                                 >
@@ -350,7 +350,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                                 
                                 <div className="flex-1 min-w-0 overflow-hidden">
                                   <p className={`text-[14px] font-bold truncate ${isPaid ? 'line-through text-zinc-500' : 'text-white'}`}>
-                                    {isPaid ? '💜 ' : `${billEmoji} `}{bill.name}
+                                    {isPaid ? '' : `${billEmoji} `}{bill.name}
                                   </p>
                                   <p className="text-[11px] text-zinc-500 truncate">
                                     Due {formatDate(dueFullDate, 'short')}
@@ -361,7 +361,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                                   <p className={`text-[15px] font-bold ${isPaid ? 'text-zinc-500 line-through' : 'text-white'}`}>
                                     {formatCurrency(effectiveAmount)}
                                   </p>
-                                  <p className="text-[10px] text-purple-400 capitalize truncate">
+                                  <p className="text-[10px] text-[var(--accent)] capitalize truncate">
                                     {bill.type || 'fixed'}
                                   </p>
                                 </div>
@@ -380,23 +380,23 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                           <div className="grid grid-cols-2 gap-2 mt-3 w-full max-w-full">
                             <button
                               onClick={() => openModal(summary)}
-                              className="h-[44px] rounded-full bg-[#7C3AED] hover:bg-purple-700 text-white font-bold text-[13px] transition-all cursor-pointer shadow-md truncate"
+                              className="h-[44px] rounded-full bg-[var(--accent)] hover:bg-[var(--accent-press)] text-white font-bold text-[13px] transition-all cursor-pointer shadow-md truncate"
                             >
                               Edit Bills
                             </button>
                             {allPaid ? (
                               <button
                                 onClick={() => unmarkAllBillsPaidInPayday(payday.date)}
-                                className="h-[44px] rounded-full bg-[#1e1e1e] hover:bg-zinc-700 border border-zinc-700 text-white font-bold text-[13px] flex items-center justify-center gap-1 transition-all cursor-pointer truncate px-1"
+                                className="h-[44px] rounded-full bg-[var(--surface-2)] hover:bg-zinc-700 border border-zinc-700 text-white font-bold text-[13px] flex items-center justify-center gap-1 transition-all cursor-pointer truncate px-1"
                               >
-                                ↩️ Unmark All Paid
+                                Unmark All Paid
                               </button>
                             ) : (
                               <button
                                 onClick={() => markAllBillsPaidInPayday(payday.date)}
-                                className="h-[44px] rounded-full bg-[#1e1e1e] hover:bg-zinc-700 border border-zinc-700 text-white font-bold text-[13px] flex items-center justify-center gap-1 transition-all cursor-pointer truncate px-1"
+                                className="h-[44px] rounded-full bg-[var(--surface-2)] hover:bg-zinc-700 border border-zinc-700 text-white font-bold text-[13px] flex items-center justify-center gap-1 transition-all cursor-pointer truncate px-1"
                               >
-                                ✅ Mark All Paid
+                                Mark All Paid
                               </button>
                             )}
                           </div>
@@ -437,16 +437,16 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                           return (
                             <div
                               key={exp.id}
-                              className="w-full min-w-0 max-w-full overflow-hidden flex items-center justify-between p-3 rounded-2xl bg-[#1e1e1e] border border-[#2a2a2a] box-border"
+                              className="w-full min-w-0 max-w-full overflow-hidden flex items-center justify-between p-3 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] box-border"
                             >
                               <div className="flex items-center gap-3 min-w-0 flex-1">
-                                <div className="w-10 h-10 rounded-[10px] bg-[#2a2a2a] flex items-center justify-center text-lg shrink-0">
+                                <div className="w-10 h-10 rounded-[10px] bg-[var(--border)] flex items-center justify-center text-lg shrink-0">
                                   {expEmoji}
                                 </div>
                                 <div className="min-w-0 flex-1 overflow-hidden">
                                   <p className="text-[14px] font-bold text-white truncate">{exp.description}</p>
                                   <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
-                                    <span className="px-2 py-0.5 rounded-full border border-zinc-700 text-[10px] text-zinc-400 whitespace-nowrap shrink-0 bg-[#222]">
+                                    <span className="px-2 py-0.5 rounded-full border border-zinc-700 text-[10px] text-zinc-400 whitespace-nowrap shrink-0 bg-[var(--surface-2)]">
                                       {exp.category}
                                     </span>
                                     <span className="text-[10px] text-zinc-500 truncate">
@@ -482,7 +482,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
           {!showAllPaydays && summaries.length > 5 && (
             <button
               onClick={() => setShowAllPaydays(true)}
-              className="w-full py-3 rounded-2xl bg-[#121212] hover:bg-[#1A1A1A] border border-[#2A2A2A] text-[#A78BFA] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-md"
+              className="w-full py-3 rounded-2xl bg-[var(--surface)] hover:bg-[var(--surface-2)] border border-[var(--border)] text-[var(--accent)] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-md"
             >
               Show {summaries.length - 5} more paydays (to Dec) <ChevronDown className="w-4 h-4" />
             </button>
@@ -508,7 +508,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
 
         return (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="w-full max-w-md bg-[#121212] border border-[#2A2A2A] rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="w-full max-w-md bg-[var(--surface)] border border-[var(--border)] rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
               {/* Header */}
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-white">
@@ -516,14 +516,14 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                 </h3>
                 <button
                   onClick={() => setEstimateModalPayday(null)}
-                  className="p-2 rounded-xl text-white/50 hover:text-white hover:bg-[#1E1E1E] transition-colors"
+                  className="p-2 rounded-xl text-white/50 hover:text-white hover:bg-[var(--surface-2)] transition-colors"
                 >
                   ✕
                 </button>
               </div>
 
               {/* Bills Info block */}
-              <div className="p-3 rounded-2xl bg-[#1A1A1A] border border-[#2A2A2A] text-xs text-white/70 flex justify-between items-center">
+              <div className="p-3 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] text-xs text-white/70 flex justify-between items-center">
                 <span>Bills due this period:</span>
                 <span className="font-bold text-white">
                   {formatCurrency(estimateModalPayday.totalBills)} ({estimateModalPayday.assignedBills.length} bills)
@@ -545,10 +545,10 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                     value={displayNetVal}
                     onChange={(e) => setEstimateModalInput(e.target.value)}
                     autoFocus={!useTax}
-                    className={`w-full pl-8 pr-4 py-3 rounded-xl bg-[#1E1E1E] border text-white font-bold text-base transition-colors focus:outline-none ${
+                    className={`w-full pl-8 pr-4 py-3 rounded-xl bg-[var(--surface-2)] border text-white font-bold text-base transition-colors focus:outline-none ${
                       useTax 
-                        ? 'border-[#2A2A2A] text-white/40 bg-[#151515] cursor-not-allowed' 
-                        : 'border-[#2A2A2A] focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED]'
+                        ? 'border-[var(--border)] text-white/40 bg-[#151515] cursor-not-allowed' 
+                        : 'border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]'
                     }`}
                   />
                 </div>
@@ -560,7 +560,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
               </div>
 
               {/* Divider */}
-              <div className="border-t border-[#2A2A2A] my-4" />
+              <div className="border-t border-[var(--border)] my-4" />
 
               {/* Tax Toggle */}
               <div className="flex items-center justify-between">
@@ -571,7 +571,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setUseTax(!useTax)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${useTax ? 'bg-[#7C3AED]' : 'bg-[#2A2A2A]'}`}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${useTax ? 'bg-[var(--accent)]' : 'bg-[var(--border)]'}`}
                 >
                   <span
                     className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${useTax ? 'translate-x-5' : 'translate-x-0'}`}
@@ -593,7 +593,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                         placeholder="e.g. 1800.00"
                         value={grossInput}
                         onChange={e => setGrossInput(e.target.value)}
-                        className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-[#1E1E1E] border border-[#2A2A2A] text-white font-semibold text-sm focus:outline-none focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED]"
+                        className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] text-white font-semibold text-sm focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
                       />
                     </div>
                   </div>
@@ -610,7 +610,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                             setCustomTaxInput('');
                           }
                         }}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#2A2A2A] bg-[#1E1E1E] text-white text-sm focus:outline-none focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED]"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-white text-sm focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
                       >
                         <option value="10">10%</option>
                         <option value="12">12%</option>
@@ -634,7 +634,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                             placeholder="e.g. 22"
                             value={customTaxInput}
                             onChange={e => setCustomTaxInput(e.target.value)}
-                            className="w-full pr-8 pl-3.5 py-2.5 rounded-xl border border-[#2A2A2A] bg-[#1E1E1E] text-white text-sm focus:outline-none focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED]"
+                            className="w-full pr-8 pl-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-white text-sm focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
                           />
                           <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 font-bold text-sm">%</span>
                         </div>
@@ -643,7 +643,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                   </div>
 
                   {/* Live Calculation Card */}
-                  <div className="p-4 rounded-xl bg-[#1E1E1E] border border-[#2A2A2A] text-sm font-mono space-y-1.5">
+                  <div className="p-4 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] text-sm font-mono space-y-1.5">
                     <div className="flex justify-between text-white/80">
                       <span>Gross Pay:</span>
                       <span className="font-semibold text-white">{formatCurrency(grossVal)}</span>
@@ -664,7 +664,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                       type="checkbox"
                       checked={applyToAllFuture}
                       onChange={e => setApplyToAllFuture(e.target.checked)}
-                      className="mt-1 accent-[#7C3AED] h-4 w-4 rounded border-[#2A2A2A] bg-[#1E1E1E] text-[#7C3AED] focus:ring-[#7C3AED]"
+                      className="mt-1 accent-[var(--accent)] h-4 w-4 rounded border-[var(--border)] bg-[var(--surface-2)] text-[var(--accent)] focus:ring-[var(--accent)]"
                     />
                     <div>
                       <span className="text-xs font-semibold text-white">Apply this tax % to all future TBD paychecks?</span>
@@ -675,7 +675,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
               )}
 
               {/* Footer Buttons */}
-              <div className="flex items-center justify-between pt-4 border-t border-[#2A2A2A]">
+              <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
                 {estimateModalPayday.estimatedCheck !== null ? (
                   <button
                     onClick={() => {
@@ -698,7 +698,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setEstimateModalPayday(null)}
-                    className="px-4 py-2.5 rounded-xl bg-[#1E1E1E] hover:bg-[#2A2A2A] text-white/70 font-semibold text-xs transition-colors"
+                    className="px-4 py-2.5 rounded-xl bg-[var(--surface-2)] hover:bg-[var(--border)] text-white/70 font-semibold text-xs transition-colors"
                   >
                     Cancel
                   </button>
@@ -748,7 +748,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                       }
                       setEstimateModalPayday(null);
                     }}
-                    className="px-5 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-xs shadow-lg shadow-violet-900/30 transition-all cursor-pointer"
+                    className="px-5 py-2.5 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-press)] text-white font-bold text-xs shadow-lg transition-all cursor-pointer"
                   >
                     {saveButtonText}
                   </button>

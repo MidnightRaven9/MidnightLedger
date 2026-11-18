@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import { 
-  Wallet, 
   LayoutDashboard, 
   Receipt, 
   CalendarDays, 
   ShoppingBag, 
-  History, 
+  History,
   RotateCcw,
-  Settings,
   Download,
   Upload,
-  BarChart3
+  BarChart3,
+  Moon
 } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
 import { ClearDataModal } from './ClearDataModal';
@@ -65,34 +64,29 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-[#2A2A2A] bg-[#000000]/95 backdrop-blur-xl transition-colors">
-        <div className="w-full px-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-[56px]">
+      <header className="sticky top-0 z-40 w-full border-b border-[var(--border)] bg-[rgba(16,16,18,0.92)] backdrop-blur-md transition-colors">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-[54px]">
           
-          {/* Logo & Brand Name */}
+          {/* Wordmark */}
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#6D28D9] via-[#7C3AED] to-[#C084FC] flex items-center justify-center text-white shadow-md shadow-violet-900/30">
-              <Wallet className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-[9px] border border-[var(--border-strong)] bg-[var(--surface-2)] flex items-center justify-center">
+              <Moon className="w-4 h-4 text-[var(--accent)]" strokeWidth={2.2} fill="currentColor" />
             </div>
-            <div>
-              <span className="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
-                MidnightLedger
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#1E1B2E] text-[#A78BFA] border border-[#3B236E]">
-                  Bill Optimizer
-                </span>
-              </span>
-            </div>
+            <span className="text-[15px] font-semibold tracking-tight text-[var(--text)]">
+              MidnightLedger
+            </span>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1 bg-[#121212] p-1 rounded-xl border border-[#2A2A2A]">
+          <nav className="hidden md:flex items-center gap-1 bg-[var(--surface)] p-1 rounded-[10px] border border-[var(--border)]">
             <button
               id="tab-dashboard"
               onClick={() => setActiveTab('dashboard')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                 activeTab === 'dashboard'
-                  ? 'bg-[#7C3AED] text-white font-semibold shadow-md shadow-violet-900/30'
-                  : 'text-white/60 hover:text-white hover:bg-[#1E1E1E]'
+                  ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
+                  : 'text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
               <LayoutDashboard className="w-3.5 h-3.5" /> Dash
@@ -103,8 +97,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setActiveTab('bills')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                 activeTab === 'bills'
-                  ? 'bg-[#7C3AED] text-white font-semibold shadow-md shadow-violet-900/30'
-                  : 'text-white/60 hover:text-white hover:bg-[#1E1E1E]'
+                  ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
+                  : 'text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
               <Receipt className="w-3.5 h-3.5" /> Bills
@@ -115,8 +109,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setActiveTab('paydays')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                 activeTab === 'paydays'
-                  ? 'bg-[#7C3AED] text-white font-semibold shadow-md shadow-violet-900/30'
-                  : 'text-white/60 hover:text-white hover:bg-[#1E1E1E]'
+                  ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
+                  : 'text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
               <CalendarDays className="w-3.5 h-3.5" /> Paydays
@@ -127,8 +121,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setActiveTab('expenses')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                 activeTab === 'expenses'
-                  ? 'bg-[#7C3AED] text-white font-semibold shadow-md shadow-violet-900/30'
-                  : 'text-white/60 hover:text-white hover:bg-[#1E1E1E]'
+                  ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
+                  : 'text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
               <ShoppingBag className="w-3.5 h-3.5" /> Expenses
@@ -139,8 +133,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setActiveTab('reports')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                 activeTab === 'reports'
-                  ? 'bg-[#7C3AED] text-white font-semibold shadow-md shadow-violet-900/30'
-                  : 'text-white/60 hover:text-white hover:bg-[#1E1E1E]'
+                  ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
+                  : 'text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
               <BarChart3 className="w-3.5 h-3.5" /> Reports
@@ -151,8 +145,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setActiveTab('history')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                 activeTab === 'history'
-                  ? 'bg-[#7C3AED] text-white font-semibold shadow-md shadow-violet-900/30'
-                  : 'text-white/60 hover:text-white hover:bg-[#1E1E1E]'
+                  ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
+                  : 'text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
               <History className="w-3.5 h-3.5" /> History
@@ -163,17 +157,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center gap-2">
             
             {/* Export & Import */}
-            <div className="hidden lg:flex items-center gap-1 border-l border-[#2A2A2A] pl-2">
+            <div className="hidden lg:flex items-center gap-1 border-l border-[var(--border)] pl-2">
               <button
                 onClick={handleExport}
-                className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-[#1E1E1E] text-xs font-medium transition-colors"
+                className="p-1.5 rounded-lg text-[var(--muted)] hover:text-[var(--text)] text-xs font-medium transition-colors"
                 title="Export Budget Backup (JSON)"
               >
                 <Download className="w-3.5 h-3.5" />
               </button>
 
               <label
-                className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-[#1E1E1E] text-xs font-medium cursor-pointer transition-colors"
+                className="p-1.5 rounded-lg text-[var(--muted)] hover:text-[var(--text)] text-xs font-medium cursor-pointer transition-colors"
                 title="Import Budget Backup"
               >
                 <Upload className="w-3.5 h-3.5" />
@@ -182,7 +176,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               <button
                 onClick={() => setIsClearModalOpen(true)}
-                className="p-1.5 rounded-lg text-white/40 hover:text-rose-400 hover:bg-rose-950/30 transition-colors cursor-pointer"
+                className="btn-quiet h-8 w-8 !p-0 text-[var(--faint)] hover:text-[var(--danger)] hover:bg-transparent"
                 title="Clear Example Data / Start Fresh"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -201,18 +195,18 @@ export const Navbar: React.FC<NavbarProps> = ({
       </header>
 
       {/* Mobile Bottom Navigation Bar - sibling of header (fixed positioning must not live inside a backdrop-filter container) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 w-full z-50 bg-[#0A0A0A]/95 border-t border-zinc-800/80 backdrop-blur-xl px-1 pt-1 pb-[calc(env(safe-area-inset-bottom)+4px)] flex justify-between items-center min-h-[56px]">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 w-full z-50 bg-[var(--bg)]/95 border-t border-zinc-800/80 backdrop-blur-xl px-1 pt-1 pb-[calc(env(safe-area-inset-bottom)+4px)] flex justify-between items-center min-h-[56px]">
         <div className="grid grid-cols-6 text-center w-full gap-0.5">
           <button
             id="mobile-tab-dashboard"
             onClick={() => setActiveTab('dashboard')}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'dashboard' 
-                ? 'bg-[#1a1033] text-[#C084FC] font-bold' 
-                : 'text-white/60 hover:text-white opacity-70 hover:opacity-100'
+                ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-bold' 
+                : 'text-[var(--muted)] hover:text-[var(--text)]'
             }`}
           >
-            <LayoutDashboard className="w-4 h-4 text-purple-400" />
+            <LayoutDashboard className="w-4 h-4" />
             <span className="tracking-wide">Dash</span>
           </button>
 
@@ -221,11 +215,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => setActiveTab('bills')}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'bills' 
-                ? 'bg-[#1a1033] text-[#C084FC] font-bold' 
-                : 'text-white/60 hover:text-white opacity-70 hover:opacity-100'
+                ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-bold' 
+                : 'text-[var(--muted)] hover:text-[var(--text)]'
             }`}
           >
-            <Receipt className="w-4 h-4 text-purple-400" />
+            <Receipt className="w-4 h-4" />
             <span className="tracking-wide">Bills</span>
           </button>
 
@@ -234,11 +228,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => setActiveTab('paydays')}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'paydays' 
-                ? 'bg-[#1a1033] text-[#C084FC] font-bold' 
-                : 'text-white/60 hover:text-white opacity-70 hover:opacity-100'
+                ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-bold' 
+                : 'text-[var(--muted)] hover:text-[var(--text)]'
             }`}
           >
-            <CalendarDays className="w-4 h-4 text-purple-400" />
+            <CalendarDays className="w-4 h-4" />
             <span className="tracking-wide">Paydays</span>
           </button>
 
@@ -247,11 +241,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => setActiveTab('expenses')}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'expenses' 
-                ? 'bg-[#1a1033] text-[#C084FC] font-bold' 
-                : 'text-white/60 hover:text-white opacity-70 hover:opacity-100'
+                ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-bold' 
+                : 'text-[var(--muted)] hover:text-[var(--text)]'
             }`}
           >
-            <ShoppingBag className="w-4 h-4 text-purple-400" />
+            <ShoppingBag className="w-4 h-4" />
             <span className="tracking-wide">Expenses</span>
           </button>
 
@@ -260,11 +254,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => setActiveTab('reports')}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'reports' 
-                ? 'bg-[#1a1033] text-[#C084FC] font-bold' 
-                : 'text-white/60 hover:text-white opacity-70 hover:opacity-100'
+                ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-bold' 
+                : 'text-[var(--muted)] hover:text-[var(--text)]'
             }`}
           >
-            <BarChart3 className="w-4 h-4 text-purple-400" />
+            <BarChart3 className="w-4 h-4" />
             <span className="tracking-wide">Reports</span>
           </button>
 
@@ -273,11 +267,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => setActiveTab('history')}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'history' 
-                ? 'bg-[#1a1033] text-[#C084FC] font-bold' 
-                : 'text-white/60 hover:text-white opacity-70 hover:opacity-100'
+                ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-bold' 
+                : 'text-[var(--muted)] hover:text-[var(--text)]'
             }`}
           >
-            <History className="w-4 h-4 text-purple-400" />
+            <History className="w-4 h-4" />
             <span className="tracking-wide">History</span>
           </button>
         </div>

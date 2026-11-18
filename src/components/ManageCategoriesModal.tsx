@@ -30,14 +30,14 @@ export const ManageCategoriesModal: React.FC<ManageCategoriesModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
       <div 
-        className="w-full max-w-sm bg-[#121212] rounded-3xl border border-[#2A2A2A] shadow-2xl overflow-hidden flex flex-col"
+        className="w-full max-w-sm bg-[var(--surface)] rounded-3xl border border-[var(--border)] shadow-2xl overflow-hidden flex flex-col"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-5 border-b border-[#2A2A2A]">
+        <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
           <h3 className="text-lg font-bold text-white">Manage Categories</h3>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#1E1E1E] flex items-center justify-center text-white/50 hover:bg-[#2A2A2A] hover:text-white transition-colors"
+            className="w-8 h-8 rounded-full bg-[var(--surface-2)] flex items-center justify-center text-white/50 hover:bg-[var(--border)] hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -49,7 +49,7 @@ export const ManageCategoriesModal: React.FC<ManageCategoriesModalProps> = ({
           ) : (
             <div className="space-y-2">
               {categories.map(cat => (
-                <div key={cat.name} className="flex items-center justify-between p-3 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A]">
+                <div key={cat.name} className="flex items-center justify-between p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">{cat.emoji}</span>
                     <span className="text-sm font-bold text-white">{cat.name}</span>
