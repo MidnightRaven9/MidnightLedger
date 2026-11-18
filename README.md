@@ -6,7 +6,7 @@ Dark-mode budget app for paycheck-to-paycheck planning 🌃 Built for split bill
 → https://midnightledger.justicegraff6.workers.dev ✨
 
 ### 📲 Download
-- 🤖 Android APK: [v3.0 Security Edition](https://github.com/MidnightMarie9/MidnightLedger/releases/tag/v3.0) 🔒✨
+- 🤖 Android APK: [v3.0.0 Offline Edition](https://github.com/MidnightRaven9/MidnightLedger/releases/tag/v3.0.0) 🔒✨ — **100% offline, no server or internet needed** 📵💾
 - 📱 PWA: Open live demo → Add to Home Screen
 
 ---
@@ -51,10 +51,10 @@ This clears all sample/demo bills and gives you a fresh start. Your real bills w
 ### 🏁 Getting Started
 
 ```bash
-git clone https://github.com/MidnightMarie9/MidnightLedger.git
+git clone https://github.com/MidnightRaven9/MidnightLedger.git
 cd MidnightLedger
-bun install
-bun run build
+npm install
+npm run build
 ```
 
 ### 🎨 App Icon
