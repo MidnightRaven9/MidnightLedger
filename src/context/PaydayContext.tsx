@@ -54,16 +54,38 @@ function safeSave(key: string, value: string): boolean {
   }
 }
 
-// Seed sample data
-const DEFAULT_SCHEDULE: PaydaySchedule = {
-  frequency: 'biweekly',
-  anchorDate: '2026-08-15',
+// Sample seed data is anchored to today's date so a fresh install always
+// looks current, regardless of when the app is first opened.
+const buildSeed = () => {
+  const today = new Date();
+  const next = new Date(today);
+  next.setDate(today.getDate() + 14);
+  const recent = new Date(today);
+  recent.setDate(today.getDate() - 2);
+  const toISO = (d: Date) => toISODateString(d);
+  return {
+    schedule: { frequency: 'biweekly', anchorDate: toISO(today) } as PaydaySchedule,
+    paydays: [
+      { id: 'sample_payday_1', date: toISO(today), estimatedAmount: 1450, isManual: true, notes: 'Current check' },
+      { id: 'sample_payday_2', date: toISO(next), estimatedAmount: 1450, isManual: true, notes: 'Next check' },
+    ] as Payday[],
+    expenses: [
+      {
+        id: 'sample_expense_1',
+        description: 'Groceries & Household Supplies',
+        amount: 80,
+        paydayDate: toISO(today),
+        category: 'Food & Household',
+        createdAt: toISO(recent),
+      },
+    ] as ExtraExpense[],
+  };
 };
 
-const DEFAULT_PAYDAYS: Payday[] = [
-  { id: 'sample_payday_1', date: '2026-08-15', estimatedAmount: 1450, isManual: false, notes: 'Mid-month check' },
-  { id: 'sample_payday_2', date: '2026-08-29', estimatedAmount: 1450, isManual: false, notes: 'End of month check' },
-];
+const SEED = buildSeed();
+const DEFAULT_SCHEDULE: PaydaySchedule = SEED.schedule;
+
+const DEFAULT_PAYDAYS: Payday[] = SEED.paydays;
 
 const DEFAULT_BILLS: Bill[] = [
   {
@@ -130,16 +152,7 @@ const DEFAULT_BILLS: Bill[] = [
   },
 ];
 
-const DEFAULT_EXPENSES: ExtraExpense[] = [
-  {
-    id: 'sample_expense_1',
-    description: 'Groceries & Household Supplies',
-    amount: 80,
-    paydayDate: '2026-08-15',
-    category: 'Food & Household',
-    createdAt: '2026-08-05',
-  },
-];
+const DEFAULT_EXPENSES: ExtraExpense[] = SEED.expenses;
 
 const migrateBills = (loadedBills: Bill[]): Bill[] => {
   if (!Array.isArray(loadedBills)) return DEFAULT_BILLS;

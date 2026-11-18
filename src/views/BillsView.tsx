@@ -227,7 +227,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
             <Receipt className="w-7 h-7 text-[#A78BFA]" />
           </div>
           <div>
-            <h1 className="text-[28px] sm:text-[30px] font-black leading-tight tracking-tight text-white">
+            <h1 className="text-[24px] sm:text-[30px] font-black leading-tight tracking-tight text-white">
               Bill<br/>Management Hub
             </h1>
             <p className="text-[14px] leading-snug text-zinc-400 mt-2 max-w-[280px]">

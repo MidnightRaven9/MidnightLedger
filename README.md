@@ -6,7 +6,7 @@ Dark-mode budget app for paycheck-to-paycheck planning 🌃 Built for split bill
 → https://midnightledger.justicegraff6.workers.dev ✨
 
 ### 📲 Download
-- 🤖 Android APK: [v3.0.0 Offline Edition](https://github.com/MidnightRaven9/MidnightLedger/releases/tag/v3.0.0) 🔒✨ — **100% offline, no server or internet needed** 📵💾
+- 🤖 Android APK: [v3.0.1 Offline Edition](https://github.com/MidnightRaven9/MidnightLedger/releases/tag/v3.0.1) 🔒✨ — **100% offline, no server or internet needed** 📵💾
 - 📱 PWA: Open live demo → Add to Home Screen
 
 ---
@@ -36,9 +36,12 @@ This clears all sample/demo bills and gives you a fresh start. Your real bills w
 
 ### 📸 Screenshots
 
-| 📊 Dash | 🧾 Bills |
-|------|-------|
-| Paycheck cards with month badge (AUG 15) 🌙 | Split bills by paycheck 💸 |
+Captured on a fresh install (sample data, 390×844). Regenerate with `npm run screenshots` after `npm run build` + `npm run preview`.
+
+| 📊 Dashboard | 🧾 Bills | 📅 Paydays |
+|:---:|:---:|:---:|
+| <img src="docs/screenshots/dashboard.png" width="230" alt="Dashboard: current paycheck, bills due, leftover cash and category allocation" /> | <img src="docs/screenshots/bills.png" width="230" alt="Bills: monthly totals and per-category allocation" /> | <img src="docs/screenshots/paydays.png" width="230" alt="Paydays: schedule rule and projected upcoming paychecks" /> |
+| <img src="docs/screenshots/expenses.png" width="230" alt="Expenses: spending this check, this month, biggest expense" /> <br/> 💸 **Expenses** | <img src="docs/screenshots/reports.png" width="230" alt="Reports: category allocation donut chart, income vs expenses" /> <br/> 📈 **Reports** | <img src="docs/screenshots/history.png" width="230" alt="History: past paycheck allocations and JSON backup" /> <br/> 🕰️ **History** |
 
 ### 🛠️ Tech Stack
 

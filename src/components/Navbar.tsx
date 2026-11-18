@@ -64,9 +64,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[#2A2A2A] bg-[#000000]/95 backdrop-blur-xl transition-colors">
-      <div className="w-full px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[56px]">
+    <>
+      <header className="sticky top-0 z-40 w-full border-b border-[#2A2A2A] bg-[#000000]/95 backdrop-blur-xl transition-colors">
+        <div className="w-full px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-[56px]">
           
           {/* Logo & Brand Name */}
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
@@ -197,11 +198,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
       </div>
+      </header>
 
-      {/* Mobile Bottom Navigation Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 w-full z-50 bg-[#0A0A0A]/95 border-t border-zinc-800/80 backdrop-blur-xl px-1 py-1 flex justify-between items-center h-[56px]">
+      {/* Mobile Bottom Navigation Bar - sibling of header (fixed positioning must not live inside a backdrop-filter container) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 w-full z-50 bg-[#0A0A0A]/95 border-t border-zinc-800/80 backdrop-blur-xl px-1 pt-1 pb-[calc(env(safe-area-inset-bottom)+4px)] flex justify-between items-center min-h-[56px]">
         <div className="grid grid-cols-6 text-center w-full gap-0.5">
           <button
+            id="mobile-tab-dashboard"
             onClick={() => setActiveTab('dashboard')}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'dashboard' 
@@ -214,6 +217,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           <button
+            id="mobile-tab-bills"
             onClick={() => setActiveTab('bills')}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'bills' 
@@ -226,6 +230,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           <button
+            id="mobile-tab-paydays"
             onClick={() => setActiveTab('paydays')}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'paydays' 
@@ -238,6 +243,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           <button
+            id="mobile-tab-expenses"
             onClick={() => setActiveTab('expenses')}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'expenses' 
@@ -250,6 +256,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           <button
+            id="mobile-tab-reports"
             onClick={() => setActiveTab('reports')}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'reports' 
@@ -262,6 +269,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           <button
+            id="mobile-tab-history"
             onClick={() => setActiveTab('history')}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'history' 
@@ -274,6 +282,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         </div>
       </nav>
-    </header>
+    </>
   );
 };
