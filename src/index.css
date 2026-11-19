@@ -2,7 +2,8 @@
 
 /* ---------------------------------------------------------------- */
 /* MidnightLedger — "Editorial Midnight" design system               */
-/* Near-black surfaces, off-white type, one champagne-gold accent.  */
+/* Near-black surfaces, off-white type, one user-selectable accent.  */
+/* Defaults to purple; overwritten at startup from local storage.    */
 /* ---------------------------------------------------------------- */
 
 :root {
@@ -14,12 +15,12 @@
   --text: #ececf0;
   --muted: #9c9ca6;
   --faint: #6b6b74;
-  --accent: #c8a24b;
-  --accent-hover: #d8b35c;
-  --accent-press: #a8843a;
-  --accent-soft: rgba(200, 162, 75, 0.12);
-  --accent-ring: rgba(200, 162, 75, 0.4);
-  --on-accent: #1a1407;
+  --accent: #a855f7;
+  --accent-hover: #b97af9;
+  --accent-press: #8d3ed1;
+  --accent-soft: rgba(168, 85, 247, 0.14);
+  --accent-ring: rgba(168, 85, 247, 0.45);
+  --on-accent: #ffffff;
   --good: #6faf8f;
   --warn: #d9a05b;
   --danger: #d97b7b;

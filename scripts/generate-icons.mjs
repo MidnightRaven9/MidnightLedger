@@ -21,17 +21,17 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFS = `
   <defs>
     <linearGradient id="purple-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#A8843A"/>
-      <stop offset="55%" stop-color="#C8A24B"/>
-      <stop offset="100%" stop-color="#E9D8A6"/>
+      <stop offset="0%" stop-color="#7C3AED"/>
+      <stop offset="55%" stop-color="#A855F7"/>
+      <stop offset="100%" stop-color="#C084FC"/>
     </linearGradient>
     <radialGradient id="glow" cx="50%" cy="40%" r="55%">
-      <stop offset="0%" stop-color="#C8A24B" stop-opacity="0.4"/>
-      <stop offset="100%" stop-color="#C8A24B" stop-opacity="0"/>
+      <stop offset="0%" stop-color="#A855F7" stop-opacity="0.42"/>
+      <stop offset="100%" stop-color="#A855F7" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="line-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#A8843A"/>
-      <stop offset="100%" stop-color="#E9D8A6"/>
+      <stop offset="0%" stop-color="#A855F7"/>
+      <stop offset="100%" stop-color="#C084FC"/>
     </linearGradient>
     <mask id="moon-mask">
       <circle cx="256" cy="206" r="118" fill="#FFFFFF"/>

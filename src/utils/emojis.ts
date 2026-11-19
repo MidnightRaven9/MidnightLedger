@@ -68,6 +68,7 @@ export const suggestEmoji = (name: string): string | null => {
 };
 
 import confetti from 'canvas-confetti';
+import { getConfettiColors } from './accentColor';
 
 let customConfetti: any = null;
 
@@ -87,7 +88,7 @@ export const triggerConfetti = () => {
         particleCount: 150, 
         spread: 70, 
         origin: { y: 0.6 }, 
-        colors: ['#c8a24b', '#e8d5a0', '#ececf0', '#a8843a'],
+        colors: getConfettiColors(),
         zIndex: 9999,
       });
     }

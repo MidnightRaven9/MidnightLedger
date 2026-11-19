@@ -203,7 +203,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
         {chartData.map((item) => (
           <div
             key={item.name}
-            className="flex justify-between items-center gap-3 w-full min-w-0 px-4 py-3.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] text-[14px] min-h-[56px] mb-2"
+            className="flex justify-between items-center gap-2 w-full min-w-0 px-4 py-3.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] text-[14px] min-h-[56px] mb-2"
             title={item.bills.map(b => b.isSplit ? `${b.name}: ${formatCurrency(b.myShare)} (Full: ${formatCurrency(b.fullTotal)})` : `${b.name}: ${formatCurrency(b.myShare)}`).join(', ')}
           >
             <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -211,13 +211,13 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
                 className="w-3 h-3 rounded-full shrink-0"
                 style={{ backgroundColor: item.color }}
               />
-              <span className="font-semibold text-[14px] text-white truncate">
+              <span className="font-semibold text-[13px] text-white break-words leading-tight">
                 {item.name}
               </span>
             </div>
 
             <div className="text-right flex items-center gap-3 shrink-0">
-              <span className="font-bold text-[14px] text-white">
+              <span className="font-bold text-[13px] text-white">
                 {formatCurrency(item.value)}
               </span>
               <span className="text-[13px] text-zinc-400 min-w-10 text-right font-mono">

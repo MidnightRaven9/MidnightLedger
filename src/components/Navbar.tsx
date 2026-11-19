@@ -9,10 +9,12 @@ import {
   Download,
   Upload,
   BarChart3,
-  Moon
+  Moon,
+  Settings
 } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
 import { ClearDataModal } from './ClearDataModal';
+import { SettingsModal } from './SettingsModal';
 
 export type TabType = 'dashboard' | 'bills' | 'paydays' | 'expenses' | 'reports' | 'history' | 'settings';
 
@@ -31,6 +33,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const { exportData, importData } = usePayday();
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   const handleExport = () => {
     const dataStr = exportData();
@@ -153,9 +156,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           </nav>
 
-          {/* Quick Actions & Dark Mode Toggle Switch */}
+          {/* Quick Actions */}
           <div className="flex items-center gap-2">
-            
+
+            {/* Appearance / Accent colour — available on every screen size */}
+            <button
+              id="open-settings"
+              onClick={() => setIsSettingsModalOpen(true)}
+              className="btn-quiet h-8 w-8 !p-0"
+              title="Appearance settings"
+              aria-label="Appearance settings"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+
             {/* Export & Import */}
             <div className="hidden lg:flex items-center gap-1 border-l border-[var(--border)] pl-2">
               <button
@@ -183,16 +197,24 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             </div>
 
+          </div>
+        </div>
+      </div>
+      </header>
+
+      {/* Modals live outside the blurred header — backdrop-filter would otherwise
+          trap their fixed positioning and render them off-screen. */}
+
             <ClearDataModal
               isOpen={isClearModalOpen}
               onClose={() => setIsClearModalOpen(false)}
               onConfirmSuccess={() => setActiveTab('bills')}
             />
 
-          </div>
-        </div>
-      </div>
-      </header>
+            <SettingsModal
+              isOpen={isSettingsModalOpen}
+              onClose={() => setIsSettingsModalOpen(false)}
+            />
 
       {/* Mobile Bottom Navigation Bar - sibling of header (fixed positioning must not live inside a backdrop-filter container) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 w-full z-50 bg-[var(--bg)]/95 border-t border-zinc-800/80 backdrop-blur-xl px-1 pt-1 pb-[calc(env(safe-area-inset-bottom)+4px)] flex justify-between items-center min-h-[56px]">
@@ -246,7 +268,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             }`}
           >
             <ShoppingBag className="w-4 h-4" />
-            <span className="tracking-wide">Expenses</span>
+            <span className="tracking-wide">Expense</span>
           </button>
 
           <button

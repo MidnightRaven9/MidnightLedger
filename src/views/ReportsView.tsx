@@ -367,7 +367,7 @@ export const ReportsView: React.FC = () => {
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', minWidth: 0 }}>
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: cat.color, flexShrink: 0 }} />
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 600, color: '#ffffff', fontSize: '15px' }} className="truncate">{cat.name}</div>
+                      <div style={{ fontWeight: 600, color: '#ffffff', fontSize: '14px' }} className="break-words leading-snug">{cat.name}</div>
                       <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
                         {cat.count} item{cat.count > 1 ? 's' : ''} ({cat.itemPctInt}%)
                       </div>

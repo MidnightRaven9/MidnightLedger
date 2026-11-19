@@ -234,7 +234,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
           )}
 
           <div className="min-w-0 flex-1 overflow-hidden">
-            <p className={`text-[15px] font-bold truncate max-w-[155px] sm:max-w-[220px] ${isPaid ? 'line-through text-zinc-400' : 'text-white'}`}>
+            <p className={`text-[14px] font-bold leading-snug break-words ${isPaid ? 'line-through text-zinc-400' : 'text-white'}`}>
               {isPaid ? '' : `${billEmoji} `}{bill.name}
             </p>
             <div className="flex flex-wrap gap-1.5 mt-1.5">

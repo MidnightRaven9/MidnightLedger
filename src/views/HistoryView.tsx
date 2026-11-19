@@ -225,7 +225,7 @@ export const HistoryView: React.FC = () => {
           </button>
 
           <label 
-            className="flex-1 h-[48px] flex items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] hover:bg-[var(--accent-press)] text-white font-bold text-xs cursor-pointer transition-all shadow-[0_4px_16px_rgba(124,58,237,0.3)]"
+            className="flex-1 h-[48px] flex items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] hover:bg-[var(--accent-press)] text-white font-bold text-xs cursor-pointer transition-all"
             title="Import budget backup JSON file"
           >
             <Upload className="w-4 h-4 text-white" />

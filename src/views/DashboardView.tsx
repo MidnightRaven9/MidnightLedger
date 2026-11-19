@@ -308,7 +308,7 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
                       </button>
                       <div className="min-w-0">
                         <div className="text-sm font-semibold flex items-center gap-1.5">
-                          <span className={`bill-name truncate ${isPaid ? 'line-through text-zinc-500' : 'text-white'}`}>
+                          <span className={`bill-name break-words leading-tight ${isPaid ? 'line-through text-zinc-500' : 'text-white'}`}>
                             {isPaid && item.type === 'bill' && !item.isPaidWithOther ? '' : `${item.emoji} `}{item.name}
                           </span>
                         </div>
@@ -848,8 +848,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   {/* Divider */}
                   <div style={{ height: '1px', background: 'var(--border)', margin: '4px 0' }} className="w-full" />
 
-                  {/* Stats Grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }} className="w-full">
+                  {/* Stats Grid — single column on narrow phones so nothing is smushed */}
+                  <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5 w-full">
                     {/* Estimated Check */}
                     <div 
                       onClick={() => {
@@ -1114,11 +1114,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* 3. DASHBOARD STATS COLUMN */}
-      <div className="grid grid-cols-2 gap-3" style={{ marginBottom: '16px' }}>
+      <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5" style={{ marginBottom: '16px' }}>
         
         {/* Total Monthly Bills */}
         <div style={{ padding: '12px 10px', borderRadius: '16px', background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, overflow: 'hidden' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'rgba(124,58,237,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', flexShrink: 0 }}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'var(--accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', flexShrink: 0 }}>
             <Receipt className="w-4 h-4" />
           </div>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px', overflow: 'hidden' }}>
@@ -1134,7 +1134,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* Upcoming Paydays */}
         <div style={{ padding: '12px 10px', borderRadius: '16px', background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, overflow: 'hidden' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'rgba(124,58,237,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', flexShrink: 0 }}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'var(--accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', flexShrink: 0 }}>
             <Calendar className="w-4 h-4" />
           </div>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px', overflow: 'hidden' }}>
@@ -1150,7 +1150,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* Bill Mix */}
         <div style={{ padding: '12px 10px', borderRadius: '16px', background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, overflow: 'hidden' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'rgba(124,58,237,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', flexShrink: 0 }}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'var(--accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', flexShrink: 0 }}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>

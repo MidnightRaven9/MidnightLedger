@@ -2,6 +2,22 @@
 
 All notable changes to MidnightLedger ✨
 
+## [3.1.1] - 2026-11-19 🔧
+### 🎨 Added
+- **Appearance settings** — gear icon in the header opens a colour picker for the whole UI and the celebration confetti
+- 8 curated preset colours, a hex-code field, and a native colour wheel
+- Choice is saved locally and restored on launch (works offline, no account)
+
+### 💜 Changed
+- Restored **purple** as the default accent (`#a855f7`); confetti is purple again
+- Brand icon and splash screens returned to the purple gradient
+
+### 🐛 Fixed
+- "Smushed" phone layout: stat cards now use full-width rows on narrow screens instead of cramped 2-up tiles
+- Removed text truncation/clipping across dashboard, bills, paydays, reports and the legend on 360dp screens
+- "Add Custom Date" / "Change Rule" buttons stack on narrow phones so labels fit
+- Bottom navigation "Expenses" label no longer clips
+
 ## [3.1.0] - 2026-11-18 🎨
 ### ✨ Changed
 - Complete visual redesign — "Editorial Midnight": near-black surfaces (#101012), off-white type, one champagne-gold accent (#C8A24B), flat cards with hairline borders, no gradients/glows/glassmorphism

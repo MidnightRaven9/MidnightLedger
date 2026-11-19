@@ -120,7 +120,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
 
         <button
           onClick={() => onOpenExpenseModal()}
-          className="w-full h-[56px] flex items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] hover:bg-[var(--accent-press)] text-white font-bold text-[16px] mt-2 shadow-[0_8px_20px_rgba(124,58,237,0.3)] transition-all cursor-pointer"
+          className="w-full h-[56px] flex items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] hover:bg-[var(--accent-press)] text-white font-bold text-[16px] mt-2 transition-all cursor-pointer"
         >
           <PlusCircle className="w-5 h-5" />
           Add Expense

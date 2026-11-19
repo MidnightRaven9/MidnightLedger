@@ -6,7 +6,7 @@ Dark-mode budget app for paycheck-to-paycheck planning 🌃 Built for split bill
 → https://midnightledger.justicegraff6.workers.dev ✨
 
 ### 📲 Download
-- 🤖 Android APK: [v3.1.0 Offline Edition](https://github.com/MidnightRaven9/MidnightLedger/releases/tag/v3.1.0) 🔒✨ — **100% offline, no server or internet needed** 📵💾
+- 🤖 Android APK: [v3.1.1 Offline Edition](https://github.com/MidnightRaven9/MidnightLedger/releases/tag/v3.1.1) 🔒✨ — **100% offline, no server or internet needed** 📵💾
 - 📱 PWA: Open live demo → Add to Home Screen
 
 ---
@@ -32,7 +32,8 @@ This clears all sample/demo bills and gives you a fresh start. Everything is sto
 - 💸 **Expenses & Reports** - Track spending per paycheck cycle 📈📉
 - 🕰️ **History** - Past paycheck allocations 📚
 - 📵 **100% Local-First** - No trackers, no cloud, no account — everything stays on your device 🏠
-- 🌑 **OLED Dark Theme** - True black #0A0A0A with purple #7C3AED accents, PWA installs as "MidnightLedger" 🌙💜🖤
+- 🌑 **Dark Theme** - Near-black surfaces with a purple #a855f7 accent, PWA installs as "MidnightLedger" 🌙💜
+- 🎨 **Custom Accent Colour** - Pick from presets, a hex code, or a colour wheel — applies to the UI **and** confetti, saved locally (⚙️ gear in the header)
 
 ### 📸 Screenshots
 
@@ -62,7 +63,7 @@ npm run build
 
 ### 🎨 App Icon
 
-🌙 Horizontal gradient fill — champagne #A8843A → #C8A24B → #E9D8A6 on #101012 rounded square with ledger lines
+🌙 Horizontal gradient fill — purple #7C3AED → #A855F7 → #C084FC on #101012 rounded square with ledger lines
 
 Every icon and splash (web, PWA, Android mipmaps, adaptive foregrounds, splashes) is generated from a single SVG in `scripts/generate-icons.mjs` — regenerate any time with:
 
