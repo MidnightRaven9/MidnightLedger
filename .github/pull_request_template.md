@@ -1,18 +1,19 @@
-# 🌙 Pull Request ✨💜
+## Description
 
-### 📝 Description
-What does this PR do? 🌃
+What does this change do, and why?
 
-### 🔗 Related Issue
-Fixes #(issue number) 📌
+## Related issue
 
-### ✅ Checklist
-- [ ] 🧪 Tested locally
-- [ ] 🎨 Kept dark theme #0A0A0A + purple #7C3AED 💜
-- [ ] 📱 Tested on mobile
-- [ ] 📸 Added screenshot if UI change 🌙
+Fixes #123
 
-### 📸 Screenshots (if UI)
-Add here ✨
+## Checklist
 
-Thank you! 💜🌙
+- [ ] Tested locally (`npm run lint` and `npm run build`)
+- [ ] Tested on a phone-sized viewport
+- [ ] Kept the dark theme (`#101012`) and accent (`#a855f7`)
+- [ ] No new network calls or remote assets
+- [ ] Screenshots included for UI changes
+
+## Screenshots (if UI changes)
+
+Add before/after images here.

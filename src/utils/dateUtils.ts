@@ -2,12 +2,27 @@
  * Helper utility functions for handling YYYY-MM-DD dates without timezone skew
  */
 
+export function isValidISODateString(value: unknown): value is string {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split('-').map(Number);
+  // Noon avoids timezone rollbacks around midnight.
+  const date = new Date(year, month - 1, day, 12, 0, 0);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+}
+
 export function parseISODate(dateStr: string | any): Date {
   if (typeof dateStr !== 'string') {
     dateStr = String(dateStr || '');
   }
   const [year, month, day] = dateStr.split('-').map(Number);
-  return new Date(isNaN(year) ? 2026 : year, (isNaN(month) ? 1 : month) - 1, isNaN(day) ? 1 : day, 12, 0, 0); // Noon prevents timezone rollbacks
+  // Noon prevents timezone rollbacks. Malformed input yields an invalid Date
+  // so callers can detect it instead of silently receiving a default year.
+  return new Date(
+    isNaN(year) ? NaN : year,
+    isNaN(month) ? NaN : month - 1,
+    isNaN(day) ? NaN : day,
+    12, 0, 0,
+  );
 }
 
 export function toISODateString(date: Date): string {
@@ -18,7 +33,7 @@ export function toISODateString(date: Date): string {
 }
 
 export function formatDate(dateStr: string, formatStyle: 'short' | 'medium' | 'long' | 'dayAndMonth' = 'medium'): string {
-  if (!dateStr) return '';
+  if (!dateStr || !isValidISODateString(dateStr)) return '';
   const date = parseISODate(dateStr);
   
   if (formatStyle === 'short') {
@@ -33,18 +48,17 @@ export function formatDate(dateStr: string, formatStyle: 'short' | 'medium' | 'l
     return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
   }
 
-  // Medium default: "Aug 15, 2026"
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 export function formatMonthYear(dateStr: string): string {
-  if (!dateStr) return '';
+  if (!dateStr || !isValidISODateString(dateStr)) return '';
   const date = parseISODate(dateStr);
   return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
 export function formatMonthName(dateStr: string): string {
-  if (!dateStr) return '';
+  if (!dateStr || !isValidISODateString(dateStr)) return '';
   const date = parseISODate(dateStr);
   return date.toLocaleDateString('en-US', { month: 'long' });
 }
@@ -60,6 +74,7 @@ export function formatCurrency(amount: number | null | undefined): string {
 }
 
 export function addDays(dateStr: string, days: number): string {
+  if (!isValidISODateString(dateStr)) return dateStr;
   const date = parseISODate(dateStr);
   date.setDate(date.getDate() + days);
   return toISODateString(date);
@@ -89,9 +104,3 @@ export function compareDates(aStr: string, bStr: string): number {
   return aStr.localeCompare(bStr);
 }
 
-/**
- * Check if a target date is within range [startInclusive, endExclusive)
- */
-export function isDateInRange(targetDateStr: string, startDateStr: string, endDateStr: string): boolean {
-  return targetDateStr >= startDateStr && targetDateStr < endDateStr;
-}

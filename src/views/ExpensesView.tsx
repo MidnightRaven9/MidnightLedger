@@ -5,13 +5,11 @@ import { DeleteExpenseModal } from '../components/DeleteExpenseModal';
 import { 
   PlusCircle, 
   Trash2,
-  Edit3, 
-  Search, 
-  DollarSign, 
+  Edit3,
+  DollarSign,
   ShoppingBag,
   TrendingDown,
-  Award,
-  Filter
+  Award
 } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
 import { formatDate, formatCurrency } from '../utils/dateUtils';
@@ -54,7 +52,6 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
     prevExpensesAllPaidRef.current = newPrev;
   }, [allPaidNow, isInitialLoad, currentPaydayDate]);
 
-  // Calculate metrics
   const now = new Date();
   const currentMonthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
@@ -73,7 +70,6 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
     ? [...extraExpenses].sort((a, b) => b.amount - a.amount)[0]
     : null;
 
-  // Filter expenses list
   const filteredExpenses = extraExpenses
     .filter(e => {
       if (selectedPaydayFilter !== 'ALL') {
@@ -102,7 +98,6 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
         onClose={() => setIsManageCategoriesModalOpen(false)} 
       />
       
-      {/* 1. Live Expense Tracker Hero Card */}
       <div className="rounded-[28px] sm:rounded-[32px] border border-zinc-800/50 bg-[var(--surface)] p-6 sm:p-7 space-y-5">
         <div className="flex gap-4 items-start">
           <div className="w-14 h-14 rounded-2xl bg-[var(--accent)]/20 flex items-center justify-center shrink-0">
@@ -127,10 +122,8 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
         </button>
       </div>
 
-      {/* 3 Stat Cards Stacked */}
       <div className="space-y-5">
         
-        {/* Card 1: Spent This Check */}
         <div className="rounded-[24px] border border-zinc-800/50 bg-[var(--surface)] p-5 sm:p-6 flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs font-semibold text-white/50 block">
@@ -140,7 +133,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
               {formatCurrency(spentThisCheck)}
             </div>
             <span className="text-[11px] text-white/40 block">
-              Paycheck {currentPaydayDate ? formatDate(currentPaydayDate, 'medium') : 'Aug 15, 2026'}
+              Paycheck {currentPaydayDate ? formatDate(currentPaydayDate, 'medium') : 'Unassigned'}
             </span>
           </div>
           <div className="w-14 h-14 rounded-[16px] bg-[#2D161B] border border-[#4C1C24] text-[#FF6B7A] flex items-center justify-center shrink-0">
@@ -148,7 +141,6 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
           </div>
         </div>
 
-        {/* Card 2: Spent This Month */}
         <div className="rounded-[24px] border border-zinc-800/50 bg-[var(--surface)] p-5 sm:p-6 flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs font-semibold text-white/50 block">
@@ -166,7 +158,6 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
           </div>
         </div>
 
-        {/* Card 3: Biggest Expense */}
         <div className="rounded-[24px] border border-zinc-800/50 bg-[var(--surface)] p-5 sm:p-6 flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs font-semibold text-white/50 block">
@@ -186,9 +177,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
 
       </div>
 
-      {/* Search & Filter Card */}
       <div className="w-full min-w-0 max-w-full px-4 py-3.5 bg-[var(--surface-2)] rounded-[24px] border border-zinc-800/50 space-y-2.5">
-        {/* Search */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1 min-w-0">
           <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none">🔍</span>
@@ -209,7 +198,6 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
           </button>
         </div>
 
-        {/* Paycheck Filter */}
         <div className="flex items-center gap-2 w-full min-w-0 max-w-full overflow-hidden">
           <span className="shrink-0 text-[12px] font-bold text-zinc-400 whitespace-nowrap">
             <span className="text-[var(--accent)]">▽</span> Filter:
@@ -238,7 +226,6 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
         )}
       </div>
 
-      {/* Running Expenses Card */}
       <div className="rounded-[24px] border border-zinc-800/50 bg-[var(--surface)] p-5 sm:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -267,8 +254,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
         ) : (
           <div className="space-y-4">
             {filteredExpenses.map(exp => {
-              const parts = exp.paydayDate.split('-');
-              const paycheckShortStr = parts.length === 3 ? `${parseInt(parts[1])}/${parseInt(parts[2])}` : '8/15';
+              const paycheckShortStr = formatDate(exp.paydayDate, 'short') || 'Unassigned';
 
               return (
                 <div 
@@ -276,7 +262,6 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                   onClick={() => onOpenExpenseModal(exp.paydayDate, exp)}
                   className="p-5 rounded-[16px] bg-[var(--surface-2)] hover:bg-[var(--surface-2)] transition-colors border border-[var(--border)]/40 space-y-4 cursor-pointer"
                 >
-                  {/* Top: Icon & Merchant info */}
                   <div className="flex items-start gap-3.5">
                     <div className="w-12 h-12 rounded-full bg-[var(--surface)] border border-[var(--border)]/60 flex items-center justify-center text-xl shrink-0 mt-0.5">
                       {getCategoryEmoji(exp.category)}
@@ -300,10 +285,8 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Horizontal Divider */}
                   <hr className="border-[var(--border)]" />
 
-                  {/* Bottom: Amount and Trash */}
                   <div className="flex items-center justify-between pt-0.5">
                     <div className="text-2xl font-black text-[#FF6B7A]">
                       -{formatCurrency(exp.amount)}

@@ -24,7 +24,6 @@ function MainApp() {
     localStorage.setItem('payday_theme', 'dark');
   }, []);
 
-  // Modal states
   const [isBillModalOpen, setIsBillModalOpen] = useState(false);
   const [billToEdit, setBillToEdit] = useState<Bill | null>(null);
 
@@ -38,7 +37,6 @@ function MainApp() {
   const [isPaydayModalOpen, setIsPaydayModalOpen] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
 
-  // Modal helpers
   const handleOpenBillModal = (bill?: Bill | null) => {
     setBillToEdit(bill || null);
     setIsBillModalOpen(true);
@@ -58,15 +56,11 @@ function MainApp() {
   return (
     <div className="min-h-screen bg-[var(--bg)] text-white/90 transition-colors duration-200 selection:bg-[var(--accent-soft)] selection:text-[var(--text)]">
       
-      {/* Navbar */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenBillModal={() => handleOpenBillModal(null)}
-        onOpenExpenseModal={() => handleOpenExpenseModal()}
       />
 
-      {/* Main Content Area */}
       <main className="w-full px-[clamp(10px,3.2vw,32px)] pt-4 pb-28">
         {activeTab === 'dashboard' && (
           <DashboardView
@@ -87,7 +81,6 @@ function MainApp() {
           <PaydaysView
             onOpenScheduleModal={() => setIsScheduleModalOpen(true)}
             onOpenPaydayModal={() => setIsPaydayModalOpen(true)}
-            onOpenIncomeModal={handleOpenIncomeModal}
           />
         )}
 
@@ -102,7 +95,6 @@ function MainApp() {
         {activeTab === 'history' && <HistoryView />}
       </main>
 
-      {/* Modals */}
       <BillModal
         isOpen={isBillModalOpen}
         onClose={() => setIsBillModalOpen(false)}
@@ -132,7 +124,6 @@ function MainApp() {
         onClose={() => setIsScheduleModalOpen(false)}
       />
 
-      {/* Global Toast Notification */}
       <Toast />
 
     </div>

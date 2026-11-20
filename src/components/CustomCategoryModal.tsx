@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import { usePayday } from '../context/PaydayContext';
+import { useEscapeToClose } from '../utils/useEscapeToClose';
 
 interface CustomCategoryModalProps {
   isOpen: boolean;
@@ -13,6 +13,8 @@ export const CustomCategoryModal: React.FC<CustomCategoryModalProps> = ({
   onClose,
   onSave,
 }) => {
+  useEscapeToClose(isOpen, onClose);
+
   const [name, setName] = useState('');
   const [emoji, setEmoji] = useState('🪶');
 
@@ -30,13 +32,10 @@ export const CustomCategoryModal: React.FC<CustomCategoryModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       
-      {/* Modal Content */}
       <div className="relative w-full max-w-sm bg-[var(--bg)] border border-zinc-800 rounded-[28px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         
-        {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-zinc-800">
           <h2 className="text-xl font-bold text-white tracking-tight">Create Custom Category</h2>
           <button
@@ -47,7 +46,6 @@ export const CustomCategoryModal: React.FC<CustomCategoryModalProps> = ({
           </button>
         </div>
 
-        {/* Body */}
         <form onSubmit={handleSubmit} className="p-5 space-y-6">
           <div className="flex gap-4">
             <div className="w-16 h-16 shrink-0">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, X, Trash2 } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
+import { useEscapeToClose } from '../utils/useEscapeToClose';
 
 interface ClearDataModalProps {
   isOpen: boolean;
@@ -13,6 +14,8 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({
   onClose,
   onConfirmSuccess,
 }) => {
+  useEscapeToClose(isOpen, onClose);
+
   const { clearAllData } = usePayday();
   const [confirmInput, setConfirmInput] = useState('');
 
@@ -41,7 +44,6 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({
         onClick={e => e.stopPropagation()}
       >
         
-        {/* Top Header & Close Icon */}
         <div className="flex items-start justify-between">
           <div className="w-12 h-12 rounded-2xl bg-[#1A1010] border border-rose-800/80 text-rose-400 flex items-center justify-center font-bold shrink-0">
             <AlertTriangle className="w-6 h-6 text-rose-500" />
@@ -54,7 +56,6 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({
           </button>
         </div>
 
-        {/* Content */}
         <div>
           <h3 className="text-xl font-extrabold text-[#F87171] mb-2">
             Factory Reset - Wipe All App Data?
@@ -78,7 +79,6 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({
               />
             </div>
 
-            {/* Action Buttons */}
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-2.5">
               <button
                 type="button"

@@ -7,12 +7,8 @@ if (typeof window !== 'undefined') {
   }, 800);
 }
 
-export function getGlobalInitialLoad(): boolean {
-  return globalInitialLoad;
-}
-
 export function tryCelebrate(
-  pageKey: string,
+  _pageKey: string,
   allPaidNow: boolean,
   prevAllPaidValue: boolean,
   isInitialLoad: boolean = globalInitialLoad

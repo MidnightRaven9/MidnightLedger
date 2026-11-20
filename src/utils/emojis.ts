@@ -26,7 +26,6 @@ export const getCategoryEmoji = (category?: string): string => {
   if (!category) return '💸';
   if (CATEGORY_EMOJIS[category]) return CATEGORY_EMOJIS[category];
   
-  // Also check custom categories from localStorage
   try {
     const savedExpenseCats = localStorage.getItem('midnightledger_customExpenseCategories');
     if (savedExpenseCats) {
@@ -47,7 +46,6 @@ export const getCategoryEmoji = (category?: string): string => {
       if (custom) return custom.emoji;
     }
   } catch (e) {
-    // ignore
   }
   
   return '📦'; // Default for custom / other

@@ -1,16 +1,24 @@
 {
   "name": "midnight-ledger",
+  "version": "3.2.1",
   "private": true,
-  "version": "3.2.0",
   "type": "module",
+  "description": "Offline-first budgeting for paycheck-to-paycheck planning, split bills and tax estimates.",
+  "license": "MIT",
+  "author": "MidnightRaven9",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MidnightRaven9/MidnightLedger.git"
+  },
+  "homepage": "https://github.com/MidnightRaven9/MidnightLedger#readme",
   "engines": {
     "node": ">=20.0.0"
   },
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "start": "node dist/server.cjs",
-    "clean": "rm -rf dist server.js",
+    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=build/server.cjs",
+    "start": "node build/server.cjs",
+    "clean": "rm -rf dist build",
     "lint": "tsc --noEmit",
     "preview": "vite preview",
     "screenshots": "node scripts/capture-screenshots.mjs"
@@ -26,7 +34,6 @@
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "lucide-react": "^0.546.0",
-    "motion": "^12.23.24",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "recharts": "^3.10.1"

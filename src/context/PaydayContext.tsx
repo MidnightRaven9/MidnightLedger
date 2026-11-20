@@ -7,7 +7,7 @@ import {
   ExtraIncome,
   PaydaySummary 
 } from '../types';
-import { toISODateString, formatDate } from '../utils/dateUtils';
+import { toISODateString } from '../utils/dateUtils';
 import { generatePaydaysFromSchedule, calculatePaydaySummaries } from '../utils/paydayLogic';
 import { triggerConfetti, getCategoryEmoji } from '../utils/emojis';
 
@@ -265,7 +265,6 @@ interface PaydayContextType {
   summaries: PaydaySummary[];
   nextPaydaySummary: PaydaySummary | null;
   
-  // Actions
   addBill: (bill: Omit<Bill, 'id'>) => void;
   updateBill: (bill: Bill) => void;
   deleteBill: (id: string) => void;
@@ -390,7 +389,6 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }, 2000);
   };
 
-  // Save changes to local storage
   useEffect(() => {
     try {
       const savedTime = new Date().toISOString();
@@ -417,41 +415,35 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   }, [schedule, paydays, bills, extraExpenses, extraIncomes, variableOverrides, variableFullTotalOverrides, paidStatuses, excludedOccurrences]);
 
-  // Generate full active paydays list based on schedule and custom manual entries
   const activePaydays = useMemo(() => {
     return generatePaydaysFromSchedule(schedule, paydays, 10);
   }, [schedule, paydays]);
 
-  // Calculate dynamic summaries
   const summaries = useMemo(() => {
     return calculatePaydaySummaries(
       activePaydays,
       bills,
       extraExpenses,
-      schedule.frequency,
+      schedule,
       variableOverrides,
       paidStatuses,
       variableFullTotalOverrides,
       excludedOccurrences,
       extraIncomes
     );
-  }, [activePaydays, bills, extraExpenses, schedule.frequency, variableOverrides, paidStatuses, variableFullTotalOverrides, excludedOccurrences, extraIncomes]);
+  }, [activePaydays, bills, extraExpenses, schedule, variableOverrides, paidStatuses, variableFullTotalOverrides, excludedOccurrences, extraIncomes]);
 
-  // Identify next payday summary (closest upcoming or current date)
   const nextPaydaySummary = useMemo(() => {
     if (!summaries.length) return null;
     const todayStr = toISODateString(new Date());
-    // Find the most recent payday that is <= today
     for (let i = summaries.length - 1; i >= 0; i--) {
       if (summaries[i].payday.date <= todayStr) {
         return summaries[i];
       }
     }
-    // Fallback to first if today is before the first payday
     return summaries[0];
   }, [summaries]);
 
-  // Handlers
   const addBill = (billData: Omit<Bill, 'id'>) => {
     const newBill: Bill = {
       ...billData,
@@ -783,7 +775,6 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     );
     
     if (currentPaid) {
-      // UNCHECK
       (window as any).prevBillsAllPaid = false;
 
       setPaidStatuses(prev => {
@@ -846,7 +837,6 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         return updatedBills;
       });
     } else {
-      // CHECK
       const currentActiveDate = nextPaydaySummary?.payday.date || effectivePaydayDate;
       const isFuture = effectivePaydayDate > currentActiveDate;
       const valToSet = isFuture ? currentActiveDate : true;
@@ -955,13 +945,11 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setSchedule({ frequency: 'manual', anchorDate: '' });
 
     try {
-      // Remove all keys starting with midnightledger_
       const keysToRemove = Object.keys(localStorage).filter(
         k => k.startsWith('midnightledger') || k === 'STORAGE_KEY' || k.includes('midnightledger')
       );
       keysToRemove.forEach(k => localStorage.removeItem(k));
 
-      // Specific keys mentioned in requirements
       const specificKeys = [
         'midnightledger_data',
         'midnightledger_bills',
@@ -986,7 +974,6 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       ];
       specificKeys.forEach(k => localStorage.removeItem(k));
 
-      // Save explicit clean empty state into STORAGE_KEY so reloads remain clean at 0
       const wipedState = {
         schedule: { frequency: 'manual', anchorDate: '' },
         paydays: [],

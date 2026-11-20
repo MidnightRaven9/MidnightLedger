@@ -3,6 +3,7 @@ import { Trash2, X } from 'lucide-react';
 import { ExtraExpense } from '../types';
 import { formatDate } from '../utils/dateUtils';
 import { getCategoryEmoji } from '../utils/emojis';
+import { useEscapeToClose } from '../utils/useEscapeToClose';
 
 interface DeleteExpenseModalProps {
   isOpen: boolean;
@@ -17,6 +18,8 @@ export const DeleteExpenseModal: React.FC<DeleteExpenseModalProps> = ({
   expense,
   onConfirm,
 }) => {
+  useEscapeToClose(isOpen, onClose);
+
   if (!isOpen || !expense) return null;
 
   return (

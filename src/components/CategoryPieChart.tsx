@@ -89,7 +89,6 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
     );
   }
 
-  // Custom tooltip component
   const CustomTooltip = ({ active, payload }: any) => {
     if (!active || !payload?.length) return null;
     const data = payload[0].payload;
@@ -146,7 +145,6 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
             </PieChart>
           </ResponsiveContainer>
           
-          {/* Center label inside Donut */}
           <div className={`absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-center transition-opacity duration-150 ${isPieActive ? 'opacity-0' : 'opacity-100'}`}>
             <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">MY SHARE</span>
             <span className="text-[18px] font-bold text-white leading-tight">
@@ -189,7 +187,6 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
           </PieChart>
         </ResponsiveContainer>
         
-        {/* Center label inside Donut */}
         <div className={`absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-center transition-opacity duration-150 ${isPieActive ? 'opacity-0' : 'opacity-100'}`}>
           <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">MY SHARE</span>
           <span className="text-[18px] font-bold text-white leading-tight">
@@ -198,7 +195,6 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
         </div>
       </div>
 
-      {/* Legend list */}
       <div className="w-full md:w-1/2 space-y-2 max-h-64 overflow-y-auto pr-1 min-w-0 max-w-full">
         {chartData.map((item) => (
           <div

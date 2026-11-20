@@ -70,8 +70,8 @@ html, body, #root {
 
 /* Selection */
 ::selection {
-  background: rgba(200, 162, 75, 0.32);
-  color: #ffffff;
+  background: var(--accent-ring);
+  color: var(--text);
 }
 
 /* Brand focus ring for keyboard navigation */
@@ -219,8 +219,8 @@ html, body, #root {
 }
 
 .paid-bill {
-  background: rgba(200, 162, 75, 0.07) !important;
-  border-color: rgba(200, 162, 75, 0.25) !important;
+  background: var(--accent-soft) !important;
+  border-color: var(--accent-ring) !important;
 }
 .paid-bill .bill-name { text-decoration: line-through; color: var(--faint); }
 

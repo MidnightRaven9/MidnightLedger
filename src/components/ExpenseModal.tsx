@@ -5,7 +5,8 @@ import { ExtraExpense } from '../types';
 import { formatDate, toISODateString } from '../utils/dateUtils';
 import { getPaydayForDate } from '../utils/paydayLogic';
 import { CustomCategoryModal } from './CustomCategoryModal';
-import { suggestEmoji, getCategoryEmoji } from '../utils/emojis';
+import { getCategoryEmoji } from '../utils/emojis';
+import { useEscapeToClose } from '../utils/useEscapeToClose';
 
 interface ExpenseModalProps {
   isOpen: boolean;
@@ -29,6 +30,8 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
   defaultPaydayDate,
   expenseToEdit,
 }) => {
+  useEscapeToClose(isOpen, onClose);
+
   const { summaries, addExtraExpense, updateExtraExpense, customExpenseCategories, addCustomExpenseCategory } = usePayday();
   const todayStr = toISODateString(new Date());
 
@@ -67,8 +70,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
         }
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, expenseToEdit, defaultPaydayDate]);
+  }, [isOpen, expenseToEdit, defaultPaydayDate, summaries, todayStr]);
 
   // separate effect for date change auto payday matcher when not editing
   useEffect(() => {
@@ -76,7 +78,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
         const autoPayday = getPaydayForDate(date, summaries);
         if (autoPayday) setPaydayDate(autoPayday);
     }
-  }, [date]);
+  }, [date, expenseToEdit, summaries, defaultPaydayDate, isOpen]);
 
   if (!isOpen) return null;
 
@@ -114,7 +116,6 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
         paymentMethod,
       });
     }
-    // Reset form
     setDescription('');
     setAmount('');
     setDate(todayStr);
@@ -125,7 +126,6 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="w-full min-w-0 max-w-lg bg-[var(--surface)] rounded-[24px] shadow-2xl border border-[var(--border)] overflow-hidden mx-2 sm:mx-auto max-h-[90vh] flex flex-col edit-expense-modal">
         
-        {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-[var(--border)] bg-[var(--surface)] shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-[var(--accent-soft)] border border-[var(--border-strong)] text-[var(--accent)] flex items-center justify-center font-bold">
@@ -148,10 +148,8 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1 modal-content scrollbar-hide w-full max-w-full overflow-x-hidden box-border">
           
-          {/* Description & Emoji */}
           <div className="w-full min-w-0 max-w-full space-y-2 box-border">
             <label className="block text-[12px] font-bold text-white/80">
               Description / Merchant & Emoji <span className="text-rose-400">*</span>
@@ -177,7 +175,6 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
             </div>
           </div>
 
-          {/* Quick Fill Row / CATEGORIES */}
           <div className="w-full min-w-0 max-w-full overflow-hidden border-y border-zinc-800/50 py-2.5 px-4 flex items-center gap-2 bg-[var(--surface-2)] -mx-5 px-5" style={{ width: 'calc(100% + 40px)' }}>
             <span className="shrink-0 text-[11px] font-bold tracking-widest text-zinc-500">CATEGORIES:</span>
             <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide" style={{ touchAction: 'pan-x', WebkitOverflowScrolling: 'touch' }}>
@@ -227,7 +224,6 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
             </div>
           </div>
 
-          {/* Amount Row */}
           <div>
             <label className="block text-xs font-semibold text-white/80 mb-1">
               Amount ($) <span className="text-rose-400">*</span>
@@ -246,7 +242,6 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
             </div>
           </div>
 
-          {/* Date & Pay Period Row */}
           <div className="w-full min-w-0 space-y-4">
             <div>
               <label className="block text-[13px] font-medium text-white/80 whitespace-nowrap mb-1.5">
@@ -286,7 +281,6 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
             </div>
           </div>
 
-          {/* Payment Method Optional Choice */}
           <div className="pt-2">
             <label className="block text-xs font-semibold text-white/80 mb-1.5">
               Payment Method (Optional)
@@ -309,7 +303,6 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
             </div>
           </div>
 
-          {/* Actions */}
           <div className="pt-4 flex items-center justify-end gap-3 border-t border-[var(--border)]">
             <button
               type="button"

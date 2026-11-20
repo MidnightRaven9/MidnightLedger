@@ -23,7 +23,7 @@ export default defineConfig(() => {
           manualChunks: {
             react: ['react', 'react-dom'],
             charts: ['recharts'],
-            ui: ['lucide-react', 'motion'],
+            ui: ['lucide-react'],
           },
         },
       },

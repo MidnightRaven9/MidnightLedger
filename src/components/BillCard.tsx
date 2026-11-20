@@ -1,11 +1,9 @@
 import React from 'react';
-import { Edit2, Trash2, CheckCircle2, Circle, EyeOff, Heart } from 'lucide-react';
+import { Edit2, Trash2, CheckCircle2, EyeOff } from 'lucide-react';
 import { Bill } from '../types';
 import { formatCurrency, getOrdinalSuffix, formatDate } from '../utils/formatters';
 import { getMyShare, getFullTotal } from '../utils/calculations';
 import { getCategoryEmoji } from '../utils/emojis';
-import { SplitBadge } from './SplitBadge';
-import { FullTotalPill } from './FullTotalPill';
 
 interface BillCardProps {
   bill: Bill;
@@ -18,8 +16,7 @@ interface BillCardProps {
   onSkip?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
-  interactive?: boolean; // Checklist mode
-  showFull?: boolean;
+  interactive?: boolean;
   className?: string;
 }
 
@@ -35,10 +32,8 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
   onEdit,
   onDelete,
   interactive = false,
-  showFull = false,
   className = '',
 }) => {
-  // Determine displayed amount
   const displayAmt = effectiveAmount !== undefined 
     ? effectiveAmount 
     : (viewMode === 'myShare' ? getMyShare(bill) : getFullTotal(bill));
@@ -48,7 +43,6 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
   const splitWays = bill.splitWays || bill.splitCount || 2;
   const billEmoji = bill.emoji || getCategoryEmoji(bill.category);
 
-  // Category badge color mapping
   const categoryColors: Record<string, string> = {
     'Housing': 'bg-emerald-950/40 text-emerald-400 border-emerald-900/50',
     'Utilities': 'bg-amber-950/40 text-amber-400 border-amber-900/50',
@@ -65,9 +59,6 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
   const catColorClass = categoryColors[bill.category] || 'bg-zinc-950/40 text-zinc-400 border-zinc-900/50';
 
   if (interactive) {
-    // ----------------------------------------------------
-    // CHECKLIST MODE (Dashboard / Payday Card)
-    // ----------------------------------------------------
     return (
       <div 
         className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
@@ -120,7 +111,6 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
               {isPaid ? '' : `${billEmoji} `}{bill.name}
             </span>
             
-            {/* Display correct split math in interactive mode */}
             {bill.isSplit && (
               <span className="text-[10px] text-[var(--accent)] block mt-0.5 font-semibold">
                 Full Bill: {formatCurrency(fullTotalVal)} ÷ {splitWays} = {formatCurrency(myShareVal)} your share
@@ -180,9 +170,6 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
     );
   }
 
-  // ----------------------------------------------------
-  // STANDARD VIEW MODE (BillsView / Reports / List)
-  // ----------------------------------------------------
   return (
     <div 
       id={`bill-${bill.id}`}
@@ -192,7 +179,6 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
           : 'bg-[var(--surface-2)] border-zinc-800'
       } ${className}`}
     >
-      {/* Top Header Row */}
       <div className="flex items-start justify-between gap-2 w-full min-w-0 max-w-full overflow-hidden">
         <div className="flex items-start gap-2.5 min-w-0 flex-1 overflow-hidden">
           {onTogglePaid && (
@@ -258,7 +244,6 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
         </span>
       </div>
 
-      {/* Amount & Schedule Row */}
       <div className="mt-2.5 ml-7 min-w-0 overflow-hidden">
         {!bill.isSplit ? (
           <div>
@@ -304,7 +289,6 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
         )}
       </div>
 
-      {/* Bottom Row: Active/Paused and Actions */}
       {(onEdit || onDelete) && (
         <div className="mt-3 pt-3 border-t border-zinc-800/50 flex items-center justify-between">
           <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold ${

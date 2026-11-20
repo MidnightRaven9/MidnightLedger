@@ -14,6 +14,7 @@ import {
   requestSystemPermission,
   saveNotificationSettings,
 } from '../utils/notifications';
+import { useEscapeToClose } from '../utils/useEscapeToClose';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ interface SettingsModalProps {
  * the celebration confetti. Stored locally; no account or network involved.
  */
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+  useEscapeToClose(isOpen, onClose);
   const [selected, setSelected] = useState<string>(DEFAULT_ACCENT);
   const [hexInput, setHexInput] = useState<string>(DEFAULT_ACCENT);
   const [hexError, setHexError] = useState(false);
@@ -104,7 +106,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         aria-modal="true"
         aria-label="Appearance settings"
       >
-        {/* Header */}
         <div className="flex items-start justify-between gap-3 p-5 pb-4 border-b border-[var(--border)]">
           <div className="flex items-center gap-3 min-w-0">
             <div
@@ -130,7 +131,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         </div>
 
         <div className="p-5 space-y-6">
-          {/* Live preview strip */}
           <div className="space-y-2.5">
             <p className="label">Live preview</p>
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-4 space-y-3">
@@ -152,7 +152,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             </div>
           </div>
 
-          {/* Presets */}
           <div className="space-y-3">
             <p className="label">Quick colours</p>
             <div className="grid grid-cols-4 gap-2.5">
@@ -186,11 +185,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             </div>
           </div>
 
-          {/* Custom colour — hex + native colour wheel */}
           <div className="space-y-3">
             <p className="label">Custom colour</p>
             <div className="flex flex-col sm:flex-row items-stretch gap-3">
-              {/* Native colour wheel / picker */}
               <label
                 className="relative w-full sm:w-14 h-12 rounded-xl cursor-pointer overflow-hidden shrink-0"
                 style={{ background: selected, border: '1px solid var(--border-strong)' }}
@@ -238,7 +235,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             </div>
           </div>
 
-          {/* Bill reminders */}
           <div className="space-y-3">
             <p className="label flex items-center gap-1.5"><Bell className="w-3 h-3" /> Notifications</p>
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] divide-y divide-[var(--border)]">
@@ -321,7 +317,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             </p>
           </div>
 
-          {/* Creator / support */}
           <div className="space-y-3">
             <p className="label">About the maker</p>
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-4 space-y-3">
@@ -368,7 +363,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             </div>
           </div>
 
-          {/* Footer */}
           <div className="flex items-center justify-between gap-3 pt-1 border-t border-[var(--border)]">
             <button
               type="button"

@@ -7,6 +7,7 @@ import {
   describeAlert,
   getBillAlerts,
   getNotificationSettings,
+  NOTIFICATION_SETTINGS_CHANGED,
   NotificationSettings,
   syncSystemNotifications,
 } from '../utils/notifications';
@@ -25,9 +26,13 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
   const [open, setOpen] = useState(false);
   const [settings, setSettings] = useState<NotificationSettings>(() => getNotificationSettings());
 
-  // Re-read settings whenever the panel opens (they may have changed in Settings).
+  // Settings are edited in a separate modal, so refresh when it saves as well
+  // as when the panel is opened.
   useEffect(() => {
-    if (open) setSettings(getNotificationSettings());
+    const refresh = () => setSettings(getNotificationSettings());
+    if (open) refresh();
+    window.addEventListener(NOTIFICATION_SETTINGS_CHANGED, refresh);
+    return () => window.removeEventListener(NOTIFICATION_SETTINGS_CHANGED, refresh);
   }, [open]);
 
   const alerts = useMemo<BillAlert[]>(() => {
@@ -83,7 +88,6 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
             aria-label="Bill reminders"
             className="fixed z-50 top-[58px] right-2 sm:right-4 w-[calc(100vw-16px)] sm:w-[360px] max-w-[360px] max-h-[min(520px,calc(100vh-72px))] flex flex-col rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] shadow-2xl overflow-hidden"
           >
-            {/* Header */}
             <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-[var(--border)] shrink-0">
               <div className="flex items-center gap-2 min-w-0">
                 <Bell className="w-4 h-4 shrink-0" style={{ color: 'var(--accent)' }} />
@@ -103,7 +107,6 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
               </button>
             </div>
 
-            {/* Alerts */}
             <div className="flex-1 overflow-y-auto overscroll-contain p-2 space-y-1.5">
               {!settings.enabled ? (
                 <div className="px-4 py-8 text-center space-y-2">
@@ -163,7 +166,6 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
               )}
             </div>
 
-            {/* Footer */}
             <div className="flex items-center justify-between gap-2 px-3 py-2.5 border-t border-[var(--border)] shrink-0">
               <button
                 onClick={() => { setOpen(false); onOpenSettings(); }}

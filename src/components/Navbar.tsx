@@ -17,20 +17,16 @@ import { ClearDataModal } from './ClearDataModal';
 import { SettingsModal } from './SettingsModal';
 import { NotificationCenter } from './NotificationCenter';
 
-export type TabType = 'dashboard' | 'bills' | 'paydays' | 'expenses' | 'reports' | 'history' | 'settings';
+export type TabType = 'dashboard' | 'bills' | 'paydays' | 'expenses' | 'reports' | 'history';
 
 interface NavbarProps {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
-  onOpenBillModal: () => void;
-  onOpenExpenseModal: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
-  onOpenBillModal,
-  onOpenExpenseModal,
 }) => {
   const { exportData, importData } = usePayday();
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
@@ -44,7 +40,8 @@ export const Navbar: React.FC<NavbarProps> = ({
     link.href = url;
     link.download = `midnight_ledger_backup_${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
-    URL.revokeObjectURL(url);
+    // Defer revocation so the WebView has a chance to start the download.
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,7 +60,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       }
     };
     reader.readAsText(file);
-    e.target.value = ''; // reset input
+    e.target.value = '';
   };
 
   return (
@@ -72,7 +69,6 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="w-full px-[clamp(10px,3.2vw,32px)]">
           <div className="flex items-center justify-between h-[54px]">
           
-          {/* Wordmark */}
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
             <div className="w-7 h-7 rounded-[9px] border border-[var(--border-strong)] bg-[var(--surface-2)] flex items-center justify-center">
               <Moon className="w-4 h-4 text-[var(--accent)]" strokeWidth={2.2} fill="currentColor" />
@@ -82,7 +78,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             </span>
           </div>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1 bg-[var(--surface)] p-1 rounded-[10px] border border-[var(--border)]">
             <button
               id="tab-dashboard"
@@ -157,7 +152,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           </nav>
 
-          {/* Quick Actions */}
           <div className="flex items-center gap-2">
 
             {/* Bill reminders + Appearance settings — on every screen size */}
@@ -175,7 +169,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Settings className="w-4 h-4" />
             </button>
 
-            {/* Export & Import */}
             <div className="hidden lg:flex items-center gap-1 border-l border-[var(--border)] pl-2">
               <button
                 onClick={handleExport}

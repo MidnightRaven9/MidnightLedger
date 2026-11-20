@@ -1,18 +1,44 @@
-# 💜 Code of Conduct 🌙
+# Code of Conduct
 
-### 🌟 Our Pledge
-We pledge to make participation in MidnightLedger a harassment-free experience for everyone ✨
+## Our pledge
 
-### ✅ Standards
-- 🤝 Be respectful and inclusive
-- 💜 Welcome different viewpoints
-- 🌱 Focus on what is best for community
+We want participation in MidnightLedger to be a harassment-free experience for
+everyone, regardless of experience level, gender identity and expression,
+sexual orientation, disability, personal appearance, body size, race, ethnicity,
+age, religion or nationality.
 
-### 🚫 Not Tolerated
-- Harassment, discrimination, hate speech
-- Trolling or personal attacks
+## Expected behaviour
 
-### 📧 Reporting
-Contact: MidnightRaven9 on GitHub 💌
+- Be respectful and constructive.
+- Welcome different viewpoints and experiences.
+- Give and accept feedback gracefully.
+- Focus on what is best for the project and its users.
 
-We’re building a cozy corner of the internet for budgeting 🌃💜
+## Unacceptable behaviour
+
+- Harassment, discrimination or hate speech
+- Personal or political attacks
+- Public or private intimidation
+- Publishing others' private information without permission
+- Sustained disruption of discussion
+
+## Scope
+
+This applies in all project spaces — issues, pull requests, discussions and
+any public representation of the project.
+
+## Enforcement
+
+Project maintainers are responsible for clarifying these standards and may
+remove, edit or reject comments, commits, code, issues and other contributions
+that do not align with this Code of Conduct. Repeated or serious breaches may
+result in a temporary or permanent ban.
+
+Report unacceptable behaviour privately to
+[MidnightRaven9 on GitHub](https://github.com/MidnightRaven9). Reports will be
+reviewed promptly and handled confidentially.
+
+## Attribution
+
+Adapted from the [Contributor Covenant](https://www.contributor-covenant.org/),
+version 2.1.

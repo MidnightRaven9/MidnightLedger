@@ -1,25 +1,30 @@
 ---
-name: "🐛 Bug Report"
-about: "Something broke? Let us know! 💜"
-title: "🐛 [BUG] "
+name: "Bug report"
+about: "Report something that is not working"
+title: "[BUG] "
 labels: bug
 ---
 
-### 📝 Describe the bug
-A clear description 🌙
+### Describe the bug
 
-### 🔁 To Reproduce
-1. Go to '...'
-2. Click on '...'
-3. See error
+A clear description of what went wrong.
 
-### 🤔 Expected behavior
-What you expected ✨
+### To reproduce
 
-### 📸 Screenshots
-If applicable, add screenshots 💜
+1. Open the app on the Paydays tab
+2. Tap Mark All Paid
+3. The confirmation dialog does not appear
 
-### 📱 Device
-- OS: [e.g. iOS]
-- Browser: [e.g. chrome, safari]
-- Version: [e.g. 22]
+### Expected behavior
+
+What you expected to happen.
+
+### Screenshots
+
+If applicable, add screenshots.
+
+### Environment
+
+- App version: [e.g. 3.2.0]
+- Device or browser: [e.g. Pixel 8, Chrome 131]
+- Install method: [APK / PWA / dev server]

@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { X, Calendar, Settings, Save, Check } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, Settings, Save, Check } from 'lucide-react';
 import { ScheduleFrequency } from '../types';
 import { usePayday } from '../context/PaydayContext';
+import { toISODateString } from '../utils/dateUtils';
+import { useEscapeToClose } from '../utils/useEscapeToClose';
 
 interface ScheduleModalProps {
   isOpen: boolean;
@@ -12,13 +14,25 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  useEscapeToClose(isOpen, onClose);
+
   const { schedule, updateSchedule } = usePayday();
 
   const [frequency, setFrequency] = useState<ScheduleFrequency>(schedule.frequency);
-  const [anchorDate, setAnchorDate] = useState(schedule.anchorDate || new Date().toISOString().slice(0, 10));
+  const [anchorDate, setAnchorDate] = useState(schedule.anchorDate || toISODateString(new Date()));
   const [firstDay, setFirstDay] = useState(schedule.firstDayOfMonth || 1);
   const [secondDay, setSecondDay] = useState(schedule.secondDayOfMonth || 15);
   const [monthlyDay, setMonthlyDay] = useState(schedule.monthlyDay || 15);
+
+  // The modal stays mounted, so reload the draft each time it is opened.
+  useEffect(() => {
+    if (!isOpen) return;
+    setFrequency(schedule.frequency);
+    setAnchorDate(schedule.anchorDate || toISODateString(new Date()));
+    setFirstDay(schedule.firstDayOfMonth || 1);
+    setSecondDay(schedule.secondDayOfMonth || 15);
+    setMonthlyDay(schedule.monthlyDay || 15);
+  }, [isOpen, schedule]);
 
   if (!isOpen) return null;
 
@@ -38,7 +52,6 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="w-full max-w-lg bg-[var(--surface)] rounded-3xl shadow-2xl border border-[var(--border)] overflow-hidden">
         
-        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[var(--border)] bg-[var(--surface)]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-[var(--accent-soft)] border border-[var(--border-strong)] text-[var(--accent)] flex items-center justify-center font-bold">
@@ -62,10 +75,8 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           
-          {/* Frequency Options Grid */}
           <div>
             <label className="block text-xs font-semibold text-white/80 mb-2">
               Payday Frequency
@@ -139,7 +150,6 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
             </div>
           </div>
 
-          {/* Conditional Inputs */}
           {frequency === 'biweekly' || frequency === 'weekly' ? (
             <div>
               <label className="block text-xs font-semibold text-white/80 mb-1">
@@ -202,7 +212,6 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
             </div>
           )}
 
-          {/* Actions */}
           <div className="pt-4 flex items-center justify-end gap-3 border-t border-[var(--border)]">
             <button
               type="button"

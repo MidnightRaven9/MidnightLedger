@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
-import { 
-  BarChart2, 
-  PieChart as PieChartIcon, 
-  TrendingUp, 
-  Filter, 
-  DollarSign, 
-  Calendar, 
-  Layers, 
-  CheckCircle2 
+import {
+  BarChart2,
+  PieChart as PieChartIcon,
+  TrendingUp
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -16,9 +11,8 @@ import {
   Line, 
   XAxis, 
   YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   ReferenceLine
 } from 'recharts';
@@ -79,9 +73,8 @@ const CustomActiveDot = (props: any) => {
 };
 
 export const ReportsView: React.FC = () => {
-  const { summaries, bills, nextPaydaySummary, customBillCategories, customExpenseCategories } = usePayday();
+  const { summaries, nextPaydaySummary, customBillCategories, customExpenseCategories } = usePayday();
 
-  // Combine default categories with any custom categories
   const allCategories = Array.from(
     new Set([
       ...CATEGORIES_LIST,
@@ -90,17 +83,13 @@ export const ReportsView: React.FC = () => {
     ])
   );
 
-  // Category Filter State for reports breakdown
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
-  // Payday selector for Chart A
   const [selectedPaydayDate, setSelectedPaydayDate] = useState<string>(
     nextPaydaySummary?.payday.date || (summaries[0]?.payday.date || '')
   );
 
-  // Active payday summary for Chart A
   const activeSummary = summaries.find(s => s.payday.date === selectedPaydayDate) || nextPaydaySummary || summaries[0];
 
-  // Filter bills for Chart A if category filter is active
   const isSelectedCategoryMatch = (cat?: string) => {
     if (selectedCategory === 'ALL') return true;
     if (cat === selectedCategory) return true;
@@ -113,7 +102,6 @@ export const ReportsView: React.FC = () => {
     ? activeSummary.assignedBills.filter(b => isSelectedCategoryMatch(b.bill.category))
     : [];
 
-  // Active period categories list for breakdown display below Chart A
   const activePeriodCategoryMap: Record<string, { amount: number; fullAmount: number; count: number }> = {};
   let activePeriodTotal = 0;
   
@@ -160,18 +148,16 @@ export const ReportsView: React.FC = () => {
     };
   }).sort((a, b) => b.amount - a.amount);
 
-  // Data for Chart B: Income vs Expenses over pay periods
   const incomeVsExpensesData = summaries.map(s => {
     const label = formatDate(s.payday.date, 'short');
     const income = s.estimatedCheck || 0;
 
-    // Filter expenses if category is selected
     const filteredBillsTotal = s.assignedBills
-      .filter(b => selectedCategory === 'ALL' || b.bill.category === selectedCategory)
+      .filter(b => isSelectedCategoryMatch(b.bill.category))
       .reduce((sum, b) => sum + b.effectiveAmount, 0);
 
     const filteredExtraTotal = s.extraExpenses
-      .filter(e => selectedCategory === 'ALL' || e.category === selectedCategory)
+      .filter(e => isSelectedCategoryMatch(e.category))
       .reduce((sum, e) => sum + e.amount, 0);
 
     const totalExpenses = filteredBillsTotal + filteredExtraTotal;
@@ -185,7 +171,6 @@ export const ReportsView: React.FC = () => {
     };
   });
 
-  // Data for Chart C: Future Projection of Money Left Over
   let runningCumulativeBuffer = 0;
   const projectionData = summaries.map((s, index) => {
     const shortDate = formatDate(s.payday.date, 'short');
@@ -205,7 +190,6 @@ export const ReportsView: React.FC = () => {
     };
   });
 
-  // Custom Recharts Tooltip for Income vs Expenses
   const BarTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -227,7 +211,6 @@ export const ReportsView: React.FC = () => {
     return null;
   };
 
-  // Custom Tooltip for Line Chart
   const LineTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -271,7 +254,6 @@ export const ReportsView: React.FC = () => {
   return (
     <div className="w-full max-w-[600px] mx-auto overflow-x-hidden min-h-screen bg-[var(--bg)] text-white p-4 pb-[100px]">
       
-      {/* 1. Header Section */}
       <div className="rounded-[20px] bg-[#151515] border border-[var(--border)] p-6 flex flex-col gap-4 mb-4">
         <div className="flex gap-4 items-start">
           <div style={{ width: '52px', height: '52px', background: 'var(--accent-soft)', borderRadius: '16px', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
@@ -291,7 +273,6 @@ export const ReportsView: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Filter Bar */}
       <div className="p-4 rounded-[16px] bg-[var(--surface-2)] border border-[var(--border)] flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
         <div className="flex gap-2 items-center w-full sm:w-auto">
           <span className="text-[12px] text-[var(--accent)]">▽</span>
@@ -314,7 +295,6 @@ export const ReportsView: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. CHART A SECTION */}
       <div className="p-5 rounded-[20px] bg-[var(--surface-2)] border border-[var(--border)] mb-4 flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[var(--border)]">
           <div>
@@ -327,7 +307,6 @@ export const ReportsView: React.FC = () => {
             </p>
           </div>
 
-          {/* Payday Selector dropdown */}
           <div className="flex items-center gap-2 min-w-0">
             <span className="shrink-0 text-[13px] text-[var(--muted)] font-medium">Check:</span>
             <select
@@ -384,7 +363,6 @@ export const ReportsView: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. CHART B SECTION */}
       <div className="p-5 rounded-[20px] bg-[var(--surface-2)] border border-[var(--border)] mb-4 flex flex-col gap-4">
         <div className="pb-2 border-b border-[var(--border)]">
           <h2 className="text-[18px] font-bold text-white leading-[1.2] flex items-center gap-2">
@@ -396,7 +374,6 @@ export const ReportsView: React.FC = () => {
           </p>
         </div>
 
-        {/* Custom Legend */}
         <div className="flex gap-4 justify-center items-center py-1 text-[12px] font-semibold">
           <span className="flex items-center gap-1.5 text-zinc-300">
             <span className="w-3 h-3 bg-[var(--accent)] rounded-xs shrink-0" /> Income
@@ -436,7 +413,6 @@ export const ReportsView: React.FC = () => {
         </div>
       </div>
 
-      {/* CHART C SECTION */}
       <div className="p-5 rounded-[20px] bg-[var(--surface-2)] border border-[var(--border)] mb-4 flex flex-col gap-4">
         <div className="pb-2 border-b border-[var(--border)]">
           <h2 className="text-[18px] font-bold text-white leading-[1.2] flex items-center gap-2">
@@ -448,7 +424,6 @@ export const ReportsView: React.FC = () => {
           </p>
         </div>
 
-        {/* Custom Legend Overlay */}
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[12px] font-semibold select-none py-1">
           <div className="flex items-center gap-1.5">
             <span className="w-3 h-3 border-2 border-dashed border-[#00FF94] bg-transparent shrink-0" />

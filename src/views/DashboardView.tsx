@@ -1,40 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Calendar, 
-  Receipt, 
-  CheckCircle2, 
-  ChevronDown, 
-  ChevronUp, 
-  ArrowRight,
-  Sparkles,
-  PlusCircle,
-  AlertCircle,
-  Circle,
+import {
+  Calendar,
+  Receipt,
+  CheckCircle2,
+  ChevronDown,
   Check,
-  DollarSign,
   Plus,
-  Settings,
-  TrendingUp,
-  Award,
   Clock,
-  Trash2,
-  Edit3, Edit2
+  Edit2
 } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
 import { formatDate, formatCurrency, parseISODate } from '../utils/dateUtils';
-import { getCategoryEmoji, CATEGORY_EMOJIS, triggerConfetti } from '../utils/emojis';
+import { getCategoryEmoji } from '../utils/emojis';
 import { tryCelebrate } from '../utils/celebrate';
 import { PaydaySummary } from '../types';
 import { CategoryPieChart } from '../components/CategoryPieChart';
 import { EditItemsModal } from '../components/EditItemsModal';
 import { getCategoryColor } from '../utils/categoryColors';
-import { BillCard } from '../components/BillCard';
 
 interface PaycheckCardProps {
   summaryItem: PaydaySummary;
   initialOpen?: boolean;
-  onOpenBillModal: (billToEdit?: any) => void;
-  onNavigateToTab: (tab: 'bills' | 'paydays' | 'expenses' | 'reports' | 'history') => void;
   onEditItems: (date: string) => void;
   toggleBillPaid: (billId: string, date: string) => void;
 }
@@ -42,11 +28,12 @@ interface PaycheckCardProps {
 
 function useAnimatedNumber(value: number, duration: number = 200) {
   const [displayValue, setDisplayValue] = useState(value);
+  const currentRef = useRef(value);
 
   useEffect(() => {
     let startTime: number;
     let animationFrame: number;
-    const startValue = displayValue;
+    const startValue = currentRef.current;
     const change = value - startValue;
 
     if (change === 0) return;
@@ -55,15 +42,17 @@ function useAnimatedNumber(value: number, duration: number = 200) {
       if (!startTime) startTime = timestamp;
       const progress = timestamp - startTime;
       const percentage = Math.min(progress / duration, 1);
-      
-      // ease out cubic
+
       const easeProgress = 1 - Math.pow(1 - percentage, 3);
-      
-      setDisplayValue(startValue + change * easeProgress);
+
+      const next = startValue + change * easeProgress;
+      currentRef.current = next;
+      setDisplayValue(next);
 
       if (percentage < 1) {
         animationFrame = requestAnimationFrame(animate);
       } else {
+        currentRef.current = value;
         setDisplayValue(value);
       }
     };
@@ -78,13 +67,11 @@ function useAnimatedNumber(value: number, duration: number = 200) {
 const PaycheckCard: React.FC<PaycheckCardProps> = ({
   summaryItem,
   initialOpen = false,
-  onOpenBillModal,
-  onNavigateToTab,
   onEditItems,
   toggleBillPaid,
 }) => {
 
-  const { markAllBillsPaidInPayday, unmarkAllBillsPaidInPayday, paidStatuses, setVariableOverride, showToast } = usePayday();
+  const { paidStatuses, setVariableOverride } = usePayday();
   const [editingVariableId, setEditingVariableId] = useState<string | null>(null);
   const [tempAmount, setTempAmount] = useState('');
   const [isOpen, setIsOpen] = useState(initialOpen);
@@ -122,7 +109,6 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
   if (billsCount > 0) subtitleParts.push(`${billsCount} bill${billsCount === 1 ? '' : 's'}`);
   if (expensesCount > 0) subtitleParts.push(`${expensesCount} expense${expensesCount === 1 ? '' : 's'}`);
   if (oneTimeCount > 0) subtitleParts.push(`${oneTimeCount} one-time`);
-  const subtitleItemsStr = subtitleParts.join(' + ') || '0 items';
 
   const allItems = [
     ...summaryItem.assignedBills.map(assigned => {
@@ -476,10 +462,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     nextPaydaySummary, 
     updatePayday, 
     toggleBillPaid, 
-    deleteBillOccurrence, 
-    deleteExtraExpense, 
-    deleteExtraIncome, 
-    setVariableOverride, 
     bills,
     viewMode
   , paidStatuses } = usePayday();
@@ -510,15 +492,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const activeSummary = nextPaydaySummary || summaries[0];
 
-  // Current active index in the carousel
   const [currentPaydayIndex, setCurrentPaydayIndex] = useState(0);
 
-  // Initialize expanded dates so the active payday is expanded by default, and others are collapsed.
-  const [expandedTimelineDates, setExpandedTimelineDates] = useState<Record<string, boolean>>(() => {
+  const [, setExpandedTimelineDates] = useState<Record<string, boolean>>(() => {
     return activeSummary ? { [activeSummary.payday.date]: true } : {};
   });
 
-  // Hero Edit Est Check state
   const [editingEstCheckId, setEditingEstCheckId] = useState<string | null>(null);
   const [tempEstCheck, setTempEstCheck] = useState('');
 
@@ -554,29 +533,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const {
     payday,
-    nextPaydayDate,
     assignedBills,
     extraExpenses,
-    extraIncomes = [],
-    totalBills,
-    totalExtraExpenses,
-    totalExtraIncome = 0,
-    totalOutflow,
-    estimatedCheck,
-    totalAvailable,
-    leftOver,
-    status
   } = activeSummary;
-
-  const displayTotalBills = viewMode === 'myShare'
-    ? totalBills
-    : assignedBills.reduce((sum, item) => {
-        const fullTotal = item.bill.isSplit ? (item.bill.fullTotal || item.bill.amount) : item.effectiveAmount;
-        return sum + fullTotal;
-      }, 0);
-
-  const paidBillsCount = assignedBills.filter(b => b.isPaid).length;
-  const allBillsPaid = assignedBills.length > 0 && paidBillsCount === assignedBills.length;
 
   const handleSaveEstCheck = (pDay: any) => {
     const val = parseFloat(tempEstCheck);
@@ -587,22 +546,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     setEditingEstCheckId(null);
   };
 
-  const handleMarkAllPaid = () => {
-    assignedBills.forEach(b => {
-      if (!b.isPaid) {
-        toggleBillPaid(b.bill.id, payday.date);
-      }
-    });
-  };
-
-  const toggleTimelineRow = (date: string) => {
-    setExpandedTimelineDates(prev => ({
-      ...prev,
-      [date]: !prev[date]
-    }));
-  };
-
-  // Spending by Category aggregation
   const categorySummaryMap: Record<string, { amount: number; fullAmount: number; count: number; billCount: number; expCount: number; items: any[] }> = {};
   let totalPeriodAmount = 0;
 
@@ -676,7 +619,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="w-full max-w-[600px] mx-auto min-h-screen bg-[var(--bg)] text-white p-4 box-border pb-32 space-y-4">
-      {/* 1. UPCOMING PAYDAY HEADER CAROUSEL */}
       <div className="space-y-4">
         <div 
           className="payday-slider flex overflow-x-auto snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
@@ -765,7 +707,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     boxSizing: 'border-box'
                   }}
                 >
-                  {/* Top Row */}
                   <div className="flex flex-row items-center justify-between gap-2 w-full flex-wrap">
                     <div 
                       className="inline-flex items-center gap-1.5 bg-[var(--accent-soft)] border border-[var(--accent)] rounded-full w-fit shrink-0 text-[var(--accent)] uppercase"
@@ -778,7 +719,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     </span>
                   </div>
 
-                  {/* Title Date & Swipe Hint */}
                   <div className="flex items-center justify-between w-full min-w-0" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div style={{ width: '48px', height: '48px', background: 'var(--accent-soft)', borderRadius: '12px', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
@@ -798,7 +738,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     )}
                   </div>
 
-                  {/* Action Grid */}
                   <div className="grid gap-2 w-full" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 132px), 1fr))' }}>
                     <button
                       type="button"
@@ -846,12 +785,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     </button>
                   </div>
 
-                  {/* Divider */}
                   <div style={{ height: '1px', background: 'var(--border)', margin: '4px 0' }} className="w-full" />
 
                   {/* Stats Grid — single column on narrow phones so nothing is smushed */}
                   <div className="grid gap-2.5 w-full" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))' }}>
-                    {/* Estimated Check */}
                     <div 
                       onClick={() => {
                         setTempEstCheck(sEstimatedCheck !== null ? String(sEstimatedCheck) : '');
@@ -885,7 +822,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <p style={{ fontSize: '10px', color: 'var(--faint)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Expected deposit</p>
                     </div>
 
-                    {/* Bills Due */}
                     <div style={{ padding: '14px 12px', borderRadius: '16px', background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, overflow: 'hidden' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', minWidth: 0 }}>
                         <span style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.2 }}>Bills Due</span>
@@ -901,7 +837,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       </p>
                     </div>
 
-                    {/* Extra Expenses */}
                     <div style={{ padding: '14px 10px', borderRadius: '16px', background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, overflow: 'hidden' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', width: '100%', minWidth: 0 }}>
                         <span style={{ fontSize: '12px', color: 'var(--muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0 }}>Expenses</span>
@@ -915,7 +850,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <p style={{ fontSize: '10px', color: 'var(--faint)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Non-recurring</p>
                     </div>
 
-                    {/* MONEY LEFT OVER */}
                     <div style={{ padding: '14px 12px', borderRadius: '16px', background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, overflow: 'hidden' }}>
                       <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.04em', color: 'var(--accent)', whiteSpace: 'nowrap', display: 'block' }}>
                         MONEY LEFT OVER ✓
@@ -927,7 +861,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Allocation Progress */}
                   <div className="space-y-2 mt-1">
                     <div className="flex justify-between" style={{ fontSize: '13px', color: 'var(--muted)' }}>
                       <span>Paycheck Allocation</span>
@@ -943,7 +876,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Checklist View Button */}
                   <button
                     type="button"
                     onClick={() => {
@@ -962,7 +894,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           })}
         </div>
         
-        {/* Pagination Dots */}
         {orderedSummaries.length > 1 && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', margin: '8px 0 12px' }}>
             {orderedSummaries.map((s, idx) => {
@@ -984,7 +915,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         )}
       </div>
 
-      {/* 2. SPENDING BY CATEGORY THIS CHECK CARD */}
       <div 
         style={{ padding: '20px', borderRadius: '20px', background: 'var(--surface-2)', border: '1px solid var(--border)', marginBottom: '16px' }}
         className="space-y-4"
@@ -1095,7 +1025,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           )}
         </div>
 
-        {/* Visual Donut Allocation Card inside */}
         <div style={{ padding: '16px', borderRadius: '16px', background: '#141414', border: '1px dashed var(--border)', textAlign: 'center' }}>
           <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>
             Visual Donut Allocation
@@ -1114,10 +1043,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* 3. DASHBOARD STATS COLUMN */}
       <div className="grid gap-2.5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', marginBottom: '16px' }}>
         
-        {/* Total Monthly Bills */}
         <div style={{ padding: '12px 10px', borderRadius: '16px', background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, overflow: 'hidden' }}>
           <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'var(--accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', flexShrink: 0 }}>
             <Receipt className="w-4 h-4" />
@@ -1133,7 +1060,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        {/* Upcoming Paydays */}
         <div style={{ padding: '12px 10px', borderRadius: '16px', background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, overflow: 'hidden' }}>
           <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'var(--accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', flexShrink: 0 }}>
             <Calendar className="w-4 h-4" />
@@ -1149,7 +1075,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        {/* Bill Mix */}
         <div style={{ padding: '12px 10px', borderRadius: '16px', background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, overflow: 'hidden' }}>
           <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'var(--accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', flexShrink: 0 }}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1167,7 +1092,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        {/* Extra Expenses */}
         <div style={{ padding: '12px 10px', borderRadius: '16px', background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, overflow: 'hidden' }}>
           <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f87171', flexShrink: 0 }}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1187,7 +1111,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       </div>
 
-      {/* 4. PAYCHECK TIMELINE & BILL CHECKLISTS */}
       <div id="timeline-section" className="space-y-4" style={{ marginBottom: '16px' }}>
         <div>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1225,8 +1148,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               key={summaryItem.payday.date}
               summaryItem={summaryItem}
               initialOpen={summaryItem.payday.date === activeSummary?.payday.date}
-              onOpenBillModal={onOpenBillModal}
-              onNavigateToTab={onNavigateToTab}
               onEditItems={setEditItemsDate}
               toggleBillPaid={toggleBillPaid}
             />

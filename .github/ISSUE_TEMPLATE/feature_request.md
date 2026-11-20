@@ -1,7 +1,7 @@
 ---
-name: "✨ Feature Request"
-about: "Have a cool idea? 💜🌙"
-title: "✨ [FEATURE] "
+name: "Feature request"
+about: "Suggest an improvement"
+title: "[FEATURE] "
 labels: enhancement
 ---
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, DollarSign, Calendar, Tag, Coins, Sparkles } from 'lucide-react';
+import { X, Calendar, Tag, Coins, Sparkles } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
 import { toISODateString, formatDate, formatCurrency } from '../utils/dateUtils';
+import { useEscapeToClose } from '../utils/useEscapeToClose';
 
 interface AddExtraIncomeModalProps {
   isOpen: boolean;
@@ -14,6 +15,8 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
   onClose,
   initialPaydayDate,
 }) => {
+  useEscapeToClose(isOpen, onClose);
+
   const { summaries, addExtraIncome } = usePayday();
 
   const [amount, setAmount] = useState<string>('');
@@ -29,7 +32,6 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
       setDateAdded(toISODateString(new Date()));
       setError(null);
 
-      // Default target payday date
       if (initialPaydayDate) {
         setTargetPaydayDate(initialPaydayDate);
       } else if (summaries.length > 0) {
@@ -81,10 +83,8 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
         className="w-full max-w-md rounded-3xl bg-[var(--surface)] border border-[var(--accent)]/40 p-6 sm:p-7 text-white shadow-2xl relative overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
-        {/* Glow background accent */}
         <div className="absolute -top-20 -right-20 w-56 h-56 bg-[var(--accent-soft)] rounded-full blur-3xl pointer-events-none" />
 
-        {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-[var(--border)] pb-4 mb-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-[var(--accent-soft)] border border-[var(--border-strong)] text-[var(--accent)] flex items-center justify-center font-bold shadow-md">
@@ -108,7 +108,6 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
           </button>
         </div>
 
-        {/* Form Body */}
         <form onSubmit={handleSubmit} className="space-y-4">
           
           {error && (
@@ -117,7 +116,6 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
             </div>
           )}
 
-          {/* Amount Field */}
           <div>
             <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
               Amount Received ($)
@@ -140,7 +138,6 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
             </div>
           </div>
 
-          {/* Source Description */}
           <div>
             <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
               Source / Description
@@ -161,7 +158,6 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
             </div>
           </div>
 
-          {/* Date Added & Target Pay Period */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
@@ -196,7 +192,6 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="pt-3 flex items-center justify-end gap-2 border-t border-[var(--border)] mt-5">
             <button
               type="button"

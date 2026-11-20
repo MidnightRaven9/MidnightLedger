@@ -1,6 +1,27 @@
-# 📜 Changelog 🌙💜
+# Changelog
 
-All notable changes to MidnightLedger ✨
+All notable changes to MidnightLedger.
+
+## [3.2.1] - 2026-11-20
+
+Security hardening, correctness fixes and UI polish from a full end-to-end audit. No new features; existing data and layouts are unchanged.
+
+### Fixed
+- Pay periods for monthly and twice-monthly schedules now end on the configured payday instead of a fixed offset
+- Split-bill shares are computed from one shared helper across the dashboard, reports and totals
+- Reports category filter now matches aliased categories (Subscriptions / Streaming Subscriptions) consistently
+- Recurring bills stored with slash-formatted due dates are sorted by the correct day
+- Notification settings edited in Settings now refresh the reminder panel immediately
+- Paid bills follow the selected accent colour instead of a leftover gold theme
+- The animated dashboard totals no longer jump when values change mid-animation
+- Modal dialogs close with the Escape key across all screens
+
+### Changed
+- Hardened the optional API server: bounded rate limits, strict input validation, no permissive CORS, and safe logging
+- Worker API returns a clear 503 when no D1 binding is configured instead of failing at runtime
+- Android backups are disabled; app data stays on the device
+- Removed dead components, utilities and unused imports; enabled strict unused-symbol checks in TypeScript
+- Screenshots and documentation refreshed; comments cleaned to keep only rationale, not narration
 
 ## [3.2.0] - 2026-11-20 🔔
 ### ✨ Added

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { X, Receipt, Save, Users, CreditCard, Smile } from 'lucide-react';
-import { Bill, BillCategory, BillType, SplitType } from '../types';
+import { X, Receipt, Save, Users, CreditCard } from 'lucide-react';
+import { Bill, BillCategory, BillType } from '../types';
 import { usePayday } from '../context/PaydayContext';
 import { suggestEmoji, getCategoryEmoji } from '../utils/emojis';
 import { formatCurrency } from '../utils/dateUtils';
 import { CustomCategoryModal } from './CustomCategoryModal';
 import { ManageCategoriesModal } from './ManageCategoriesModal';
+import { useEscapeToClose } from '../utils/useEscapeToClose';
 
 interface BillModalProps {
   isOpen: boolean;
@@ -27,26 +28,13 @@ const defaultBillCategories = [
   { name: 'Other', emoji: '📦' },
 ];
 
-const CATEGORIES: BillCategory[] = [
-  'Housing',
-  'Utilities',
-  'Car',
-  'Insurance',
-  'Phone & Internet',
-  'Subscriptions',
-  'Food & Household',
-  'Debt & Credit',
-  'Savings',
-  'Other',
-];
-
-const QUICK_EMOJIS = ['🏠', '⚡', '🛡️', '📱', '🎬', '🍔', '⛽', '🛒', '🐾', '🎮', '💳', '🏦', '💸', '☕'];
-
 export const BillModal: React.FC<BillModalProps> = ({
   isOpen,
   onClose,
   billToEdit,
 }) => {
+  useEscapeToClose(isOpen, onClose);
+
   const { addBill, updateBill, customBillCategories, addCustomBillCategory } = usePayday();
 
   const [name, setName] = useState('');
@@ -58,18 +46,12 @@ export const BillModal: React.FC<BillModalProps> = ({
   const [isManageCategoriesModalOpen, setIsManageCategoriesModalOpen] = useState(false);
   const [notes, setNotes] = useState('');
 
-  // Standard or My Share Amount
   const [amount, setAmount] = useState('');
 
-  // Split Bill State
   const [isSplit, setIsSplit] = useState(false);
   const [fullTotal, setFullTotal] = useState('');
-  const [splitType, setSplitType] = useState<SplitType>('even');
   const [splitCount, setSplitCount] = useState('2');
-  const [mySharePercentage, setMySharePercentage] = useState('50');
-  const [customMyShare, setCustomMyShare] = useState('');
 
-  // Debt State
   const [isDebt, setIsDebt] = useState(false);
   const [totalBalance, setTotalBalance] = useState('');
   const [interestRate, setInterestRate] = useState('');
@@ -79,7 +61,7 @@ export const BillModal: React.FC<BillModalProps> = ({
       setName(billToEdit.name);
       setCustomEmoji(billToEdit.emoji || suggestEmoji(billToEdit.name) || getCategoryEmoji(billToEdit.category));
       setDueDate(String(billToEdit.dueDate));
-      setType(billToEdit.type);
+      setType(String(billToEdit.type).toLowerCase() as BillType);
       setCategory(billToEdit.category);
       setNotes(billToEdit.notes || '');
 
@@ -92,18 +74,12 @@ export const BillModal: React.FC<BillModalProps> = ({
 
       if (splitActive) {
         setFullTotal(String(billToEdit.fullTotal || billToEdit.amount));
-        setSplitType('even');
         setSplitCount(String(billToEdit.splitWays || billToEdit.splitCount || 2));
-        setMySharePercentage('50');
-        setCustomMyShare('');
         setAmount(String(billToEdit.amount));
       } else {
         setAmount(String(billToEdit.amount));
         setFullTotal(String(billToEdit.amount));
-        setSplitType('even');
         setSplitCount('2');
-        setMySharePercentage('50');
-        setCustomMyShare('');
       }
     } else {
       setName('');
@@ -120,16 +96,12 @@ export const BillModal: React.FC<BillModalProps> = ({
       setIsSplit(false);
       setAmount('');
       setFullTotal('');
-      setSplitType('even');
       setSplitCount('2');
-      setMySharePercentage('50');
-      setCustomMyShare('');
     }
   }, [billToEdit, isOpen]);
 
   if (!isOpen) return null;
 
-  // Derive calculated My Share
   const fullTotalNum = parseFloat(fullTotal) || 0;
   const splitCountNum = parseInt(splitCount, 10) || 2;
 
@@ -238,7 +210,6 @@ export const BillModal: React.FC<BillModalProps> = ({
     <div className="fixed inset-0 z-[9999] edit-modal-overlay flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
       <div className="w-full max-w-lg bg-[var(--surface)] rounded-3xl shadow-2xl border border-[var(--border)] overflow-hidden max-h-[90vh] flex flex-col edit-bill-modal edit-modal-content z-[10000] relative">
         
-        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[var(--border)] bg-[var(--surface)] shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-[var(--accent-soft)] border border-[var(--border-strong)] text-[var(--accent)] flex items-center justify-center font-bold">
@@ -262,10 +233,8 @@ export const BillModal: React.FC<BillModalProps> = ({
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1 modal-content scrollbar-hide w-full max-w-full overflow-x-hidden box-border">
           
-          {/* Bill Name & Custom Emoji */}
           <div className="w-full min-w-0 max-w-full space-y-2 box-border">
             <label className="block text-[12px] font-bold text-white/80">
               Bill Name & Emoji <span className="text-rose-400">*</span>
@@ -293,7 +262,6 @@ export const BillModal: React.FC<BillModalProps> = ({
 
           </div>
 
-          {/* Quick Fill Row / CATEGORIES */}
           <div className="w-full min-w-0 max-w-full overflow-hidden border-y border-zinc-800/50 py-2.5 px-4 flex items-center gap-2 bg-[var(--surface-2)] -mx-5 px-5" style={{ width: 'calc(100% + 40px)' }}>
             <span className="shrink-0 text-[11px] font-bold tracking-widest text-zinc-500">CATEGORIES:</span>
             <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide categories-slider" style={{ touchAction: 'pan-x', WebkitOverflowScrolling: 'touch' }}>
@@ -326,7 +294,6 @@ export const BillModal: React.FC<BillModalProps> = ({
             </div>
           </div>
 
-          {/* Due Date Row */}
           <div className="w-full min-w-0">
             <label className="block text-[13px] font-medium text-white/80 whitespace-nowrap">
               Due Date <span className="text-rose-400">*</span>
@@ -345,7 +312,6 @@ export const BillModal: React.FC<BillModalProps> = ({
 
           </div>
 
-          {/* Bill Type: Fixed vs Variable */}
           <div>
             <label className="block text-xs font-semibold text-white/80 mb-1.5">
               Bill Type
@@ -379,7 +345,6 @@ export const BillModal: React.FC<BillModalProps> = ({
             </div>
           </div>
 
-          {/* --- SPLIT BILL OPTION TOGGLE --- */}
           <div className="p-4 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] space-y-4">
             
             <div className="flex items-center justify-between">
@@ -407,7 +372,6 @@ export const BillModal: React.FC<BillModalProps> = ({
               </label>
             </div>
 
-            {/* Standard Amount Field when NOT split */}
             {!isSplit ? (
               <div>
                 <label className="block text-xs font-semibold text-white/80 mb-1">
@@ -430,7 +394,6 @@ export const BillModal: React.FC<BillModalProps> = ({
               /* Expanded Split Options Section */
               <div className="space-y-4 pt-2 border-t border-[var(--border)] animate-in fade-in duration-150">
                 
-                {/* Split ways selection dropdown */}
                 <div>
                   <label className="block text-xs font-semibold text-white/80 mb-1">
                     Split Ways
@@ -447,7 +410,6 @@ export const BillModal: React.FC<BillModalProps> = ({
                   </select>
                 </div>
 
-                {/* Full Bill Total */}
                 <div>
                   <label className="block text-xs font-semibold text-white/80 mb-1">
                     Full Bill Total ($) <span className="text-rose-400">*</span>
@@ -466,7 +428,6 @@ export const BillModal: React.FC<BillModalProps> = ({
                   </div>
                 </div>
 
-                {/* Live Auto-Calculated My Share Readout */}
                 <div className="p-3.5 rounded-xl bg-[var(--accent-soft)] border border-[var(--border-strong)] space-y-1">
                   <div className="flex items-center justify-between text-xs font-bold text-[var(--accent)]">
                     <span>Full Bill Total: {formatCurrency(fullTotalNum)}</span>
@@ -484,7 +445,6 @@ export const BillModal: React.FC<BillModalProps> = ({
 
           </div>
 
-          {/* --- DEBT & LOAN OPTIONS --- */}
           <div className="p-4 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -549,7 +509,6 @@ export const BillModal: React.FC<BillModalProps> = ({
             )}
           </div>
 
-          {/* Notes */}
           <div>
             <label className="block text-xs font-semibold text-white/80 mb-1">
               Notes (Optional)
@@ -563,7 +522,6 @@ export const BillModal: React.FC<BillModalProps> = ({
             />
           </div>
 
-          {/* Actions */}
           <div className="pt-4 flex items-center justify-end gap-3 border-t border-[var(--border)]">
             <button
               type="button"

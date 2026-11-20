@@ -1,13 +1,13 @@
-# 📦 Dependencies
-node_modules
+# Dependencies
+node_modules/
 .pnp
 .pnp.js
 
-# 🚀 Build
-build
-out
+# Build output
+build/
+out/
 
-# 🔐 Env
+# Environment / local secrets
 .env
 .env.local
 .env.*.local
@@ -16,36 +16,30 @@ out
 .env.production.local
 wrangler.toml
 .dev.vars
+.wrangler/
 
-# 📝 Logs
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 *.log
 
-# 💻 OS
+# OS / editor
 .DS_Store
 Thumbs.db
-
-# 🌙 IDE
-.vscode
-.idea
+.vscode/
+.idea/
 *.swp
 *.swo
 
-# ✨ AI Studio
-.ai-studio
+# Local databases and alternative lockfiles
 midnightledger.db
 bun.lock
-.wrangler/
-android/app/build/
-android/.gradle/
 
-# F-Droid ignore
-midnightledger.db
-bun.lock
-.wrangler/
+# Android build artifacts (local.properties holds machine-specific SDK paths)
+android/local.properties
 android/app/build/
 android/.gradle/
 android/app/src/main/assets/public/
 
+# F-Droid metadata is managed manually on GitHub

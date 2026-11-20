@@ -9,7 +9,7 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { PaydaySummary } from '../types';
-import { formatCurrency, formatDate, parseISODate } from './dateUtils';
+import { formatCurrency, formatDate, isValidISODateString, parseISODate } from './dateUtils';
 
 export type AlertKind = 'overdue' | 'today' | 'soon';
 
@@ -56,11 +56,16 @@ export function getNotificationSettings(): NotificationSettings {
   }
 }
 
+export const NOTIFICATION_SETTINGS_CHANGED = 'midnightledger:notification-settings-changed';
+
 export function saveNotificationSettings(settings: NotificationSettings): void {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   } catch {
     /* storage unavailable — settings still apply for this session */
+  }
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(NOTIFICATION_SETTINGS_CHANGED));
   }
 }
 
@@ -90,8 +95,9 @@ export function getBillAlerts(
       const paidKey = `${assigned.bill.id}::${summary.payday.date}`;
       if (paidStatuses[paidKey]) continue;
 
+      if (!isValidISODateString(assigned.dueFullDate)) continue;
       const due = parseISODate(assigned.dueFullDate);
-      if (!due || Number.isNaN(due.getTime())) continue;
+      if (Number.isNaN(due.getTime())) continue;
       due.setHours(0, 0, 0, 0);
       const daysUntil = Math.round((due.getTime() - today.getTime()) / 86400000);
       if (daysUntil > daysAhead) continue;
@@ -181,8 +187,9 @@ export async function syncSystemNotifications(
           const paidKey = `${assigned.bill.id}::${summary.payday.date}`;
           if (paidStatuses[paidKey]) continue;
 
+          if (!isValidISODateString(assigned.dueFullDate)) continue;
           const due = parseISODate(assigned.dueFullDate);
-          if (!due || Number.isNaN(due.getTime())) continue;
+          if (Number.isNaN(due.getTime())) continue;
           const key = `${assigned.bill.id}::${summary.payday.date}`;
           if (seen.has(key)) continue;
           seen.add(key);

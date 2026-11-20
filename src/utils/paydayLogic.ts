@@ -15,6 +15,7 @@ import {
   getDaysInMonth, 
   compareDates 
 } from './dateUtils';
+import { getMyShare } from './calculations';
 
 /**
  * Generate a sequence of projected paydays based on schedule parameters
@@ -180,13 +181,43 @@ export function generatePaydaysFromSchedule(
 }
 
 /**
- * Predict the next payday end date if we are at the end of the payday list
+ * Predict the next payday after the current one. Weekly/biweekly schedules are
+ * a fixed offset; monthly schedules must follow their configured day(s) or the
+ * pay period ends on the wrong date.
  */
-export function getProjectedNextPaydayDate(lastPaydayDateStr: string, frequency: ScheduleFrequency): string {
+export function getProjectedNextPaydayDate(
+  lastPaydayDateStr: string,
+  schedule?: PaydaySchedule | ScheduleFrequency,
+): string {
+  const frequency: ScheduleFrequency = typeof schedule === 'string' ? schedule : (schedule?.frequency ?? 'manual');
   if (frequency === 'weekly') return addDays(lastPaydayDateStr, 7);
   if (frequency === 'biweekly') return addDays(lastPaydayDateStr, 14);
-  if (frequency === 'twice_monthly' || frequency === 'monthly') return addDays(lastPaydayDateStr, 15);
-  return addDays(lastPaydayDateStr, 14);
+
+  const config = typeof schedule === 'object' && schedule !== null ? schedule : undefined;
+  const last = parseISODate(lastPaydayDateStr);
+  if (Number.isNaN(last.getTime())) return addDays(lastPaydayDateStr, 14);
+
+  const dayToDate = (year: number, month: number, day: number): string =>
+    toISODateString(new Date(year, month, Math.min(day, getDaysInMonth(year, month))));
+
+  const monthCandidates: string[] = [];
+  const pushMonth = (year: number, month: number) => {
+    if (frequency === 'monthly') {
+      monthCandidates.push(dayToDate(year, month, config?.monthlyDay || 15));
+    } else if (frequency === 'twice_monthly') {
+      monthCandidates.push(dayToDate(year, month, config?.firstDayOfMonth || 1));
+      monthCandidates.push(dayToDate(year, month, config?.secondDayOfMonth || 15));
+    }
+  };
+
+  pushMonth(last.getFullYear(), last.getMonth());
+  const nextMonth = new Date(last.getFullYear(), last.getMonth() + 1, 1);
+  pushMonth(nextMonth.getFullYear(), nextMonth.getMonth());
+
+  const upcoming = monthCandidates
+    .filter(date => date > lastPaydayDateStr)
+    .sort(compareDates);
+  return upcoming.length ? upcoming[0] : addDays(lastPaydayDateStr, 14);
 }
 
 /**
@@ -196,7 +227,7 @@ export function calculatePaydaySummaries(
   paydays: Payday[],
   bills: Bill[],
   extraExpenses: ExtraExpense[],
-  scheduleFrequency: ScheduleFrequency,
+  schedule: PaydaySchedule,
   variableOverrides: Record<string, number>, // `${billId}_${paydayDate}` -> override myShare amount
   paidStatuses: Record<string, boolean>, // `${billId}_${paydayDate}` -> boolean
   variableFullTotalOverrides?: Record<string, number>, // `${billId}_${paydayDate}` -> override full total amount
@@ -221,12 +252,10 @@ export function calculatePaydaySummaries(
   const sortedPaydays = Array.from(uniquePaydaysMap.values()).sort((a, b) => compareDates(a.date, b.date));
   const activeBills = bills.filter(b => b.isActive);
 
-  // Determine earliest and latest dates to generate bill occurrences
   const startDateStr = sortedPaydays[0].date;
   const lastPaydayDate = sortedPaydays[sortedPaydays.length - 1].date;
-  const endDateStr = getProjectedNextPaydayDate(lastPaydayDate, scheduleFrequency);
+  const endDateStr = getProjectedNextPaydayDate(lastPaydayDate, schedule);
 
-  // Generate all bill instances across all months in the date range
   interface BillOccurrence {
     bill: Bill;
     dueDateStr: string;
@@ -236,16 +265,12 @@ export function calculatePaydaySummaries(
   
   const startYear = parseISODate(startDateStr).getFullYear();
   const endYear = parseISODate(endDateStr).getFullYear();
-  const startMonth = parseISODate(startDateStr).getMonth();
-  const endMonth = parseISODate(endDateStr).getMonth();
 
-  // Iterate over months from 1 month before start to 1 month after end
   for (let y = startYear - 1; y <= endYear + 1; y++) {
     for (let m = 0; m < 12; m++) {
       const monthFirst = toISODateString(new Date(y, m, 1));
       const monthLast = toISODateString(new Date(y, m + 1, 0));
 
-      // Skip months way outside our payday range
       if (monthLast < addDays(startDateStr, -31) || monthFirst > addDays(endDateStr, 31)) {
         continue;
       }
@@ -263,11 +288,10 @@ export function calculatePaydaySummaries(
     }
   }
 
-  // Assign each occurrence to a payday
   return sortedPaydays.map((payday, idx) => {
     const nextPaydayDate = (idx < sortedPaydays.length - 1)
       ? sortedPaydays[idx + 1].date
-      : getProjectedNextPaydayDate(payday.date, scheduleFrequency);
+      : getProjectedNextPaydayDate(payday.date, schedule);
 
     // Bills assigned to this payday: due >= payday.date AND due < nextPaydayDate
     const assignedForThisPayday: AssignedBill[] = occurrences
@@ -294,7 +318,7 @@ export function calculatePaydaySummaries(
         const altKey = `${occ.bill.id}_${payday.date}`;
         const override = variableOverrides[key] ?? variableOverrides[altKey];
         const isOverride = override !== undefined;
-        const effectiveAmount = isOverride ? override : occ.bill.amount;
+        const effectiveAmount = isOverride ? override : getMyShare(occ.bill);
 
         const fullOverride = (variableFullTotalOverrides?.[key] ?? variableFullTotalOverrides?.[altKey]);
         const effectiveFullTotal = fullOverride !== undefined
@@ -364,7 +388,7 @@ export function calculatePaydaySummaries(
             });
             
             const override = variableOverrides[k];
-            const effectiveAmount = override !== undefined ? override : billObj.amount;
+            const effectiveAmount = override !== undefined ? override : getMyShare(billObj);
             const fullOverride = variableFullTotalOverrides?.[k];
             const effectiveFullTotal = fullOverride !== undefined ? fullOverride : (billObj.isSplit ? (billObj.fullTotal ?? billObj.amount) : billObj.amount);
 
@@ -387,10 +411,8 @@ export function calculatePaydaySummaries(
 
     const combinedAssigned = [...assignedForThisPayday, ...earlyPaidItems].sort((a, b) => compareDates(a.dueFullDate, b.dueFullDate));
 
-    // Extra expenses for this payday (matching paydayDate)
     const assignedExpenses = extraExpenses.filter(e => e.paydayDate === payday.date);
 
-    // Extra incomes for this payday (matching paydayDate)
     const assignedIncomes = extraIncomes.filter(i => i.paydayDate === payday.date);
 
     const totalBills = combinedAssigned.reduce((sum, item) => {

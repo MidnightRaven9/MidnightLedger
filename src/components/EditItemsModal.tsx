@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Receipt, ShoppingBag, MapPin } from 'lucide-react';
+import { X } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
+import { useEscapeToClose } from '../utils/useEscapeToClose';
 
 interface EditItemsModalProps {
   isOpen: boolean;
@@ -13,6 +14,8 @@ export const EditItemsModal: React.FC<EditItemsModalProps> = ({
   onClose,
   paydayDate
 }) => {
+  useEscapeToClose(isOpen, onClose);
+
   const [activeTab, setActiveTab] = useState<'bills' | 'expenses' | 'onetime'>('bills');
   const { summaries, deleteBillOccurrence, deleteExtraExpense } = usePayday();
 
@@ -46,19 +49,19 @@ export const EditItemsModal: React.FC<EditItemsModalProps> = ({
         <div className="flex px-4 pt-4 gap-2">
           <button 
             onClick={() => setActiveTab('bills')}
-            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors \${activeTab === 'bills' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--surface-2)] text-zinc-400 hover:text-white'}`}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${activeTab === 'bills' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--surface-2)] text-zinc-400 hover:text-white'}`}
           >
             Bills ({bills.length})
           </button>
           <button 
             onClick={() => setActiveTab('expenses')}
-            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors \${activeTab === 'expenses' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--surface-2)] text-zinc-400 hover:text-white'}`}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${activeTab === 'expenses' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--surface-2)] text-zinc-400 hover:text-white'}`}
           >
             Expenses ({expenses.length})
           </button>
           <button 
             onClick={() => setActiveTab('onetime')}
-            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors \${activeTab === 'onetime' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--surface-2)] text-zinc-400 hover:text-white'}`}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${activeTab === 'onetime' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--surface-2)] text-zinc-400 hover:text-white'}`}
           >
             One-Time ({oneTime.length})
           </button>

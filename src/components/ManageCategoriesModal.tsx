@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Trash2 } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
+import { useEscapeToClose } from '../utils/useEscapeToClose';
 
 interface ManageCategoriesModalProps {
   isOpen: boolean;
@@ -13,6 +14,8 @@ export const ManageCategoriesModal: React.FC<ManageCategoriesModalProps> = ({
   onClose,
   type = 'expense',
 }) => {
+  useEscapeToClose(isOpen, onClose);
+
   const { 
     customExpenseCategories, 
     deleteCustomExpenseCategory,

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { X, Calendar, Save, DollarSign } from 'lucide-react';
+import { X, Calendar, Save } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
+import { toISODateString } from '../utils/dateUtils';
+import { useEscapeToClose } from '../utils/useEscapeToClose';
 
 interface PaydayModalProps {
   isOpen: boolean;
@@ -11,12 +13,11 @@ export const PaydayModal: React.FC<PaydayModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  useEscapeToClose(isOpen, onClose);
+
   const { addPayday } = usePayday();
 
-  const [date, setDate] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  });
+  const [date, setDate] = useState(() => toISODateString(new Date()));
   const [estimatedAmount, setEstimatedAmount] = useState('1450');
   const [notes, setNotes] = useState('');
 
@@ -45,7 +46,6 @@ export const PaydayModal: React.FC<PaydayModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="w-full max-w-md bg-[var(--surface)] rounded-3xl shadow-2xl border border-[var(--border)] overflow-hidden">
         
-        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[var(--border)] bg-[var(--surface)]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-[var(--accent-soft)] border border-[var(--border-strong)] text-[var(--accent)] flex items-center justify-center font-bold">
@@ -69,10 +69,8 @@ export const PaydayModal: React.FC<PaydayModalProps> = ({
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           
-          {/* Payday Date */}
           <div>
             <label className="block text-xs font-semibold text-white/80 mb-1">
               Payday Date <span className="text-rose-400">*</span>
@@ -86,7 +84,6 @@ export const PaydayModal: React.FC<PaydayModalProps> = ({
             />
           </div>
 
-          {/* Estimated Amount */}
           <div>
             <label className="block text-xs font-semibold text-white/80 mb-1">
               Estimated Check Amount ($)
@@ -107,7 +104,6 @@ export const PaydayModal: React.FC<PaydayModalProps> = ({
             </p>
           </div>
 
-          {/* Notes */}
           <div>
             <label className="block text-xs font-semibold text-white/80 mb-1">
               Label / Notes
@@ -121,7 +117,6 @@ export const PaydayModal: React.FC<PaydayModalProps> = ({
             />
           </div>
 
-          {/* Actions */}
           <div className="pt-4 flex items-center justify-end gap-3 border-t border-[var(--border)]">
             <button
               type="button"

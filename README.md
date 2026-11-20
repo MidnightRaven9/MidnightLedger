@@ -1,85 +1,95 @@
-# 🌙 MidnightLedger ✨💜
+# MidnightLedger
 
-Dark-mode budget app for paycheck-to-paycheck planning 🌃 Built for split bills, irregular paydays, and tax estimates 💸📊
+Offline-first budgeting for people who live paycheck to paycheck. Plan irregular paydays, split bills, estimate tax, and see what is actually left to spend — without an account or a network connection.
 
-### 🚀 Live Demo
-→ https://midnightledger.justicegraff6.workers.dev ✨
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![CI](https://github.com/MidnightRaven9/MidnightLedger/actions/workflows/ci.yml/badge.svg)](https://github.com/MidnightRaven9/MidnightLedger/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/MidnightRaven9/MidnightLedger)](https://github.com/MidnightRaven9/MidnightLedger/releases/latest)
+[![Platform](https://img.shields.io/badge/platform-Android%20%7C%20PWA-lightgrey.svg)](#installation)
+[![Stack](https://img.shields.io/badge/stack-React%20%7C%20TypeScript%20%7C%20Vite-61dafb.svg)](#development)
 
-### 📲 Download
-- 🤖 Android APK: [v3.2.0 Offline Edition](https://github.com/MidnightRaven9/MidnightLedger/releases/tag/v3.2.0) 🔒✨ — **100% offline, no server or internet needed** 📵💾
-- 📱 PWA: Open live demo → Add to Home Screen
+## Features
 
----
+- Flexible pay schedules — biweekly, semi-monthly, or explicit dates such as Aug 15 and Aug 29
+- Bill splitting with a personal share versus the full amount, assigned to specific paychecks
+- Per-paycheck allocation showing available cash after bills
+- Quick tax estimates on incoming checks
+- Expense tracking and category reports
+- Bill reminders with a due-soon badge, one-tap mark-paid, and opt-in local Android notifications
+- Custom accent colour for the interface and celebration confetti, saved on the device
+- No account, no telemetry, no network calls — all data stays in local storage
 
-### 🗑️ How to Remove Sample Data
+## Installation
 
-If you see sample bills after installing:
+### Android
 
-1. Open the app → Go to **History**
-2. Scroll to the **very bottom** of the page
-3. Tap **Wipe All Data** → Confirm
+1. Download the latest [offline APK](https://github.com/MidnightRaven9/MidnightLedger/releases/latest) from Releases.
+2. Enable "Install unknown apps" for your browser or file manager when prompted.
+3. Open the APK and install it.
+4. If sample data appears, open **History**, scroll to the bottom, and tap **Wipe All Data**.
 
-This clears all sample/demo bills and gives you a fresh start. Everything is stored locally on this device (localStorage).
+The APK is debug-signed for sideloading. It needs no internet connection at runtime.
 
----
+### Web / PWA
 
-### 🌟 Features
+Open the [live demo](https://midnightledger.justicegraff6.workers.dev) and use your browser's "Add to Home Screen" option. The demo is static hosting only; the app itself makes no network requests.
 
-- 📅 **Flexible Pay Periods** - Biweekly, semi-monthly, or custom dates (Aug 15, Aug 29, Sep 12...) 🗓️
-- 👥 **Split Bills** - Assign bills to specific paychecks, split between people (my portion vs total) 🤝💰
-- 🧮 **Tax Estimates** - Quick estimate on checks before they hit 💵
-- 💳 **Paycheck Allocation** - See available after bills: `$1,450 available • 3 bills assigned` 💜
-- 💸 **Expenses & Reports** - Track spending per paycheck cycle 📈📉
-- 🔔 **Bill Reminders** - Bell with due-soon count badge, one-tap mark-paid, and optional local Android notifications (configurable days-ahead) — all on-device ⏰
-- 🕰️ **History** - Past paycheck allocations 📚
-- 📵 **100% Local-First** - No trackers, no cloud, no account — everything stays on your device 🏠
-- 🌑 **Dark Theme** - Near-black surfaces with a purple #a855f7 accent, PWA installs as "MidnightLedger" 🌙💜
-- 🎨 **Custom Accent Colour** - Pick from presets, a hex code, or a colour wheel — applies to the UI **and** confetti, saved locally (⚙️ gear in the header)
+## Usage
 
-### 📸 Screenshots
+1. Add bills with an amount, due day, category and optional split.
+2. Set a pay schedule in **Paydays** — choose a recurring rule or enter exact dates.
+3. Check **Dashboard** for the current paycheck, bills due, and remaining cash.
+4. Mark bills paid as checks arrive. **History** keeps past allocations.
+5. Open **Settings** (gear icon) to change the accent colour or configure reminders.
 
-Captured on a fresh install (sample data, 390×844). Regenerate with `npm run screenshots` after `npm run build` + `npm run preview`.
+Everything is stored locally. Clearing app data or uninstalling removes it permanently.
 
-| 📊 Dashboard | 🧾 Bills | 📅 Paydays |
+## Screenshots
+
+Captured from a fresh install with sample data. To replace them, run `npm run screenshots` after `npm run build` and `npm run preview`, then save the files in `docs/screenshots/` using the exact names below.
+
+| Dashboard | Bills | Paydays |
 |:---:|:---:|:---:|
-| <img src="docs/screenshots/dashboard.png" width="230" alt="Dashboard: current paycheck, bills due, leftover cash and category allocation" /> | <img src="docs/screenshots/bills.png" width="230" alt="Bills: monthly totals and per-category allocation" /> | <img src="docs/screenshots/paydays.png" width="230" alt="Paydays: schedule rule and projected upcoming paychecks" /> |
-| <img src="docs/screenshots/expenses.png" width="230" alt="Expenses: spending this check, this month, biggest expense" /> <br/> 💸 **Expenses** | <img src="docs/screenshots/reports.png" width="230" alt="Reports: category allocation donut chart, income vs expenses" /> <br/> 📈 **Reports** | <img src="docs/screenshots/history.png" width="230" alt="History: past paycheck allocations and JSON backup" /> <br/> 🕰️ **History** |
+| ![App Dashboard](docs/screenshots/dashboard.png) | ![Bills list](docs/screenshots/bills.png) | ![Payday schedule](docs/screenshots/paydays.png) |
+| ![Expenses](docs/screenshots/expenses.png) | ![Reports](docs/screenshots/reports.png) | ![History](docs/screenshots/history.png) |
 
-### 🛠️ Tech Stack
+## Development
 
-- ⚛️ React + TypeScript 💙
-- 🎨 Tailwind CSS + shadcn/ui ✨
-- ⚡ Vite 🚀
-- 📲 PWA-ready 📱
-- ☁️ Cloudflare Workers + D1 + KV
-
-### 🏁 Getting Started
+Requires Node.js 20 or newer.
 
 ```bash
 git clone https://github.com/MidnightRaven9/MidnightLedger.git
 cd MidnightLedger
 npm install
-npm run build
+npm run dev
 ```
 
-### 🎨 App Icon
+`npm run dev` starts the local server on `http://127.0.0.1:3000`. Other commands:
 
-🌙 Horizontal gradient fill — purple #7C3AED → #A855F7 → #C084FC on #101012 rounded square with ledger lines
+| Command | Purpose |
+| --- | --- |
+| `npm run lint` | Type-check with TypeScript |
+| `npm run build` | Build the web app and development server into `dist/` |
+| `npm run preview` | Serve the built web app on port 4173 |
+| `npm run screenshots` | Regenerate the screenshots in `docs/screenshots/` |
+| `npm start` | Run the built server (requires `npm run build` first) |
 
-Every icon and splash (web, PWA, Android mipmaps, adaptive foregrounds, splashes) is generated from a single SVG in `scripts/generate-icons.mjs` — regenerate any time with:
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow and [docs/](docs/) for additional notes.
+
+## App icon
+
+All icons and splash screens are generated from `scripts/generate-icons.mjs`. After editing the generator, run:
 
 ```bash
 node scripts/generate-icons.mjs
 ```
 
-Files: `/public/icon-512.png`, `/public/icon-192.png`, `/public/apple-touch-icon.png`, `/public/favicon.png`, `android/app/src/main/res/mipmap-*/` 🖼️
+This updates the PWA icons in `public/` and the Android mipmaps and adaptive icons in `android/app/src/main/res/`.
 
-Manifest sets name to `MidnightLedger` so it installs with correct name and icon on iOS/Android 📲✨
+## Support
 
-### ☕ Support
+MidnightLedger is free and open source, with no ads or tracking. If it helps you, you can [sponsor the project](https://github.com/sponsors/MidnightRaven9) or star the [repository](https://github.com/MidnightRaven9/MidnightLedger).
 
-Built and maintained by [MidnightRaven9](https://github.com/MidnightRaven9) in the open — free forever, no ads, no tracking. If MidnightLedger helped you, you can [buy me a coffee](https://github.com/sponsors/MidnightRaven9) ☕ or just ⭐ the [repo](https://github.com/MidnightRaven9/MidnightLedger).
+## License
 
-### 📄 License
-
-MIT © 2026 MidnightRaven9 💜🌙
+MIT © 2026 MidnightRaven9. See [LICENSE](LICENSE).

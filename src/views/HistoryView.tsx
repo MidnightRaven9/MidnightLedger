@@ -6,11 +6,9 @@ import {
   ChevronDown, 
   ChevronUp, 
   CheckCircle2, 
-  Clock, 
-  DollarSign, 
-  Receipt, 
-  Calendar, 
-  Activity, 
+  Clock,
+  Receipt,
+  Activity,
   AlertCircle,
   Filter,
   Check,
@@ -33,7 +31,6 @@ type FilterMode = 'all' | 'month' | string; // 'all' | 'month' | '2026' | '2025'
 export const HistoryView: React.FC = () => {
   const { summaries, bills, exportData, importData, toggleBillPaid, showToast, lastSaved } = usePayday();
 
-  // State
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
   const [selectedMonth, setSelectedMonth] = useState<string>(''); // e.g. '2026-08'
   const [expandedPaydayIds, setExpandedPaydayIds] = useState<Record<string, boolean>>({});
@@ -70,16 +67,13 @@ export const HistoryView: React.FC = () => {
     return () => clearInterval(interval);
   }, [lastSaved]);
 
-  // Reset visible items when filters change
   useEffect(() => {
     setVisibleCount(5);
     setIsExpanded(false);
   }, [filterMode, selectedMonth]);
 
-  // Get current year and month strings
   const currentMonthStr = useMemo(() => toISODateString(new Date()).slice(0, 7), []);
 
-  // Collect all unique years & months from summaries
   const { availableYears, availableMonths } = useMemo(() => {
     const yearsSet = new Set<string>();
     const monthsSet = new Set<string>();
@@ -99,10 +93,8 @@ export const HistoryView: React.FC = () => {
     return { availableYears: years, availableMonths: months };
   }, [summaries]);
 
-  // Default selected month to current month if not set
   const activeMonthStr = selectedMonth || availableMonths[0] || currentMonthStr;
 
-  // Filter summaries based on time selection
   const filteredSummaries = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -117,11 +109,9 @@ export const HistoryView: React.FC = () => {
     if (filterMode === 'month') {
       result = result.filter(s => s.payday.date.startsWith(activeMonthStr));
     } else if (filterMode !== 'all') {
-      // Filter by specific year (e.g. '2026')
       result = result.filter(s => s.payday.date.startsWith(filterMode));
     }
 
-    // Deduplicate / group by actual payday date
     const mapByDate = new Map<string, PaydaySummary>();
     result.forEach(s => {
       const dateKey = s.payday.date;
@@ -137,7 +127,6 @@ export const HistoryView: React.FC = () => {
       }
     });
 
-    // Sort newest paydays first
     return Array.from(mapByDate.values()).sort((a, b) => b.payday.date.localeCompare(a.payday.date));
   }, [summaries, filterMode, activeMonthStr]);
 
@@ -147,7 +136,6 @@ export const HistoryView: React.FC = () => {
     if (isExpanded) {
       setVisibleCount(5);
       setIsExpanded(false);
-      // scroll back to top of history list
       document.getElementById('paycheck-history-top')?.scrollIntoView({ behavior: 'smooth' });
     } else {
       const nextCount = visibleCount + 5;
@@ -158,7 +146,6 @@ export const HistoryView: React.FC = () => {
     }
   };
 
-  // Handle Export / Import
   const handleExport = () => {
     const dataStr = exportData();
     const blob = new Blob([dataStr], { type: 'application/json' });
@@ -167,7 +154,7 @@ export const HistoryView: React.FC = () => {
     link.href = url;
     link.download = `midnightledger_backup_${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     showToast('Backup JSON exported successfully');
   };
 
@@ -197,7 +184,6 @@ export const HistoryView: React.FC = () => {
   return (
     <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[var(--bg)] text-white p-3 sm:p-6 pb-28 space-y-5">
       
-      {/* 1. Hero Card */}
       <div className="rounded-[28px] sm:rounded-[32px] border border-zinc-800/50 bg-[var(--surface)] p-6 sm:p-7 space-y-5">
         <div className="flex gap-4 items-start">
           <div className="w-14 h-14 rounded-2xl bg-[var(--accent)]/20 flex items-center justify-center shrink-0">
@@ -213,7 +199,6 @@ export const HistoryView: React.FC = () => {
           </div>
         </div>
 
-        {/* Export / Import Buttons */}
         <div className="flex items-center gap-3 pt-2">
           <button
             onClick={handleExport}
@@ -235,14 +220,12 @@ export const HistoryView: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Time Control Bar Card */}
       <div className="rounded-[24px] border border-zinc-800/50 bg-[var(--surface)] p-5 sm:p-6 space-y-3">
         <div className="flex items-center gap-2 text-xs font-bold text-white/70">
           <Filter className="w-4 h-4 text-[var(--accent)]" />
           Filter History:
         </div>
 
-        {/* Segmented Controls */}
         <div className="flex items-center p-1 rounded-2xl bg-[var(--surface-2)] border border-zinc-800 flex-wrap gap-1">
           <button
             onClick={() => setFilterMode('all')}
@@ -287,7 +270,6 @@ export const HistoryView: React.FC = () => {
         </div>
       </div>
 
-      {/* Month Chips Strip (Visible when 'By Month' is selected) */}
       {filterMode === 'month' && (
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none px-1">
           {availableMonths.map(moStr => {
@@ -312,7 +294,6 @@ export const HistoryView: React.FC = () => {
         </div>
       )}
 
-      {/* 3. Section A: Past Paycheck Allocations */}
       <div className="space-y-4" id="paycheck-history-top">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-base font-extrabold text-white flex items-center gap-2">
@@ -349,18 +330,15 @@ export const HistoryView: React.FC = () => {
                   key={paydayId}
                   className="rounded-[24px] bg-[var(--surface)] border border-zinc-800/50 p-5 sm:p-6 mb-3 w-full overflow-visible transition-all hover:border-[var(--border-strong)]/60 allocation-card"
                 >
-                  {/* Card Header clickable to toggle expansion */}
                   <div 
                     onClick={() => togglePaydayExpand(paydayId)}
                     className="cursor-pointer select-none"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex flex-col gap-1 leading-normal">
-                        {/* Date */}
                         <div className="text-sm text-white/60 leading-[1.5]">
                           {formatDate(summary.payday.date)}
                         </div>
-                        {/* Check info & status badge */}
                         <div className="flex items-center gap-2 flex-wrap leading-[1.4]">
                           {!hasCheckAmount ? (
                             <span className="text-zinc-500 font-semibold text-[16px] leading-[1.4]">
@@ -394,25 +372,21 @@ export const HistoryView: React.FC = () => {
                             </span>
                           )}
                         </div>
-                        {/* Bill counts */}
                         <div className="text-[14px] text-white/50 leading-[1.5]">
                           {totalAssigned} Bill{totalAssigned === 1 ? '' : 's'}
                           {summary.totalExtraExpenses > 0 && ` + Extras: ${formatCurrency(summary.totalExtraExpenses)}`}
                         </div>
                       </div>
 
-                      {/* Dropdown chevron button */}
                       <button className="p-1.5 rounded-xl bg-[var(--surface-2)] text-white/60 hover:text-white transition-colors shrink-0">
                         {isPaydayExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </button>
                     </div>
                   </div>
 
-                  {/* Expanded Content Drawer */}
                   {isPaydayExpanded && (
                     <div className="border-t border-[var(--border)]/60 bg-[var(--bg)] space-y-4 pt-4 mt-4 rounded-2xl p-3 overflow-visible">
                       
-                      {/* Bills Assigned Table */}
                       <div>
                         <h4 className="text-xs font-extrabold text-white/70 uppercase tracking-wider mb-2">
                           Assigned Bills & Status
@@ -438,7 +412,6 @@ export const HistoryView: React.FC = () => {
                         )}
                       </div>
 
-                      {/* Extra Expenses for this pay period */}
                       {summary.extraExpenses.length > 0 && (
                         <div>
                           <h4 className="text-xs font-extrabold text-white/70 uppercase tracking-wider mb-2">
@@ -455,7 +428,6 @@ export const HistoryView: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Financial Summary Strip */}
                       <div className="p-3 rounded-2xl bg-[var(--surface)] border border-[var(--border)] grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
                         <div>
                           <span className="text-[10px] text-white/50 block">Check Estimate</span>
@@ -488,7 +460,6 @@ export const HistoryView: React.FC = () => {
               );
             })}
 
-            {/* Show More / Show Less Button */}
             <div className="flex justify-center py-3">
               {visibleCount < totalCount ? (
                 <button 
@@ -510,7 +481,6 @@ export const HistoryView: React.FC = () => {
         )}
       </div>
 
-      {/* 4. Section B: Bill Payment History & Timeline */}
       <div className="mt-6 space-y-4">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-base font-extrabold text-white flex items-center gap-2">
@@ -526,7 +496,6 @@ export const HistoryView: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {bills.map(bill => {
-              // Find all assigned occurrences for this bill across summaries
               const billOccurrences: Array<{ paydayDate: string; isPaid: boolean; amount: number }> = [];
 
               summaries.forEach(s => {
@@ -540,7 +509,6 @@ export const HistoryView: React.FC = () => {
                 }
               });
 
-              // Sort occurrences ascending by date for timeline rendering
               billOccurrences.sort((a, b) => a.paydayDate.localeCompare(b.paydayDate));
 
               const totalAssigned = billOccurrences.length;
@@ -550,7 +518,6 @@ export const HistoryView: React.FC = () => {
               return (
                 <div key={bill.id} className="p-3 rounded-3xl bg-[var(--surface)] border border-[var(--border)] shadow-md space-y-3">
                   
-                  {/* Bill Info */}
                   <div className="flex items-start justify-between">
                     <div>
                       <h4 className="text-sm font-extrabold text-white mb-0.5">{bill.name}</h4>
@@ -564,7 +531,6 @@ export const HistoryView: React.FC = () => {
                     </span>
                   </div>
 
-                  {/* Payment Stats */}
                   <div className="flex items-center justify-between text-[13px] pt-1 border-t border-[var(--border)]/60">
                     <span className="text-white/70 font-semibold">
                       Paid {paidCount}/{totalAssigned} instances
@@ -578,7 +544,6 @@ export const HistoryView: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Dot History Timeline */}
                   <div className="pt-1">
                     {billOccurrences.length === 0 ? (
                       <div className="p-3 rounded-xl bg-[#0D0D0D] border border-dashed border-[var(--border)]">
@@ -595,7 +560,6 @@ export const HistoryView: React.FC = () => {
                               key={`${occ.paydayDate}_${idx}`}
                               className="group relative flex flex-col items-center cursor-pointer shrink-0"
                             >
-                              {/* Dot Indicator */}
                               <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
                                 occ.isPaid 
                                   ? 'bg-emerald-500/20 border border-emerald-500 text-emerald-400 shadow-sm shadow-emerald-950' 
@@ -608,7 +572,6 @@ export const HistoryView: React.FC = () => {
                                 )}
                               </div>
 
-                              {/* Hover Tooltip */}
                               <div className="absolute bottom-full mb-1 hidden group-hover:flex flex-col items-center z-20 pointer-events-none">
                                 <div className="px-2 py-1 rounded-lg bg-[var(--accent-soft)] border border-[var(--border-strong)] text-[10px] text-white font-bold whitespace-nowrap shadow-xl">
                                   {formatDate(occ.paydayDate)}: {occ.isPaid ? `Paid (${formatCurrency(occ.amount)})` : 'Unpaid'}
@@ -628,7 +591,6 @@ export const HistoryView: React.FC = () => {
         )}
       </div>
 
-      {/* 5. Danger Zone - Factory Reset */}
       <div 
         className="p-5 sm:p-6 rounded-[24px] bg-[#1A1010] border border-[#EF444440] shadow-xl space-y-4 mt-8"
         style={{ backgroundColor: '#1A1010', border: '1px solid #EF444440' }}
