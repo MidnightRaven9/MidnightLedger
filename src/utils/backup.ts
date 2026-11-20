@@ -168,6 +168,17 @@ function normalizeBills(value: unknown, limit: number, ctx: NormalizeContext): B
     if (b.isSplit === true) bill.isSplit = true;
     if (b.splitWays !== undefined) bill.splitWays = safeDay(b.splitWays);
     if (b.splitCount !== undefined) bill.splitCount = safeDay(b.splitCount);
+    if (b.splitType === 'even' || b.splitType === 'custom' || b.splitType === 'percentage') {
+      bill.splitType = b.splitType;
+    } else if (b.splitType !== undefined) {
+      warn(ctx, 'An unsupported split type was kept as a legacy split.');
+    }
+    if (b.mySharePercentage !== undefined) {
+      const percent = safeAmount(b.mySharePercentage, ctx);
+      bill.mySharePercentage = Math.min(100, percent);
+      if (percent > 100) warn(ctx, 'Split percentages above 100% were clamped.');
+    }
+    if (b.customMyShare !== undefined) bill.customMyShare = safeAmount(b.customMyShare, ctx);
     if (b.notes !== undefined) bill.notes = safeText(b.notes, 500);
     if (b.emoji !== undefined) bill.emoji = safeText(b.emoji, 16);
     if (b.isRecurringTemplate !== undefined) bill.isRecurringTemplate = b.isRecurringTemplate === true;

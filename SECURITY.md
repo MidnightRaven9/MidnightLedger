@@ -26,10 +26,25 @@ no network requests: there is no account, no telemetry and no server-side
 storage in the shipped product. The optional development server and static
 demo host exist for contributors and the web demo only.
 
-The API in `server.ts` uses an `x-user-id` UUID as a data-partition key. It is
-**not authentication**: anyone who knows a UUID can read that partition. Never
-store sensitive data in a hosted deployment without adding real authentication
-in front of it.
+The optional financial API in `server.ts` and `worker.ts` is disabled by
+default. When explicitly enabled with `ENABLE_FINANCIAL_API=1`, identity is
+derived only from a verified session: `POST /api/auth/register`,
+`POST /api/auth/login`, and `POST /api/auth/logout`. Passwords are stored as
+per-account PBKDF2-SHA256 hashes; bearer tokens are random 32-byte values whose
+SHA-256 hashes alone are stored. Sessions expire after 24 hours and can be
+revoked. A client-supplied `x-user-id` is ignored, and CORS is not
+authentication. Password hashes use 100,000 PBKDF2 iterations, the maximum
+accepted by Cloudflare Workers' WebCrypto; the count is stored with each hash.
+The Worker uses a D1 binding named `DB`, an `ASSETS` binding, and migrations
+`0001`–`0003`.
+
+On 2026-11-20, with owner-approved Wrangler OAuth, the Worker was deployed to
+`https://midnightledger.justicegraff6.workers.dev` with the D1 database
+`midnightledger-db` and `ENABLE_FINANCIAL_API=1` set as a Wrangler secret. Health,
+registration, login, authenticated reads/writes and `x-user-id` rejection were
+verified live; the throwaway test account was removed. **Registration is open to
+anyone who knows the URL.** Add an invite code or registration allowlist before
+treating the API as private.
 
 ## Data storage
 

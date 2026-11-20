@@ -10,6 +10,7 @@ import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { PaydaySummary } from '../types';
 import { formatCurrency, formatDate, isValidISODateString, parseISODate } from './dateUtils';
+import { logSafeWarning } from './safeLog';
 
 export type AlertKind = 'overdue' | 'today' | 'soon';
 
@@ -218,7 +219,7 @@ export async function syncSystemNotifications(
         await LocalNotifications.schedule({ notifications });
       }
     } catch (error) {
-      console.warn('Could not schedule local notifications:', error);
+      logSafeWarning('Could not schedule local notifications');
     }
     return;
   }
@@ -242,6 +243,6 @@ export async function syncSystemNotifications(
       },
     );
   } catch (error) {
-    console.warn('Could not show browser notification:', error);
+    logSafeWarning('Could not show browser notification');
   }
 }

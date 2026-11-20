@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-20 (final production-readiness review)
 **Baseline:** `2dd6995`
-**Environment:** Node 22 (`.nvmrc`), local isolated temp DBs, Playwright Chromium (bundled).
+**Environment:** Node v24.22.2 locally (project pins Node 22 in `.nvmrc`), local isolated temp SQLite DBs, in-memory D1 adapter, Playwright Chromium (bundled).
 **Principle:** every result below was executed independently; no test result is assumed. All commands ran from `/root/projects/MidnightLedger`.
 
 ---
@@ -22,12 +22,15 @@ Test files:
 
 | File | Coverage |
 |---|---|
-| `tests/unit/calculations.test.ts` | `roundCents`, `getMyShare`, `getFullTotal`, `calcNet`, invalid inputs |
-| `tests/unit/backup.test.ts` | round-trip (incl. `excludedOccurrences`), legacy keys, malformed/unsupported/empty rejection, unsafe-map-key stripping, clamping, record cap, **clean-warning check, `inspectBackup` counts/warnings/rejection, preview–parse equivalence** |
-| `tests/unit/accentColor.test.ts` | **new:** WCAG contrast selection for eight accent colours |
+| `tests/unit/calculations.test.ts` | shared cent rounding (incl. `1.005`, negatives, large values), `sumMoney`, `getMyShare` even/custom/percentage/legacy splits, `getFullTotal`, `calcNet`, invalid inputs |
+| `tests/unit/backup.test.ts` | round-trip (incl. `excludedOccurrences` and split fields), legacy keys, malformed/unsupported/empty rejection, unsafe-map-key stripping, clamping, record cap, `inspectBackup` counts/warnings/rejection |
+| `tests/unit/auth.test.ts` | **new:** registration shape/duplicates, login/session/revocation/expiry, CORS origin parsing |
+| `tests/unit/worker.test.ts` | **new:** disabled-by-default, static asset origin handling, session-only ownership, spoofing/expiry/logout |
+| `tests/unit/serviceWorker.test.ts` | **new:** build-stamped cache install, stale-cache cleanup, network-first navigation, offline shell, no API/cross-origin caching |
+| `tests/unit/accentColor.test.ts` | WCAG contrast selection for eight accent colours |
 | `tests/unit/dateUtils.test.ts` | leap dates, invalid ISO dates, month-end addDays, parse/format round-trip |
 | `tests/unit/paydayLogic.test.ts` | summary/leftover cent consistency, excluded occurrences, projection boundaries |
-| `tests/integration/api.test.ts` | API disabled-by-default gating; opt-in 401; cross-user overwrite 403; rounding; allocation ownership 403/200; scoped delete |
+| `tests/integration/api.test.ts` | API/auth disabled-by-default gating, health/CORS behavior, opt-in session 401s, cross-user overwrite 403, rounding, allocation ownership 403/200, scoped delete, logout with/without body |
 | `tests/e2e/smoke.mjs` | shell, dark theme, skip link, dialog focus trap/restoration, **all six screens at mobile+desktop widths**, **import preview cancel/corrupt/confirm/export-current**, and **four explicit-recovery data-safety scenarios** (corrupt bytes preserved on mount/download/cancel, replaced only by explicit backup restore or fresh start), no page errors |
 
 ---
@@ -37,17 +40,34 @@ Test files:
 ### Full suite — `npm test`
 
 ```
-ℹ tests 27
+ℹ tests 45
 ℹ suites 0
-ℹ pass 27
+ℹ pass 45
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 13181
+ℹ duration_ms 8100
 ```
 
-Breakdown: 25 unit + 2 integration. Representative passing lines include the five new backup-preview tests, two new contrast tests, and both API gating/ownership integration tests.
+Breakdown: 43 unit + 2 integration. New coverage includes auth registration/login/revocation/expiry, password hashes staying within Workers' 100,000-iteration PBKDF2 cap with legacy verification, Worker disabled-by-default and ownership, service-worker cache/update behavior, shared cent rounding and split preservation. Both Express integration tests pass, including API disabled-by-default, missing/invalid session rejection, `x-user-id` spoofing rejection, and attacker write attempts returning `403`.
+
+### New auth / Worker / service-worker tests
+
+Representative passing lines:
+
+```
+✔ password hashes stay within Worker WebCrypto limits and verify legacy hashes
+✔ registration enforces credential shape and does not allow duplicates
+✔ sessions are derived from verified credentials and can be revoked
+✔ expired session tokens are rejected
+✔ Worker keeps financial and auth routes disabled by default
+✔ Worker serves static assets broadly but restricts cross-origin API calls
+✔ Worker derives ownership from a verified session, not client headers
+✔ service worker install precaches the app shell with a build-stamped cache
+✔ navigation is network-first and falls back to the cached app shell offline
+✔ assets are cached, API traffic is never cached, and cross-origin requests are ignored
+```
 
 ### New backup-preview tests
 
@@ -63,11 +83,14 @@ Breakdown: 25 unit + 2 integration. Representative passing lines include the fiv
 
 Build passed:
 ```
-✓ 2130 modules transformed
-✓ built in 29.70s
-build/server.cjs      21.1kb
-build/server.cjs.map  37.6kb
+✓ 2133 modules transformed
+✓ built in 37.03s
+Stamped service worker cache with e181761c19bde2bd35e9
+build/server.cjs      28.3kb
+build/server.cjs.map  52.7kb
 ```
+
+`dist/sw.js` was checked after the build: `CACHE_NAME = midnightledger-app-e181761c19bde2bd35e9`, with no `__BUILD_ID__` placeholder remaining. Tracked `dist/` files were then restored with `git checkout -- dist`.
 
 E2E passed:
 ```
@@ -88,6 +111,25 @@ Before the fix, a regression scenario seeded `midnightledger_v1` with `CORRUPTED
 | D — start fresh | Explicit "Start fresh with an empty ledger" closes recovery; persisted value is an empty ledger (`"paydays":[]`) |
 
 No page errors were recorded in any of the four contexts. This proves no financial data is silently overwritten during recovery.
+
+### Live Worker deployment smoke test (owner-approved OAuth)
+
+On 2026-11-20 the Worker was deployed to `https://midnightledger.justicegraff6.workers.dev` with D1 `midnightledger-db`, migrations `0001`–`0003`, `DB`/`ASSETS` bindings and `ENABLE_FINANCIAL_API=1` as a Wrangler secret. The first live smoke test exposed two defects that local tests could not:
+
+| Defect | Evidence | Fix |
+|---|---|---|
+| `env.ASSETS` undefined → health `500` (Cloudflare error 1101) | `wrangler tail`: `TypeError: Cannot read properties of undefined (reading 'fetch')` at `worker.ts:44` | Added `"binding": "ASSETS"` to `wrangler.jsonc`; made Worker `/api/health` return its own JSON instead of proxying to assets |
+| PBKDF2 310,000 iterations rejected by Workers WebCrypto → register `500` | `wrangler tail`: `Pbkdf2 failed: iteration counts above 100000 are not supported (requested 310000)` | Lowered new hashes to 100,000 iterations with the count stored per hash; added a regression test |
+
+After redeploy, the live results were:
+
+```text
+health=200 register=200 login=200 bills=200 spoofed_x_user_id=401 create=200
+health_body={"status":"ok","time":"2026-11-20T07:13:38.330Z"}
+bills_body=[]
+```
+
+No token, password or Cloudflare credential was printed or stored. The throwaway account and its bill were removed from D1 with a scoped cleanup script; a follow-up query confirmed `users=0, sessions=0, bills=0, smoke_users=0`.
 
 ### Type check — `npm run lint`
 
@@ -129,12 +171,14 @@ There is no Android build job (owner approval required; see `docs/RELEASE.md`).
 
 | Area | Covered | Not covered |
 |---|---|---|
-| Money math | unit tests for rounding, splits, net, summaries | exhaustive property/fuzz testing |
-| Backup/import | round-trip, legacy, malformed, caps, unsafe keys, preview counts/warnings, corrupt/cancel/confirm/export-current E2E | real OS file-picker dialogs |
+| Money math and splits | unit tests for shared rounding, integer-cent sums, custom/percentage/even/legacy splits, net, summaries | exhaustive property/fuzz testing |
+| Backup/import | round-trip incl. split fields, legacy, malformed, caps, unsafe keys, preview counts/warnings, corrupt/cancel/confirm/export-current E2E | real OS file-picker dialogs |
 | Corrupt-storage recovery | reproduced silent overwrite; E2E proves original bytes survive mount, download and cancel, and are replaced only by explicit backup restore or fresh start | corrupt data under a legacy key (code path preserved via `readRawLedger`), physical device storage corruption |
 | Accessibility | E2E focus trap, skip link, nav, all screens mobile+desktop; static label/role/contrast audit | physical VoiceOver/TalkBack session |
 | Dates | leap/month-end/ISO validation | timezone-specific environments beyond local noon |
-| API security | integration tests for gating, 401, 403, rounding, scoped delete | multi-instance rate-limit coordination, real auth (out of scope) |
+| API security/auth | unit + integration tests for disabled-by-default gating, session login/revocation/expiry, `x-user-id` spoofing, ownership, CORS/static behavior, rounding, scoped delete | multi-instance rate-limit coordination, real D1 deployment |
+| Worker | disabled-by-default, static asset origin handling, session-only ownership, spoofing/expiry/logout, plus live deployed smoke test with D1/ASSETS bindings | registration allowlist/invite code, custom origin allowlist |
+| Service worker/PWA | unit tests for build stamp, install, stale-cache cleanup, network-first navigation, no API/cross-origin caching; E2E production shell | physical offline reinstall/update on a device |
 | Android | config reviewed and documented | on-device runtime test, signed release build |
 | CI supply chain | action SHAs pinned, permissions restricted | Android build job (owner decision) |
 

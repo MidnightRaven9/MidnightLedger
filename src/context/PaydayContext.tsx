@@ -12,6 +12,7 @@ import { generatePaydaysFromSchedule, calculatePaydaySummaries } from '../utils/
 import { triggerConfetti } from '../utils/emojis';
 import { createBackup, inspectBackup, normalizePersistedState, parseBackup, type ImportInspection, type PersistedState } from '../utils/backup';
 import { downloadBackup } from '../utils/downloadBackup';
+import { logSafeError } from '../utils/safeLog';
 
 const STORAGE_KEY = 'midnightledger_v1';
 
@@ -38,7 +39,7 @@ function safeSave(key: string, value: string): boolean {
     return true;
   } catch (err) {
     if (err instanceof DOMException && (err.code === 22 || err.name === 'QuotaExceededError')) {
-      console.error('localStorage quota exceeded - data too large');
+      logSafeError('localStorage quota exceeded - data too large');
       // Try to clear old versions or trim
       try {
         localStorage.removeItem('midnightledger_v0');
@@ -46,11 +47,11 @@ function safeSave(key: string, value: string): boolean {
         localStorage.setItem(key, value);
         return true;
       } catch (e) {
-        console.error('Unable to persist ledger after freeing legacy keys', e);
+        logSafeError('Unable to persist ledger after freeing legacy keys');
         return false;
       }
     }
-    console.error('localStorage save failed', err);
+    logSafeError('localStorage save failed');
     return false;
   }
 }
@@ -203,7 +204,7 @@ function loadStoredState(): StoredLoad {
     }
     return { state: normalizePersistedState(parsed), firstRun: false, corrupt: false };
   } catch (err) {
-    console.error('Stored ledger could not be read; leaving it untouched on disk', err);
+    logSafeError('Stored ledger could not be read; leaving it untouched on disk');
     return { state: null, firstRun: false, corrupt: true };
   }
 }
@@ -386,7 +387,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       setStorageWarning(saved ? null : 'Could not save changes. Export a backup now to avoid losing them.');
       setLastSaved(savedTime);
     } catch (err) {
-      console.error('Failed to save to local storage', err);
+      logSafeError('Failed to save to local storage');
     }
   }, [schedule, paydays, bills, extraExpenses, extraIncomes, variableOverrides, variableFullTotalOverrides, paidStatuses, excludedOccurrences, recoveryLocked]);
 
@@ -443,17 +444,12 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             ...b,
             ...updated,
             amount: updated.amount,
-            myShare: updated.amount,
-            fullTotal: updated.fullTotal ?? updated.amount,
+            myShare: updated.myShare !== undefined ? updated.myShare : updated.amount,
+            fullTotal: updated.fullTotal !== undefined ? updated.fullTotal : updated.amount,
           };
         }
         return b;
       });
-      try {
-        localStorage.setItem('bills', JSON.stringify(updatedBills));
-        localStorage.setItem('myBills', JSON.stringify(updatedBills));
-        localStorage.setItem('midnightledger_bills', JSON.stringify(updatedBills));
-      } catch (_) {}
       return updatedBills;
     });
 
@@ -641,7 +637,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         });
         localStorage.setItem('midnightledger_paid_history', JSON.stringify(historyList));
       } catch (err) {
-        console.error('Error syncing midnightledger_paid_history:', err);
+        logSafeError('Error syncing paid history');
       }
 
 
@@ -677,7 +673,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         });
         localStorage.setItem('midnightledger_paid_history', JSON.stringify(historyList));
       } catch (err) {
-        console.error('Error syncing midnightledger_paid_history:', err);
+        logSafeError('Error syncing paid history');
       }
 
       showToast(`All bills unmarked`);
@@ -786,7 +782,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           const filtered = savedPaid.filter(id => !billIdentifiers.some(bid => String(bid).toLowerCase() === String(id).toLowerCase()));
           localStorage.setItem('paidBills', JSON.stringify(filtered));
         } catch (err) {
-          console.error('Error syncing paidStatuses:', err);
+          logSafeError('Error syncing paid statuses');
         }
         
         return updated;
@@ -805,10 +801,6 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           }
           return b;
         });
-        try {
-          localStorage.setItem('bills', JSON.stringify(updatedBills));
-          localStorage.setItem('myBills', JSON.stringify(updatedBills));
-        } catch (_) {}
         return updatedBills;
       });
     } else {
@@ -831,7 +823,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           localStorage.setItem('midnightledger_paid_history', JSON.stringify(updated));
           localStorage.setItem('midnightledger_paidStatuses', JSON.stringify(updated));
         } catch (err) {
-          console.error('Error syncing paidStatuses:', err);
+          logSafeError('Error syncing paid statuses');
         }
 
         if (targetSummary) {
@@ -863,10 +855,6 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           }
           return b;
         });
-        try {
-          localStorage.setItem('bills', JSON.stringify(updatedBills));
-          localStorage.setItem('myBills', JSON.stringify(updatedBills));
-        } catch (_) {}
         return updatedBills;
       });
     }
@@ -981,7 +969,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       localStorage.setItem('midnightledger_default_check_amount', JSON.stringify(0));
       localStorage.setItem('midnightledger_schedule_config', JSON.stringify(null));
     } catch (err) {
-      console.error('Error in clearAllData:', err);
+      logSafeError('Error clearing local data');
     }
 
     showToast('App wiped clean - ready to share!');
@@ -1053,7 +1041,7 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const importData = (jsonStr: string): boolean => {
     const parsed = parseBackup(jsonStr);
     if (parsed.ok === false) {
-      console.error('Import failed:', parsed.error);
+      logSafeError('Backup import failed');
       showToast(parsed.error);
       return false;
     }

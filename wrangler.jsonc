@@ -1,8 +1,20 @@
 {
   "name": "midnightledger",
+  "main": "worker.ts",
   "compatibility_date": "2026-11-01",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
     "not_found_handling": "single-page-application"
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "midnightledger-db",
+      "database_id": "6838f96d-881b-4523-b152-de20969d41de",
+      "migrations_dir": "migrations"
+    }
+  ]
+  // ENABLE_FINANCIAL_API is set as a Wrangler secret. Never place a token,
+  // password, API key, or other credential in this file.
 }

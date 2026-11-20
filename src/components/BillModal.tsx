@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Receipt, Save, Users, CreditCard } from 'lucide-react';
-import { Bill, BillCategory, BillType } from '../types';
+import { Bill, BillCategory, BillType, SplitType } from '../types';
 import { usePayday } from '../context/PaydayContext';
+import { getMyShare } from '../utils/calculations';
 import { suggestEmoji, getCategoryEmoji } from '../utils/emojis';
 import { formatCurrency } from '../utils/dateUtils';
 import { CustomCategoryModal } from './CustomCategoryModal';
@@ -30,6 +31,17 @@ const defaultBillCategories = [
   { name: 'Other', emoji: '📦' },
 ];
 
+function detectSplitType(bill: Bill): SplitType {
+  if (bill.customMyShare !== undefined) return 'custom';
+  if (bill.splitType) return bill.splitType;
+  if (bill.mySharePercentage !== undefined) return 'percentage';
+  const full = bill.fullTotal ?? bill.amount;
+  const ways = bill.splitWays ?? bill.splitCount ?? 2;
+  const even = ways > 0 ? Math.round((full / ways) * 100) / 100 : full;
+  if (bill.myShare !== undefined && Math.abs(bill.myShare - even) >= 0.005) return 'custom';
+  return 'even';
+}
+
 export const BillModal: React.FC<BillModalProps> = ({
   isOpen,
   onClose,
@@ -55,6 +67,9 @@ export const BillModal: React.FC<BillModalProps> = ({
   const [isSplit, setIsSplit] = useState(false);
   const [fullTotal, setFullTotal] = useState('');
   const [splitCount, setSplitCount] = useState('2');
+  const [splitType, setSplitType] = useState<SplitType>('even');
+  const [customMyShare, setCustomMyShare] = useState('');
+  const [mySharePercentage, setMySharePercentage] = useState('');
 
   const [isDebt, setIsDebt] = useState(false);
   const [totalBalance, setTotalBalance] = useState('');
@@ -74,7 +89,17 @@ export const BillModal: React.FC<BillModalProps> = ({
       setInterestRate(billToEdit.interestRate !== undefined ? String(billToEdit.interestRate) : '');
 
       const splitActive = !!billToEdit.isSplit;
+      const detectedSplitType = splitActive ? detectSplitType(billToEdit) : 'even';
       setIsSplit(splitActive);
+      setSplitType(detectedSplitType);
+      setCustomMyShare(
+        billToEdit.customMyShare !== undefined
+          ? String(billToEdit.customMyShare)
+          : detectedSplitType === 'custom' && billToEdit.myShare !== undefined
+            ? String(billToEdit.myShare)
+            : '',
+      );
+      setMySharePercentage(billToEdit.mySharePercentage !== undefined ? String(billToEdit.mySharePercentage) : '');
 
       if (splitActive) {
         setFullTotal(String(billToEdit.fullTotal || billToEdit.amount));
@@ -101,6 +126,9 @@ export const BillModal: React.FC<BillModalProps> = ({
       setAmount('');
       setFullTotal('');
       setSplitCount('2');
+      setSplitType('even');
+      setCustomMyShare('');
+      setMySharePercentage('');
     }
   }, [billToEdit, isOpen]);
 
@@ -108,10 +136,18 @@ export const BillModal: React.FC<BillModalProps> = ({
 
   const fullTotalNum = parseFloat(fullTotal) || 0;
   const splitCountNum = parseInt(splitCount, 10) || 2;
+  const customShareNum = customMyShare === '' ? undefined : parseFloat(customMyShare);
+  const percentageNum = mySharePercentage === '' ? undefined : parseFloat(mySharePercentage);
 
-  const calculatedMyShare = isSplit
-    ? Math.round((fullTotalNum / splitCountNum) * 100) / 100
-    : parseFloat(amount) || 0;
+  const calculatedMyShare = getMyShare({
+    amount: parseFloat(amount) || 0,
+    fullTotal: fullTotalNum,
+    isSplit,
+    splitWays: splitCountNum,
+    splitType,
+    customMyShare: customShareNum,
+    mySharePercentage: percentageNum,
+  });
 
   const handleNameChange = (val: string) => {
     setName(val);
@@ -139,6 +175,14 @@ export const BillModal: React.FC<BillModalProps> = ({
         alert('Please enter a valid Full Bill Total amount.');
         return;
       }
+      if (splitType === 'custom' && (customShareNum === undefined || !Number.isFinite(customShareNum) || customShareNum < 0 || customShareNum > fullTotalNum)) {
+        alert('Please enter a custom share between $0 and the full bill total.');
+        return;
+      }
+      if (splitType === 'percentage' && (percentageNum === undefined || !Number.isFinite(percentageNum) || percentageNum < 0 || percentageNum > 100)) {
+        alert('Please enter a split percentage between 0 and 100.');
+        return;
+      }
       finalFullTotal = fullTotalNum;
       finalSplitWays = splitCountNum;
       finalMyShare = calculatedMyShare;
@@ -153,6 +197,9 @@ export const BillModal: React.FC<BillModalProps> = ({
       finalSplitWays = 1;
     }
 
+    const persistedSplitType: SplitType = isSplit ? splitType : 'even';
+    const persistedCustomMyShare = isSplit && splitType === 'custom' ? calculatedMyShare : undefined;
+    const persistedPercentage = isSplit && splitType === 'percentage' ? percentageNum : undefined;
     const isDebtActive = isDebt || category === 'Debt & Credit';
     const parsedTotalBalance = totalBalance ? parseFloat(totalBalance) : undefined;
     const parsedInterestRate = interestRate ? parseFloat(interestRate) : undefined;
@@ -170,10 +217,12 @@ export const BillModal: React.FC<BillModalProps> = ({
         notes: notes.trim(),
         isSplit,
         fullTotal: finalFullTotal,
-        splitType: 'even',
+        splitType: persistedSplitType,
         splitCount: finalSplitWays,
         myShare: finalMyShare,
         splitWays: finalSplitWays,
+        customMyShare: persistedCustomMyShare,
+        mySharePercentage: persistedPercentage,
         isDebt: isDebtActive,
         totalBalance: isDebtActive ? parsedTotalBalance : undefined,
         interestRate: isDebtActive ? parsedInterestRate : undefined,
@@ -190,10 +239,12 @@ export const BillModal: React.FC<BillModalProps> = ({
         isActive: true,
         isSplit,
         fullTotal: finalFullTotal,
-        splitType: 'even',
+        splitType: persistedSplitType,
         splitCount: finalSplitWays,
         myShare: finalMyShare,
         splitWays: finalSplitWays,
+        customMyShare: persistedCustomMyShare,
+        mySharePercentage: persistedPercentage,
         isDebt: isDebtActive,
         totalBalance: isDebtActive ? parsedTotalBalance : undefined,
         interestRate: isDebtActive ? parsedInterestRate : undefined,
@@ -447,11 +498,71 @@ export const BillModal: React.FC<BillModalProps> = ({
                   </div>
                 </div>
 
+                <div>
+                  <label className="block text-xs font-semibold text-white/80 mb-1">
+                    Split Method
+                  </label>
+                  <select
+                    value={splitType}
+                    onChange={e => setSplitType(e.target.value as SplitType)}
+                    aria-label="Split method"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"
+                  >
+                    <option value="even">Split evenly</option>
+                    <option value="custom">Custom amount</option>
+                    <option value="percentage">Percentage</option>
+                  </select>
+                </div>
+
+                {splitType === 'custom' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-white/80 mb-1">
+                      My Custom Share ($)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 text-white/40 font-medium text-sm">$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max={fullTotalNum}
+                        aria-label="My custom share"
+                        placeholder="0.00"
+                        value={customMyShare}
+                        onChange={e => setCustomMyShare(e.target.value)}
+                        className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {splitType === 'percentage' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-white/80 mb-1">
+                      My Share Percentage
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        aria-label="My share percentage"
+                        placeholder="50"
+                        value={mySharePercentage}
+                        onChange={e => setMySharePercentage(e.target.value)}
+                        className="w-full pr-7 pl-3 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"
+                      />
+                      <span className="absolute right-3 top-2.5 text-white/40 text-sm font-semibold">%</span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="p-3.5 rounded-xl bg-[var(--accent-soft)] border border-[var(--border-strong)] space-y-1">
                   <div className="flex items-center justify-between text-xs font-bold text-[var(--accent)]">
                     <span>Full Bill Total: {formatCurrency(fullTotalNum)}</span>
                     <span className="text-sm text-emerald-400 font-extrabold">
-                      My Share: {formatCurrency(calculatedMyShare)} (calculated)
+                      My Share: {formatCurrency(calculatedMyShare)}
                     </span>
                   </div>
                   <p className="text-[11px] text-white/70">

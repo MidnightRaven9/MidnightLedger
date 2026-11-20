@@ -116,4 +116,4 @@ The 22 placeholder-only inputs and 28 title-only controls identified in the earl
 
 The E2E test (390×844 mobile viewport, then 1280×800 desktop) asserts: page title, dark theme, product name, skip link as first tab stop, dialog open/focus-trap/Escape/restore, every tab rendering at both widths, main landmark, import preview cancel/corrupt/confirm/export-current, four corrupt-storage recovery scenarios, and zero page errors. This is a functional/keyboard audit, not a substitute for a physical screen-reader review.
 
-`npm run lint`, `npm test` (27/27), `npm run build`, and `npm audit` (0 vulnerabilities) also passed; see `TEST_REPORT.md`.
+`npm run lint`, `npm test` (45/45), `npm run build`, `npm audit` (0 vulnerabilities), and `npm run test:e2e` also passed; see `TEST_REPORT.md`.

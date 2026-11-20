@@ -9,7 +9,11 @@ applyAccentColor(getAccentColor());
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    void navigator.serviceWorker.register('/sw.js');
+    void navigator.serviceWorker.register('/sw.js').then(registration => {
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) void registration.update();
+      });
+    });
   });
 }
 

@@ -19,7 +19,7 @@ Priorities: **P0** = data-integrity/security, **P1** = correctness/robustness, *
 
 | # | Item | Priority | Status | Evidence / acceptance |
 |---|---|---|---|---|
-| 5 | Documented cent-rounding policy and shared money helpers | P1 | **Done** | `src/utils/calculations.ts`; `calcNet(1450.55,22)=1131.43` |
+| 5 | Documented cent-rounding policy and shared money helpers | P1 | **Done** | `money.ts` is the single source for frontend/Node/Worker; `roundCents`, `sumMoney`; `calcNet(1450.55,22)=1131.43` |
 | 6 | Net-pay calculation no longer rounds to whole dollars | P1 | **Done** | `src/views/PaydaysView.tsx` |
 | 7 | Summary totals/outflow/leftover cent-consistent | P1 | **Done** | `src/utils/paydayLogic.ts` |
 | 8 | Single source of truth for localStorage loading; corruption preserved on disk | P1 | **Done** | `PaydayContext.tsx:157-208`; `Toast.tsx:9-23` |
@@ -52,24 +52,38 @@ Priorities: **P0** = data-integrity/security, **P1** = correctness/robustness, *
 | # | Item | Priority | Status | Evidence / acceptance |
 |---|---|---|---|---|
 | 22 | Disable WebView debugging; pin safe WebView defaults | P3 | **Done** | `capacitor.config.ts:5-11`, `MainActivity.java:9-17` |
-| 23 | Production service worker + CSP/security headers | P3 | **Done** | `public/sw.js`, `public/_headers`, `src/main.tsx` |
+| 23 | Production service worker + CSP/security headers | P3 | **Done** | `public/sw.js`, `public/_headers`, production Express CSP, build-content cache stamp, visibility-triggered update check |
 | 24 | CI: permissions, timeouts, Node pin, lint/unit/integration/audit/build/E2E | P3 | **Done** | `.github/workflows/ci.yml` |
-| 25 | Unit/integration/E2E tests without new dependencies | P3 | **Done** | `tests/`; 27 passing tests, E2E passing |
+| 25 | Unit/integration/E2E tests without new dependencies | P3 | **Done** | `tests/`; 45 passing tests (43 unit + 2 integration), E2E passing |
 | 26 | Signed release APK | P3 | **Needs approval** | `docs/RELEASE.md` documents exact steps; owner keystore required; not performed |
-| 27 | Real authentication/authorization for the financial API | P0 if enabled | **Needs approval** | Keep API disabled in production |
+| 27 | Real authentication/authorization for the financial API | P0 | **Done (code + owner-approved deploy)** | `apiCore.ts` + `worker.ts`: register/login/logout, PBKDF2-SHA256 (100,000 iterations for Worker compatibility), hashed opaque 32-byte bearer tokens, 24h expiry, revocation; `x-user-id` ignored; `migrations/0003_auth.sql`; deployed to Worker with D1 `DB`/`ASSETS` bindings and live smoke test |
 | 28 | **Pin GitHub Actions to commit SHAs** | P3 | **Done (final review)** | `.github/workflows/ci.yml`: `actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4`, `actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4` |
 | 29 | Untrack committed `dist/` build output | P3 | **Needs approval** | `.gitignore` ignores `dist/`; proposed `git rm --cached -r dist` not run; tracked files restored after each build |
 | 30 | **Android release/signing/version/permission documentation** | P3 | **Done (final review)** | `docs/RELEASE.md` with exact steps and manual verification checklist; linked from `README.md` and `docs/DOWNLOAD.md` |
 | 31 | **Multi-screen mobile/desktop UI QA** | P3 | **Done (final review)** | E2E sweeps all six screens at 390px and 1280px with content assertions and zero page errors |
 | 32 | Merged Android notification permissions decision | P3 | **Needs approval** | `POST_NOTIFICATIONS`, `SCHEDULE_EXACT_ALARM`, `RECEIVE_BOOT_COMPLETED`, `WAKE_LOCK` from local-notifications plugin; reconcile privacy wording |
 
+## Phase 4 — current remediation pass (auth, money, reliability)
+
+| # | Item | Priority | Status | Evidence / acceptance |
+|---|---|---|---|---|
+| 33 | Replace `x-user-id` with real auth in Express and Worker | P0 | **Done** | `apiCore.ts`, `server.ts`, `worker.ts`; session-derived `user_id`; spoofed header → 401; missing/invalid/expired/revoked token → 401 |
+| 34 | Non-destructive auth schema migration | P0 | **Done** | `migrations/0003_auth.sql` adds username/password columns and `sessions`; no existing row deletion or rewrite |
+| 35 | Single shared money policy + cent-safe sums | P1 | **Done** | `money.ts`; `roundCents`/`sumMoney` used by frontend and API; boundary tests incl. `1.005`, `-8.575`, large values |
+| 36 | Preserve custom/percentage/even/legacy split meaning | P1 | **Done** | `calculations.ts`, `backup.ts`, `BillModal.tsx`, `PaydayContext.tsx`; explicit `customMyShare` wins; backup round-trip test |
+| 37 | Remove duplicate financial localStorage writes and sensitive exception logs | P1 | **Done** | `PaydayContext.tsx`, `safeLog.ts`; no `bills`/`myBills` shadow writes; fixed log messages only |
+| 38 | Build-derived PWA cache invalidation | P2 | **Done** | `scripts/stamp-sw.mjs`, `package.json`, `public/sw.js`, `main.tsx`; stamped `e181761c19bde2bd35e9`; API/cross-origin never cached |
+| 39 | Regression tests for auth, Worker, SW, money and splits | P1 | **Done** | `tests/unit/auth.test.ts`, `worker.test.ts`, `serviceWorker.test.ts`, updated calculations/backup; `npm test` 45/45 |
+| 40 | Correct CORS scope so static assets and health are never blocked | P1 | **Done** | Express + Worker origin checks restricted to financial API; same-origin always allowed; unit/integration/E2E pass |
+| 41 | Fix live Worker deployment defects found by smoke test | P0 | **Done** | Added `ASSETS` binding and JSON health route; lowered PBKDF2 to Workers' 100,000-iteration cap with stored counts; redeployed and verified live |
+
 ---
 
 ## Sequencing and release gate
 
-1. **Before any release:** items 1–20, 22–25, 28, 30–31 (all Done) must remain green in CI.
-2. **Before enabling the financial API anywhere public:** item 27 must be resolved and approved; item 4 must remain in place.
+1. **Before any release:** items 1–20, 22–25, 28, 30–31 and 33–40 (all Done) must remain green in CI.
+2. **Financial API public exposure:** item 27 is Done and the owner-approved Worker deployment is live and smoke-tested. The source default stays disabled and item 4 remains in place. Registration is open to anyone who knows the Worker URL — add an invite code or allowlist if the API must be private.
 3. **Before publishing an Android release:** items 26 and 32 must be resolved and approved.
 4. **Repository hygiene:** item 29 requires owner approval to untrack generated output.
 
-No deployment, data wipe, migration execution, release publication, or credential creation was performed as part of this work.
+The only deployment performed is the owner-approved Worker activation above. No data wipe, history rewrite, release publication, Android signing, or untracking of `dist/` was performed. Cloudflare credentials were never received or stored; Wrangler authenticated through owner-approved OAuth.

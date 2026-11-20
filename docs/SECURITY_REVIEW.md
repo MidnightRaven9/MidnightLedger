@@ -25,8 +25,12 @@ on the user's device and make no network requests.
 It is not part of the offline app build.
 
 - All SQL statements use bound parameters.
-- `x-user-id` must be a syntactically valid UUID v4 and scopes every query.
-  It is a partition key, not authentication — see `SECURITY.md`.
+- Financial routes derive the user id only from a verified, unexpired,
+  unrevoked session token. `x-user-id` is ignored; CORS is not authentication.
+- Registration, login and logout are gated by `ENABLE_FINANCIAL_API=1`. Password
+  hashes use PBKDF2-SHA256 with per-account salts and 100,000 iterations (the
+  Workers WebCrypto maximum, stored with each hash); only SHA-256 hashes of
+  opaque 32-byte bearer tokens are persisted.
 - Request bodies must be JSON objects. Amounts, dates, IDs and day-of-month
   values are validated and clamped before persistence.
 - In-memory rate limiting is capped at 100 requests per minute per IP, with a
@@ -44,8 +48,16 @@ It is not part of the offline app build.
 
 ## Known limitations
 
-- Anyone who knows a user's UUID can access that user's partition on a hosted
-  deployment because there is no authentication layer.
+- The financial API remains disabled by default in source and local
+  configuration. On 2026-11-20 it was deployed with owner-approved OAuth to
+  `https://midnightledger.justicegraff6.workers.dev` using D1 `midnightledger-db`,
+  migrations `0001`–`0003`, `ASSETS` and `DB` bindings, and
+  `ENABLE_FINANCIAL_API=1` as a Wrangler secret. Live smoke tests passed and the
+  throwaway account was deleted.
+- **Registration is currently open to anyone who knows the Worker URL.** Add an
+  invite code or registration allowlist before treating the API as private. No
+  `ALLOWED_ORIGINS` secret is set; same-origin requests work and unknown
+  cross-origin callers are rejected.
 - The rate limiter is process-local; a multi-instance deployment needs a shared
   limiter at the edge.
 - `localStorage` is readable by any script executing on the same origin. Keep

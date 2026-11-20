@@ -27,6 +27,35 @@ test('backup round trip preserves excluded occurrences and monetary values', () 
   assert.equal(result.state.variableOverrides['bill_1::2026-01-02'], 12.35);
 });
 
+test('backup round trip preserves split type, custom share and percentage', () => {
+  const splitState: PersistedState = {
+    ...state,
+    bills: [
+      {
+        id: 'custom_split', name: 'Custom', amount: 40, myShare: 40, customMyShare: 40,
+        fullTotal: 191, isSplit: true, splitType: 'custom', splitWays: 2, splitCount: 2,
+        dueDate: 1, category: 'Utilities', type: 'variable', isActive: true,
+      },
+      {
+        id: 'percentage_split', name: 'Percentage', amount: 95.5, myShare: 95.5,
+        fullTotal: 191, isSplit: true, splitType: 'percentage', mySharePercentage: 50,
+        dueDate: 2, category: 'Utilities', type: 'variable', isActive: true,
+      },
+      {
+        id: 'even_split', name: 'Even', amount: 33.33, myShare: 33.33,
+        fullTotal: 100, isSplit: true, splitType: 'even', splitWays: 3, splitCount: 3,
+        dueDate: 3, category: 'Utilities', type: 'variable', isActive: true,
+      },
+    ],
+  };
+  const json = createBackup(splitState);
+  const result = parseBackup(JSON.stringify(json));
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  assert.deepEqual(result.state.bills, splitState.bills);
+  assert.deepEqual(result.warnings, []);
+});
+
 test('legacy backup keys are accepted without data loss', () => {
   const result = parseBackup(JSON.stringify({
     version: '1.0',
