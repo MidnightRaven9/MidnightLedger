@@ -2,6 +2,25 @@
 
 All notable changes to MidnightLedger ✨
 
+## [3.2.0] - 2026-11-20 🔔
+### ✨ Added
+- **Bill reminders** — a bell in the header shows unpaid bills that are due soon, with a count badge
+- Reminder panel lists each due bill with days-until, due date and amount, plus a one-tap "mark paid" button
+- **Local OS notifications** (Android) warn you *before* a bill is due, with a configurable days-ahead window (1/3/5/7/14 days) and an opt-in toggle with proper permission handling
+- Notification settings live in the Settings sheet alongside the appearance controls
+- **"About the maker"** section in Settings with links to the GitHub repo and GitHub Sponsors (buy me a coffee ☕)
+- Purple notification icon and accent-coloured notification channel
+
+### 💜 Changed
+- Fluid auto-sizing layout now adapts cleanly from **320px to 1920px** — no more clipping at odd widths like 390px or 768px
+- Stat cards, action buttons and bill rows use `auto-fit` grids and clamped typography so they fit any phone, tablet or desktop
+- Header gutters scale with viewport width
+
+### 🐛 Fixed
+- Long category names (e.g. "Groceries & Household Supplies") no longer collapse into a tiny column
+- `+ Add Extra Cash` and `✓ Mark All Paid` buttons no longer overflow their container
+- "10 Paydays" stat and the collapsible Bills/Expenses headers no longer clip
+
 ## [3.1.1] - 2026-11-19 🔧
 ### 🎨 Added
 - **Appearance settings** — gear icon in the header opens a colour picker for the whole UI and the celebration confetti

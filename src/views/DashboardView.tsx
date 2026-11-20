@@ -10,6 +10,7 @@ import {
   PlusCircle,
   AlertCircle,
   Circle,
+  Check,
   DollarSign,
   Plus,
   Settings,
@@ -293,7 +294,7 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
                         : 'bg-[var(--surface-2)] border-zinc-800 hover:border-zinc-700'
                     }`}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -312,17 +313,18 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
                             {isPaid && item.type === 'bill' && !item.isPaidWithOther ? '' : `${item.emoji} `}{item.name}
                           </span>
                         </div>
-                        <div className="text-zinc-500 text-xs">
+                        <div className="text-zinc-500 text-xs leading-snug">
                           {item.isPaidWithOther 
                             ? `Paid early on ${formatDate(item.originalItem?.paidWithPaydayId || '', 'short')}`
                             : item.isPaidEarlyFuture
                             ? `Paid early from ${formatDate(item.originalItem?.originalAssignedPayday || '', 'short')}`
                             : `Due ${item.dueDateStr}`}
+                          {item.category && <span className="text-[var(--accent)]"> · {item.category}</span>}
                         </div>
                       </div>
                     </div>
 
-                    <div className="text-right shrink-0 ml-3 flex flex-col items-end">
+                    <div className="text-right shrink-0 ml-2 flex flex-col items-end">
                       {editingVariableId === item.id ? (
                         <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                           <input 
@@ -376,7 +378,6 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
                           )}
                         </div>
                       )}
-                      <div className="text-[var(--accent)] text-xs font-semibold">{item.category}</div>
                     </div>
                   </div>
                 );
@@ -786,7 +787,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           <path d="M16 2v4M8 2v4M3 9h18"></path>
                         </svg>
                       </div>
-                      <h1 style={{ fontSize: 'clamp(24px, 7vw, 36px)', fontWeight: 800, lineHeight: 1, color: '#ffffff' }} className="tracking-tight truncate">
+                      <h1 style={{ fontSize: 'clamp(19px, 5.8vw, 34px)', fontWeight: 800, lineHeight: 1.1, color: '#ffffff' }} className="tracking-tight break-words leading-tight">
                         {formatDate(sPayday.date, 'medium')}
                       </h1>
                     </div>
@@ -798,27 +799,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   </div>
 
                   {/* Action Grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }} className="w-full">
+                  <div className="grid gap-2 w-full" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 132px), 1fr))' }}>
                     <button
                       type="button"
                       onClick={() => onOpenIncomeModal(sPayday.date)}
-                      style={{ height: '48px', borderRadius: '14px', fontSize: '14px', fontWeight: 600, padding: '0 10px', letterSpacing: '-0.01em', background: 'transparent', border: '1px solid var(--accent)', color: 'var(--accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', whiteSpace: 'nowrap' }}
+                      style={{ height: '48px', borderRadius: '14px', fontSize: '14px', fontWeight: 600, padding: '0 10px', letterSpacing: '-0.01em', background: 'transparent', border: '1px solid var(--accent)', color: 'var(--accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', whiteSpace: 'nowrap' }}
                       className="hover:bg-[var(--accent-hover)]/10 transition-colors"
                     >
-                      + Add Extra Cash
+                      <Plus className="w-4 h-4 shrink-0" /> Add Extra Cash
                     </button>
                     <button
                       type="button"
                       onClick={() => onOpenExpenseModal(sPayday.date)}
-                      style={{ height: '48px', borderRadius: '14px', fontSize: '14px', fontWeight: 600, padding: '0 10px', letterSpacing: '-0.01em', background: 'var(--surface-2)', border: '1px solid var(--border)', color: '#ffffff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', whiteSpace: 'nowrap' }}
+                      style={{ height: '48px', borderRadius: '14px', fontSize: '14px', fontWeight: 600, padding: '0 10px', letterSpacing: '-0.01em', background: 'var(--surface-2)', border: '1px solid var(--border)', color: '#ffffff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', whiteSpace: 'nowrap' }}
                       className="hover:bg-zinc-700/80 transition-colors"
                     >
-                      + Add Expense
+                      <Plus className="w-4 h-4 shrink-0" /> Add Expense
                     </button>
                     <button
                       type="button"
                       onClick={() => onOpenBillModal()}
-                      style={{ height: '48px', borderRadius: '14px', fontSize: '14px', fontWeight: 600, padding: '0 10px', letterSpacing: '-0.01em', background: 'var(--surface-2)', border: '1px solid var(--border)', color: '#ffffff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', whiteSpace: 'nowrap' }}
+                      style={{ height: '48px', borderRadius: '14px', fontSize: '14px', fontWeight: 600, padding: '0 10px', letterSpacing: '-0.01em', background: 'var(--surface-2)', border: '1px solid var(--border)', color: '#ffffff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', whiteSpace: 'nowrap' }}
                       className="hover:bg-zinc-700/80 transition-colors"
                     >
                       New Bill
@@ -838,10 +839,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           }
                         });
                       }}
-                      style={{ height: '48px', borderRadius: '14px', fontSize: '14px', fontWeight: 600, padding: '0 10px', letterSpacing: '-0.01em', background: 'var(--accent)', border: 'none', color: '#ffffff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', whiteSpace: 'nowrap' }}
+                      style={{ height: '48px', borderRadius: '14px', fontSize: '14px', fontWeight: 600, padding: '0 10px', letterSpacing: '-0.01em', background: 'var(--accent)', border: 'none', color: 'var(--on-accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', whiteSpace: 'nowrap' }}
                       className="hover:bg-[var(--accent-press)] transition-colors"
                     >
-                      ✓ Mark All Paid
+                      <Check className="w-4 h-4 shrink-0" /> Mark All Paid
                     </button>
                   </div>
 
@@ -849,7 +850,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <div style={{ height: '1px', background: 'var(--border)', margin: '4px 0' }} className="w-full" />
 
                   {/* Stats Grid — single column on narrow phones so nothing is smushed */}
-                  <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5 w-full">
+                  <div className="grid gap-2.5 w-full" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))' }}>
                     {/* Estimated Check */}
                     <div 
                       onClick={() => {
@@ -1114,7 +1115,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* 3. DASHBOARD STATS COLUMN */}
-      <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5" style={{ marginBottom: '16px' }}>
+      <div className="grid gap-2.5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', marginBottom: '16px' }}>
         
         {/* Total Monthly Bills */}
         <div style={{ padding: '12px 10px', borderRadius: '16px', background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, overflow: 'hidden' }}>
@@ -1139,7 +1140,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px', overflow: 'hidden' }}>
             <p style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 500, lineHeight: 1, whiteSpace: 'nowrap' }}>Upcoming</p>
-            <p style={{ fontSize: '17px', fontWeight: 800, color: '#ffffff', lineHeight: 1.1, letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <p style={{ fontSize: 'clamp(14px, 4.1vw, 16px)', fontWeight: 800, color: '#ffffff', lineHeight: 1.1, letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {summaries.length} Paydays
             </p>
             <p style={{ fontSize: '10px', color: 'var(--faint)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

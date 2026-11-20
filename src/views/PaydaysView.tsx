@@ -142,7 +142,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2 w-full pt-2">
+        <div className="grid gap-2 w-full pt-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))' }}>
           <button
             onClick={onOpenPaydayModal}
             className="h-11 rounded-2xl bg-[var(--surface-2)] hover:bg-[#252525] border border-zinc-800 text-white font-bold text-[13px] transition-all flex items-center justify-center gap-1.5 cursor-pointer px-3 box-border w-full"
@@ -209,7 +209,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
 
                     <div className="min-w-0 flex-1 overflow-hidden">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <p className="text-[15px] font-bold text-white truncate leading-tight">
+                        <p className="text-[clamp(13px,4vw,15px)] font-bold text-white break-words leading-snug">
                           {formatDate(payday.date, 'medium')}
                         </p>
                         {isUserAdded && (
@@ -303,7 +303,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                     onClick={() => setExpandedId(isExpanded ? null : paydayId)}
                     className="w-full flex items-center justify-between py-1.5 group cursor-pointer"
                   >
-                    <div className="flex items-center justify-between w-full pr-2">
+                    <div className="flex items-center justify-between flex-1 min-w-0 pr-2">
                       <span className="text-[11px] font-black tracking-widest text-zinc-400 uppercase">
                         BILLS ({assignedBills.length})
                       </span>
@@ -419,7 +419,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                       onClick={() => setExpandedExpensesId(isExpensesExpanded ? null : paydayId)}
                       className="w-full flex items-center justify-between py-1.5 group cursor-pointer"
                     >
-                      <div className="flex items-center justify-between w-full pr-2">
+                      <div className="flex items-center justify-between flex-1 min-w-0 pr-2">
                         <span className="text-[11px] font-black tracking-widest text-zinc-400 uppercase">
                           EXPENSES ({extraExpenses.length})
                         </span>

@@ -15,6 +15,7 @@ import {
 import { usePayday } from '../context/PaydayContext';
 import { ClearDataModal } from './ClearDataModal';
 import { SettingsModal } from './SettingsModal';
+import { NotificationCenter } from './NotificationCenter';
 
 export type TabType = 'dashboard' | 'bills' | 'paydays' | 'expenses' | 'reports' | 'history' | 'settings';
 
@@ -68,7 +69,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <>
       <header className="sticky top-0 z-40 w-full border-b border-[var(--border)] bg-[rgba(16,16,18,0.92)] backdrop-blur-md transition-colors">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-[clamp(10px,3.2vw,32px)]">
           <div className="flex items-center justify-between h-[54px]">
           
           {/* Wordmark */}
@@ -159,13 +160,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Quick Actions */}
           <div className="flex items-center gap-2">
 
-            {/* Appearance / Accent colour — available on every screen size */}
+            {/* Bill reminders + Appearance settings — on every screen size */}
+            <NotificationCenter
+              onOpenSettings={() => setIsSettingsModalOpen(true)}
+              onGoToBills={() => setActiveTab('bills')}
+            />
             <button
               id="open-settings"
               onClick={() => setIsSettingsModalOpen(true)}
               className="btn-quiet h-8 w-8 !p-0"
-              title="Appearance settings"
-              aria-label="Appearance settings"
+              title="Settings"
+              aria-label="Settings"
             >
               <Settings className="w-4 h-4" />
             </button>

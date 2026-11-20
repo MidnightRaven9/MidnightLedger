@@ -67,7 +67,7 @@ function MainApp() {
       />
 
       {/* Main Content Area */}
-      <main className="w-full px-3 sm:px-6 lg:px-8 pt-4 pb-28">
+      <main className="w-full px-[clamp(10px,3.2vw,32px)] pt-4 pb-28">
         {activeTab === 'dashboard' && (
           <DashboardView
             onOpenBillModal={handleOpenBillModal}

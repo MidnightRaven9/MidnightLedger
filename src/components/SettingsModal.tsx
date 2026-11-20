@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Check, Palette, RotateCcw, X, Sparkles } from 'lucide-react';
+import { Check, Palette, RotateCcw, X, Sparkles, Github, Coffee, ExternalLink, Bell } from 'lucide-react';
 import {
   applyAccentColor,
   DEFAULT_ACCENT,
@@ -7,8 +7,13 @@ import {
   isValidHex,
   normalizeHex,
   PRESET_COLORS,
-  withAlpha,
 } from '../utils/accentColor';
+import {
+  getNotificationSettings,
+  NotificationSettings,
+  requestSystemPermission,
+  saveNotificationSettings,
+} from '../utils/notifications';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -23,6 +28,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const [selected, setSelected] = useState<string>(DEFAULT_ACCENT);
   const [hexInput, setHexInput] = useState<string>(DEFAULT_ACCENT);
   const [hexError, setHexError] = useState(false);
+  const [notif, setNotif] = useState<NotificationSettings>(() => getNotificationSettings());
+  const [permissionHint, setPermissionHint] = useState('');
 
   useEffect(() => {
     if (!isOpen) return;
@@ -30,6 +37,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     setSelected(current);
     setHexInput(current);
     setHexError(false);
+    setNotif(getNotificationSettings());
+    setPermissionHint('');
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -59,6 +68,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     if (!isValidHex(hexInput)) {
       setHexInput(selected);
       setHexError(false);
+    }
+  };
+
+  const updateNotif = (patch: Partial<NotificationSettings>) => {
+    const next = { ...notif, ...patch };
+    setNotif(next);
+    saveNotificationSettings(next);
+  };
+
+  const toggleSystem = async () => {
+    if (notif.system) {
+      updateNotif({ system: false });
+      setPermissionHint('');
+      return;
+    }
+    const granted = await requestSystemPermission();
+    if (granted) {
+      updateNotif({ system: true, enabled: true });
+      setPermissionHint('');
+    } else {
+      setPermissionHint('Permission was denied. Enable notifications for MidnightLedger in your device settings.');
     }
   };
 
@@ -205,6 +235,136 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   {hexError ? 'Enter a valid 3 or 6 digit hex colour' : 'Paste a hex code or tap the wheel'}
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* Bill reminders */}
+          <div className="space-y-3">
+            <p className="label flex items-center gap-1.5"><Bell className="w-3 h-3" /> Notifications</p>
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] divide-y divide-[var(--border)]">
+              <div className="flex items-center justify-between gap-3 p-3.5">
+                <div className="min-w-0 pr-2">
+                  <p className="text-[12px] font-semibold text-[var(--text)]">Bill reminders</p>
+                  <p className="text-[10px] text-[var(--muted)] leading-snug mt-0.5">
+                    Bell in the header shows unpaid bills that are due soon
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={notif.enabled}
+                  aria-label="Bill reminders"
+                  onClick={() => updateNotif({ enabled: !notif.enabled })}
+                  className="relative w-10 h-6 rounded-full transition-colors cursor-pointer shrink-0"
+                  style={{ background: notif.enabled ? 'var(--accent)' : 'var(--border-strong)' }}
+                >
+                  <span
+                    className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all"
+                    style={{ left: notif.enabled ? '18px' : '2px' }}
+                  />
+                </button>
+              </div>
+
+              <div className="p-3.5">
+                <p className="text-[12px] font-semibold text-[var(--text)]">Remind me ahead of time</p>
+                <p className="text-[10px] text-[var(--muted)] leading-snug mt-0.5 mb-2.5">
+                  How many days before an unpaid bill is due
+                </p>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {[1, 3, 5, 7, 14].map((days) => {
+                    const active = notif.daysAhead === days;
+                    return (
+                      <button
+                        key={days}
+                        type="button"
+                        onClick={() => updateNotif({ daysAhead: days })}
+                        className="h-8 rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
+                        style={active
+                          ? { background: 'var(--accent)', color: 'var(--on-accent)' }
+                          : { background: 'var(--surface)', color: 'var(--muted)', border: '1px solid var(--border-strong)' }}
+                      >
+                        {days}d
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 p-3.5">
+                <div className="min-w-0 pr-2">
+                  <p className="text-[12px] font-semibold text-[var(--text)]">System notifications</p>
+                  <p className="text-[10px] text-[var(--muted)] leading-snug mt-0.5">
+                    Android notification for each due bill — scheduled locally
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={notif.system}
+                  aria-label="System notifications"
+                  onClick={() => void toggleSystem()}
+                  className="relative w-10 h-6 rounded-full transition-colors cursor-pointer shrink-0"
+                  style={{ background: notif.system ? 'var(--accent)' : 'var(--border-strong)' }}
+                >
+                  <span
+                    className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all"
+                    style={{ left: notif.system ? '18px' : '2px' }}
+                  />
+                </button>
+              </div>
+            </div>
+            {permissionHint && (
+              <p className="text-[10px] leading-snug" style={{ color: 'var(--danger)' }}>{permissionHint}</p>
+            )}
+            <p className="text-[10px] text-[var(--faint)] leading-snug">
+              All reminders are calculated on your device — no internet or account required.
+            </p>
+          </div>
+
+          {/* Creator / support */}
+          <div className="space-y-3">
+            <p className="label">About the maker</p>
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: 'var(--accent-soft)', border: '1px solid var(--accent)' }}
+                >
+                  <Github className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[13px] font-bold text-[var(--text)]">MidnightLedger</p>
+                  <p className="text-[11px] text-[var(--muted)]">Built by MidnightRaven9</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-2">
+                <a
+                  href="https://github.com/MidnightRaven9/MidnightLedger"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-10 px-3 rounded-xl flex items-center justify-center gap-1.5 text-[11px] font-bold transition-colors cursor-pointer"
+                  style={{ background: 'var(--surface)', border: '1px solid var(--border-strong)', color: 'var(--text)' }}
+                >
+                  <Github className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">View source on GitHub</span>
+                  <ExternalLink className="w-3 h-3 shrink-0 opacity-60" />
+                </a>
+                <a
+                  href="https://github.com/sponsors/MidnightRaven9"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-10 px-3 rounded-xl flex items-center justify-center gap-1.5 text-[11px] font-bold transition-colors cursor-pointer"
+                  style={{ background: 'var(--accent)', color: 'var(--on-accent)' }}
+                >
+                  <Coffee className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Buy me a coffee</span>
+                  <ExternalLink className="w-3 h-3 shrink-0 opacity-70" />
+                </a>
+              </div>
+              <p className="text-[10px] text-[var(--faint)] text-center leading-snug">
+                Open source & free forever. Breakfast is optional. ☕
+              </p>
             </div>
           </div>
 
