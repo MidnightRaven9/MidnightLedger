@@ -15,6 +15,7 @@ import { getCategoryEmoji } from '../utils/emojis';
 import { tryCelebrate } from '../utils/celebrate';
 import { PaydaySummary } from '../types';
 import { CategoryPieChart } from '../components/CategoryPieChart';
+import { HorizontalScroller } from '../components/HorizontalScroller';
 import { EditItemsModal } from '../components/EditItemsModal';
 import { getCategoryColor } from '../utils/categoryColors';
 
@@ -620,7 +621,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <div className="w-full max-w-[600px] mx-auto min-h-screen bg-[var(--bg)] text-white p-4 box-border pb-32 space-y-4">
       <div className="space-y-4">
-        <div 
+        <HorizontalScroller 
           className="payday-slider flex overflow-x-auto snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
           style={{
             display: 'flex',
@@ -892,7 +893,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
             );
           })}
-        </div>
+        </HorizontalScroller>
         
         {orderedSummaries.length > 1 && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', margin: '8px 0 12px' }}>

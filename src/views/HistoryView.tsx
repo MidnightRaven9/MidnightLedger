@@ -25,6 +25,7 @@ import {
 import { PaydaySummary } from '../types';
 import { ClearDataModal } from '../components/ClearDataModal';
 import { BillCard } from '../components/BillCard';
+import { HorizontalScroller } from '../components/HorizontalScroller';
 
 type FilterMode = 'all' | 'month' | string; // 'all' | 'month' | '2026' | '2025' etc.
 
@@ -271,7 +272,7 @@ export const HistoryView: React.FC = () => {
       </div>
 
       {filterMode === 'month' && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none px-1">
+        <HorizontalScroller className="flex items-center gap-2 overflow-x-auto pb-1 px-1">
           {availableMonths.map(moStr => {
             const label = formatMonthYear(`${moStr}-01`);
             const isCurrent = moStr === currentMonthStr;
@@ -291,7 +292,7 @@ export const HistoryView: React.FC = () => {
               </button>
             );
           })}
-        </div>
+        </HorizontalScroller>
       )}
 
       <div className="space-y-4" id="paycheck-history-top">
@@ -554,7 +555,7 @@ export const HistoryView: React.FC = () => {
                         <span className="text-[10px] font-bold text-white/40 block mb-1.5">
                           Paycheck Timeline History:
                         </span>
-                        <div className="flex items-center gap-[6px] overflow-x-auto pb-1 scrollbar-none">
+                        <HorizontalScroller className="flex items-center gap-[6px] overflow-x-auto pb-1">
                           {billOccurrences.map((occ, idx) => (
                             <div 
                               key={`${occ.paydayDate}_${idx}`}
@@ -579,7 +580,7 @@ export const HistoryView: React.FC = () => {
                               </div>
                             </div>
                           ))}
-                        </div>
+                        </HorizontalScroller>
                       </>
                     )}
                   </div>

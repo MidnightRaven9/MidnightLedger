@@ -18,6 +18,7 @@ import {
 } from 'recharts';
 import { usePayday } from '../context/PaydayContext';
 import { CategoryPieChart } from '../components/CategoryPieChart';
+import { HorizontalScroller } from '../components/HorizontalScroller';
 import { formatDate, formatCurrency } from '../utils/dateUtils';
 import { getCategoryColor } from '../utils/categoryColors';
 import { BillCategory } from '../types';
@@ -379,11 +380,12 @@ export const ReportsView: React.FC = () => {
             <span className="w-3 h-3 bg-[var(--accent)] rounded-xs shrink-0" /> Income
           </span>
           <span className="flex items-center gap-1.5 text-zinc-300">
-            <span className="w-3 h-3 bg-[#fbbf24] rounded-xs shrink-0" /> Bills
+            <span className="w-3 h-3 bg-[#2dd4bf] rounded-xs shrink-0" /> Bills
           </span>
         </div>
 
-        <div className="w-full bg-[var(--surface-2)] rounded-[16px] p-3 overflow-x-auto">
+        <div className="w-full bg-[var(--surface-2)] rounded-[16px] p-3">
+          <HorizontalScroller className="w-full overflow-x-auto">
           <div style={{ width: '100%', minWidth: Math.max(320, incomeVsExpensesData.length * 72), height: 240 }}>
             <ResponsiveContainer width="100%" height="100%" style={{ outline: 'none' }}>
               <BarChart
@@ -409,10 +411,11 @@ export const ReportsView: React.FC = () => {
                 />
                 <Tooltip content={<BarTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                 <Bar dataKey="Income" fill="var(--accent)" barSize={16} radius={[4, 4, 0, 0]} name="Expected Check Income" />
-                <Bar dataKey="Expenses" fill="#fbbf24" barSize={16} radius={[4, 4, 0, 0]} name="Total Bills & Expenses" />
+                <Bar dataKey="Expenses" fill="#2dd4bf" barSize={16} radius={[4, 4, 0, 0]} name="Total Bills & Expenses" />
               </BarChart>
             </ResponsiveContainer>
           </div>
+          </HorizontalScroller>
         </div>
         {incomeVsExpensesData.length > 5 && (
           <p className="text-[11px] text-[var(--faint)] -mt-2">Swipe sideways to see every pay period</p>
@@ -441,7 +444,8 @@ export const ReportsView: React.FC = () => {
           </div>
         </div>
 
-        <div className="w-full bg-[var(--surface-2)] rounded-[16px] p-3 overflow-x-auto">
+        <div className="w-full bg-[var(--surface-2)] rounded-[16px] p-3">
+          <HorizontalScroller className="w-full overflow-x-auto">
           <div style={{ width: '100%', minWidth: Math.max(320, projectionData.length * 72), height: 240 }}>
             <ResponsiveContainer width="100%" height="100%" style={{ outline: 'none' }}>
               <LineChart
@@ -486,6 +490,7 @@ export const ReportsView: React.FC = () => {
               </LineChart>
             </ResponsiveContainer>
           </div>
+          </HorizontalScroller>
         </div>
         {projectionData.length > 5 && (
           <p className="text-[11px] text-[var(--faint)] -mt-2">Swipe sideways to see every pay period</p>

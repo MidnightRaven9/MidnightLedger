@@ -7,6 +7,7 @@ import { getPaydayForDate } from '../utils/paydayLogic';
 import { CustomCategoryModal } from './CustomCategoryModal';
 import { getCategoryEmoji } from '../utils/emojis';
 import { useEscapeToClose } from '../utils/useEscapeToClose';
+import { HorizontalScroller } from './HorizontalScroller';
 
 interface ExpenseModalProps {
   isOpen: boolean;
@@ -177,7 +178,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
 
           <div className="w-full min-w-0 max-w-full overflow-hidden border-y border-zinc-800/50 py-2.5 px-4 flex items-center gap-2 bg-[var(--surface-2)] -mx-5 px-5" style={{ width: 'calc(100% + 40px)' }}>
             <span className="shrink-0 text-[11px] font-bold tracking-widest text-zinc-500">CATEGORIES:</span>
-            <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide" style={{ touchAction: 'pan-x', WebkitOverflowScrolling: 'touch' }}>
+            <HorizontalScroller className="flex-1 min-w-0 overflow-x-auto" style={{ touchAction: 'pan-x', WebkitOverflowScrolling: 'touch' }}>
               <div className="flex gap-2 w-max pr-4 pointer-events-auto">
                 {customExpenseCategories?.map((c, idx) => (
                   <button
@@ -221,7 +222,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                   Custom...
                 </button>
               </div>
-            </div>
+            </HorizontalScroller>
           </div>
 
           <div>

@@ -2,6 +2,12 @@
 
 All notable changes to MidnightLedger.
 
+## [3.2.3] - 2026-11-20
+
+### Changed
+- Chart B bills are now teal instead of yellow, pairing cleanly with the purple accent
+- Horizontally scrollable areas now show a small draggable accent-coloured slider, including the payday cards, reports charts, category pickers and history timelines
+
 ## [3.2.2] - 2026-11-20
 
 ### Fixed

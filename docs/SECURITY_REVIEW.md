@@ -1,6 +1,6 @@
 # Security review
 
-This document records the security posture of MidnightLedger 3.2.2. The
+This document records the security posture of MidnightLedger 3.2.3. The
 shipped Android and PWA builds store data only in the browser's `localStorage`
 on the user's device and make no network requests.
 
