@@ -23,7 +23,8 @@
     "test": "node --import tsx --test tests/unit/*.test.ts tests/integration/*.test.ts",
     "test:unit": "node --import tsx --test tests/unit/*.test.ts",
     "test:integration": "node --import tsx --test tests/integration/*.test.ts",
-    "test:e2e": "node tests/e2e/smoke.mjs",
+    "test:e2e": "node tests/e2e/smoke.mjs && node tests/e2e/features.mjs",
+    "test:features": "node tests/e2e/features.mjs",
     "preview": "vite preview",
     "screenshots": "node scripts/capture-screenshots.mjs"
   },
