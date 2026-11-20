@@ -84,9 +84,29 @@ export function withAlpha(hex: string, alpha: number): string {
 
 /** Chooses readable text colour for content placed on the accent. */
 export function getContrastText(hex: string): string {
-  const { r, g, b } = toRGB(hex);
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.62 ? '#1a1407' : '#ffffff';
+  const DARK_TEXT = '#0B0B0D';
+  const LIGHT_TEXT = '#FFFFFF';
+
+  // WCAG sRGB relative luminance.
+  const relativeLuminance = (color: string): number => {
+    const { r, g, b } = toRGB(color);
+    const linearize = (value: number): number => {
+      const c = value / 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    };
+    return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b);
+  };
+
+  const contrastRatio = (a: number, b: number): number => {
+    const lighter = Math.max(a, b);
+    const darker = Math.min(a, b);
+    return (lighter + 0.05) / (darker + 0.05);
+  };
+
+  const backgroundLuminance = relativeLuminance(hex);
+  const darkContrast = contrastRatio(backgroundLuminance, relativeLuminance(DARK_TEXT));
+  const lightContrast = contrastRatio(backgroundLuminance, relativeLuminance(LIGHT_TEXT));
+  return darkContrast >= lightContrast ? DARK_TEXT : LIGHT_TEXT;
 }
 
 export function getAccentColor(): string {

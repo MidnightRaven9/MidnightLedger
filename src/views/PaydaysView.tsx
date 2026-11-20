@@ -12,6 +12,8 @@ import { usePayday } from '../context/PaydayContext';
 import { formatDate, formatCurrency, formatMonthYear, getOrdinalSuffix } from '../utils/dateUtils';
 import { getCategoryEmoji } from '../utils/emojis';
 import { tryCelebrate } from '../utils/celebrate';
+import { calcNet, roundCents } from '../utils/calculations';
+import { useModalFocus } from '../utils/useModalFocus';
 import { PaydaySummary } from '../types';
 
 interface PaydaysViewProps {
@@ -37,6 +39,8 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
   } = usePayday();
   
   const [estimateModalPayday, setEstimateModalPayday] = useState<PaydaySummary | null>(null);
+  const estimatePanelRef = React.useRef<HTMLDivElement>(null);
+  useModalFocus(estimatePanelRef, estimateModalPayday !== null);
   const [estimateModalInput, setEstimateModalInput] = useState<string>('');
   const [showAllPaydays, setShowAllPaydays] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -163,10 +167,10 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
       </div>
 
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-sm font-bold text-white flex items-center gap-2">
+        <h2 className="text-sm font-bold text-white flex items-center gap-2">
           <Clock className="w-4 h-4 text-[var(--accent)]" />
           Projected Upcoming Paydays ({summaries.length})
-        </h3>
+        </h2>
       </div>
 
       {summaries.length === 0 ? (
@@ -218,7 +222,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                       <p className="text-[12px] text-zinc-400 leading-snug mt-0.5">
                         {hasAmount ? `${formatCurrency(estimatedCheck)} available` : 'Amount TBD'} • {assignedBills.length + extraExpenses.length} items
                       </p>
-                      <p className="text-[11px] text-zinc-500 leading-snug">
+                      <p className="text-[11px] text-[var(--faint)] leading-snug">
                         {assignedBills.length} bills ({formatCurrency(totalBills)}){extraExpenses.length > 0 ? ` + ${extraExpenses.length} expenses (${formatCurrency(totalExtraExpenses)})` : ''}
                       </p>
                     </div>
@@ -237,6 +241,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                         }}
                         className="p-1 rounded text-white/30 hover:text-rose-400 transition-colors"
                         title="Delete custom payday"
+                        aria-label="Delete custom payday"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -247,8 +252,17 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                 <div className="pt-2.5 border-t border-[var(--border)] flex items-center justify-between gap-2 w-full max-w-full overflow-hidden">
                   
                   <div 
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Edit estimated check amount"
                     onClick={() => {
                       openModal(summary);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                        e.preventDefault();
+                        openModal(summary);
+                      }
                     }}
                     className="cursor-pointer group flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden"
                   >
@@ -282,7 +296,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                         {formatCurrency(leftOver)}
                       </span>
                     ) : (
-                      <span className="text-xs font-semibold text-white/40 truncate block">
+                      <span className="text-xs font-semibold text-[var(--faint)] truncate block">
                         Waiting
                       </span>
                     )}
@@ -294,13 +308,15 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setExpandedId(isExpanded ? null : paydayId)}
+                    aria-expanded={isExpanded}
+                    aria-controls={`bills-${paydayId}`}
                     className="w-full flex items-center justify-between py-1.5 group cursor-pointer"
                   >
                     <div className="flex items-center justify-between flex-1 min-w-0 pr-2">
                       <span className="text-[11px] font-black tracking-widest text-zinc-400 uppercase">
                         BILLS ({assignedBills.length})
                       </span>
-                      <span className="text-[11px] text-zinc-500 font-medium">
+                      <span className="text-[11px] text-[var(--faint)] font-medium">
                         {paidCount}/{assignedBills.length} paid
                       </span>
                     </div>
@@ -308,10 +324,10 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                   </button>
 
                   {isExpanded && (
-                    <div className="mt-2.5 animate-in slide-in-from-top-1 space-y-2 w-full max-w-full overflow-hidden">
+                    <div id={`bills-${paydayId}`} className="mt-2.5 animate-in slide-in-from-top-1 space-y-2 w-full max-w-full overflow-hidden">
                       {assignedBills.length === 0 ? (
                         <div className="rounded-2xl border border-dashed border-zinc-800 bg-[#0f0f12] p-3 text-center">
-                          <p className="text-zinc-500 text-[12px]">No bills assigned to this paycheck period.</p>
+                          <p className="text-[var(--faint)] text-[12px]">No bills assigned to this paycheck period.</p>
                         </div>
                       ) : (
                         <div className="space-y-2 w-full max-w-full overflow-hidden">
@@ -323,7 +339,16 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                               <div
                                 key={bill.id}
                                 id={`bill-${bill.id}`}
+                                role="button"
+                                tabIndex={0}
+                                aria-label={`Toggle paid status for ${bill.name}`}
                                 onClick={() => toggleBillPaid(bill.id, payday.date)}
+                                onKeyDown={(e) => {
+                                  if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                                    e.preventDefault();
+                                    toggleBillPaid(bill.id, payday.date);
+                                  }
+                                }}
                                 className={`w-full min-w-0 max-w-full overflow-hidden flex items-center gap-2 p-3 rounded-2xl border cursor-pointer transition-all box-border ${
                                   isPaid ? 'paid-bill bg-[var(--accent-soft)] border-[var(--accent)]' : 'bg-[var(--surface-2)] border-zinc-800 hover:border-zinc-700'
                                 }`}
@@ -337,6 +362,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                                     isPaid ? 'bg-[var(--accent)] border-[var(--accent)]' : 'border-zinc-600 hover:border-zinc-400'
                                   }`}
                                   title={isPaid ? "Mark Unpaid" : "Mark Paid"}
+                                  aria-label={isPaid ? "Mark Unpaid" : "Mark Paid"}
                                 >
                                   {isPaid && <span className="text-white text-xs font-bold">✓</span>}
                                 </button>
@@ -345,7 +371,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                                   <p className={`text-[14px] font-bold leading-snug break-words ${isPaid ? 'line-through text-zinc-500' : 'text-white'}`}>
                                     {isPaid ? '' : `${billEmoji} `}{bill.name}
                                   </p>
-                                  <p className="text-[11px] text-zinc-500 leading-snug">
+                                  <p className="text-[11px] text-[var(--faint)] leading-snug">
                                     Due {formatDate(dueFullDate, 'short')}
                                   </p>
                                 </div>
@@ -398,7 +424,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                   )}
 
                   {!isExpanded && assignedBills.length > 0 && (
-                    <div className="mt-1.5 text-[11px] text-zinc-500 truncate">
+                    <div className="mt-1.5 text-[11px] text-[var(--faint)] truncate">
                       {assignedBills.length} bills • {formatCurrency(totalBills)} • Tap to expand
                     </div>
                   )}
@@ -408,13 +434,15 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                     <button
                       type="button"
                       onClick={() => setExpandedExpensesId(isExpensesExpanded ? null : paydayId)}
+                      aria-expanded={isExpensesExpanded}
+                      aria-controls={`expenses-${paydayId}`}
                       className="w-full flex items-center justify-between py-1.5 group cursor-pointer"
                     >
                       <div className="flex items-center justify-between flex-1 min-w-0 pr-2">
                         <span className="text-[11px] font-black tracking-widest text-zinc-400 uppercase">
                           EXPENSES ({extraExpenses.length})
                         </span>
-                        <span className="text-[11px] text-zinc-500 font-medium">
+                        <span className="text-[11px] text-[var(--faint)] font-medium">
                           {formatCurrency(totalExtraExpenses)}
                         </span>
                       </div>
@@ -422,7 +450,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                     </button>
 
                     {isExpensesExpanded && (
-                      <div className="mt-2.5 animate-in slide-in-from-top-1 space-y-2 w-full max-w-full overflow-hidden">
+                      <div id={`expenses-${paydayId}`} className="mt-2.5 animate-in slide-in-from-top-1 space-y-2 w-full max-w-full overflow-hidden">
                         {extraExpenses.map(exp => {
                           const expEmoji = exp.emoji || getCategoryEmoji(exp.category);
                           return (
@@ -440,7 +468,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                                     <span className="px-2 py-0.5 rounded-full border border-zinc-700 text-[10px] text-zinc-400 whitespace-nowrap shrink-0 bg-[var(--surface-2)]">
                                       {exp.category}
                                     </span>
-                                    <span className="text-[10px] text-zinc-500 truncate">
+                                    <span className="text-[10px] text-[var(--faint)] truncate">
                                       • Paycheck: {formatDate(exp.paydayDate || exp.date, 'short')}
                                     </span>
                                   </div>
@@ -458,7 +486,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                     )}
                     
                     {!isExpensesExpanded && (
-                      <div className="mt-1.5 text-[11px] text-zinc-500 truncate">
+                      <div className="mt-1.5 text-[11px] text-[var(--faint)] truncate">
                         {extraExpenses.length} expenses • {formatCurrency(totalExtraExpenses)} • Tap to expand
                       </div>
                     )}
@@ -489,15 +517,22 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
           : parseFloat(taxSelectType);
 
         const grossVal = parseFloat(grossInput) || 0;
-        const computedNet = useTax 
-          ? Math.round(grossVal * (1 - activeTaxPercent / 100)) 
-          : (parseFloat(estimateModalInput) || 0);
+        const computedNet = useTax
+          ? calcNet(grossVal, activeTaxPercent)
+          : roundCents(parseFloat(estimateModalInput) || 0);
 
         const displayNetVal = useTax ? String(computedNet) : estimateModalInput;
         const saveButtonText = useTax ? `Save Net ${formatCurrency(computedNet)}` : 'Save Estimate';
 
         return (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div
+            ref={estimatePanelRef}
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Edit payday estimate"
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 max-h-[90vh] overflow-y-auto"
+          >
             <div className="w-full max-w-md bg-[var(--surface)] border border-[var(--border)] rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-white">
@@ -529,6 +564,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                     step="0.01"
                     disabled={useTax}
                     placeholder="e.g. 1450.00"
+                    aria-label="Estimate Amount (Net Take-Home)"
                     value={displayNetVal}
                     onChange={(e) => setEstimateModalInput(e.target.value)}
                     autoFocus={!useTax}
@@ -539,7 +575,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                     }`}
                   />
                 </div>
-                <p className="text-[11px] text-white/40">
+                <p className="text-[11px] text-[var(--faint)]">
                   {useTax 
                     ? 'Calculated from gross and tax percent below' 
                     : 'Enter estimated paycheck amount or clear to return to TBD'}
@@ -574,6 +610,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                         type="number"
                         step="0.01"
                         placeholder="e.g. 1800.00"
+                        aria-label="Gross Pay"
                         value={grossInput}
                         onChange={e => setGrossInput(e.target.value)}
                         className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] text-white font-semibold text-sm focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
@@ -585,6 +622,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-white/80 block">Tax %</label>
                       <select
+                        aria-label="Tax %"
                         value={taxSelectType}
                         onChange={e => {
                           setTaxSelectType(e.target.value);
@@ -614,6 +652,7 @@ export const PaydaysView: React.FC<PaydaysViewProps> = ({
                             type="number"
                             step="0.1"
                             placeholder="e.g. 22"
+                            aria-label="Custom Tax %"
                             value={customTaxInput}
                             onChange={e => setCustomTaxInput(e.target.value)}
                             className="w-full pr-8 pl-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-white text-sm focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"

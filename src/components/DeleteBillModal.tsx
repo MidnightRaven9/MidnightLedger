@@ -10,6 +10,7 @@ import {
   toISODateString 
 } from '../utils/dateUtils';
 import { useEscapeToClose } from '../utils/useEscapeToClose';
+import { useModalFocus } from '../utils/useModalFocus';
 
 interface DeleteBillModalProps {
   isOpen: boolean;
@@ -25,6 +26,8 @@ export const DeleteBillModal: React.FC<DeleteBillModalProps> = ({
   paydayDate,
 }) => {
   useEscapeToClose(isOpen, onClose);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  useModalFocus(panelRef, isOpen);
 
   const { deleteBill, deleteBillOccurrence, nextPaydaySummary, showToast } = usePayday();
 
@@ -48,7 +51,13 @@ export const DeleteBillModal: React.FC<DeleteBillModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-[var(--surface)] rounded-3xl shadow-2xl border border-[var(--border)] overflow-hidden p-6 text-white space-y-5">
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Delete bill"
+        className="w-full max-w-md bg-[var(--surface)] rounded-3xl shadow-2xl border border-[var(--border)] overflow-hidden p-6 text-white space-y-5 max-h-[90vh] overflow-y-auto">
         
         <div className="flex items-start justify-between">
           <div className="w-12 h-12 rounded-2xl bg-[var(--accent-soft)] border border-[var(--border-strong)] text-[var(--accent)] flex items-center justify-center font-bold shrink-0">
@@ -56,6 +65,7 @@ export const DeleteBillModal: React.FC<DeleteBillModalProps> = ({
           </div>
           <button
             onClick={onClose}
+            aria-label="Close delete confirmation"
             className="p-2 rounded-xl text-white/40 hover:text-white hover:bg-[var(--surface-2)] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />

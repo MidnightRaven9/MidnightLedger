@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 interface HorizontalScrollerProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -11,6 +11,7 @@ export const HorizontalScroller: React.FC<HorizontalScrollerProps> = ({
   ...rest
 }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const scrollAreaId = useId();
   const dragging = useRef(false);
   const [thumb, setThumb] = useState({ width: 100, left: 0, visible: false });
 
@@ -57,6 +58,9 @@ export const HorizontalScroller: React.FC<HorizontalScrollerProps> = ({
     <div className="w-full min-w-0">
       <div
         ref={ref}
+        id={scrollAreaId}
+        tabIndex={0}
+        aria-label="Scrollable chart area"
         className={className}
         onScroll={(event) => {
           measure();
@@ -71,10 +75,25 @@ export const HorizontalScroller: React.FC<HorizontalScrollerProps> = ({
         <div
           className="mt-2 h-[3px] rounded-full bg-[var(--border)] cursor-pointer touch-none"
           role="scrollbar"
+          tabIndex={0}
+          aria-orientation="horizontal"
+          aria-controls={scrollAreaId}
           aria-label="Scroll sideways"
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round((thumb.left / (100 - thumb.width || 1)) * 100)}
+          onKeyDown={(event) => {
+            const el = ref.current;
+            if (!el) return;
+            const step = Math.max(80, Math.round(el.clientWidth * 0.25));
+            if (event.key === 'ArrowRight') el.scrollLeft += step;
+            else if (event.key === 'ArrowLeft') el.scrollLeft -= step;
+            else if (event.key === 'Home') el.scrollLeft = 0;
+            else if (event.key === 'End') el.scrollLeft = el.scrollWidth;
+            else return;
+            event.preventDefault();
+            measure();
+          }}
           onPointerDown={(event) => {
             dragging.current = true;
             event.currentTarget.setPointerCapture(event.pointerId);

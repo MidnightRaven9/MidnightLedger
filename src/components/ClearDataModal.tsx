@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AlertTriangle, X, Trash2 } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
 import { useEscapeToClose } from '../utils/useEscapeToClose';
+import { useModalFocus } from '../utils/useModalFocus';
 
 interface ClearDataModalProps {
   isOpen: boolean;
@@ -15,6 +16,8 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({
   onConfirmSuccess,
 }) => {
   useEscapeToClose(isOpen, onClose);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  useModalFocus(panelRef, isOpen);
 
   const { clearAllData } = usePayday();
   const [confirmInput, setConfirmInput] = useState('');
@@ -39,8 +42,13 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
-      <div 
-        className="w-full max-w-md bg-[var(--surface)] rounded-3xl shadow-2xl border border-rose-900/60 overflow-hidden p-6 text-white space-y-5"
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Confirm data wipe"
+        className="w-full max-w-md bg-[var(--surface)] rounded-3xl shadow-2xl border border-rose-900/60 overflow-hidden p-6 text-white space-y-5 max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         
@@ -50,6 +58,7 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({
           </div>
           <button
             onClick={onClose}
+            aria-label="Close"
             className="p-2 rounded-xl text-white/40 hover:text-white hover:bg-[var(--surface-2)] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -73,8 +82,9 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({
                 type="text"
                 value={confirmInput}
                 onChange={e => setConfirmInput(e.target.value)}
+                aria-label="Type WIPE to confirm"
                 placeholder="Type WIPE here"
-                className="w-full px-4 py-2.5 rounded-2xl bg-[#1A1010] border border-rose-900/80 focus:border-rose-500 text-white font-mono font-bold text-sm focus:outline-none placeholder:text-white/20"
+                className="w-full px-4 py-2.5 rounded-2xl bg-[#1A1010] border border-rose-900/80 focus:border-rose-500 text-white font-mono font-bold text-sm focus:outline-none placeholder:text-[var(--faint)]"
                 autoFocus
               />
             </div>

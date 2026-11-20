@@ -132,7 +132,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
             <div className="text-3xl font-extrabold text-[#FF6B7A] leading-none">
               {formatCurrency(spentThisCheck)}
             </div>
-            <span className="text-[11px] text-white/40 block">
+            <span className="text-[11px] text-[var(--faint)] block">
               Paycheck {currentPaydayDate ? formatDate(currentPaydayDate, 'medium') : 'Unassigned'}
             </span>
           </div>
@@ -149,7 +149,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
             <div className="text-3xl font-extrabold text-[var(--accent)] leading-none">
               {formatCurrency(spentThisMonth)}
             </div>
-            <span className="text-[11px] text-white/40 block">
+            <span className="text-[11px] text-[var(--faint)] block">
               All transactions in {now.toLocaleDateString('en-US', { month: 'long' })}
             </span>
           </div>
@@ -166,7 +166,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
             <div className="text-3xl font-extrabold text-[var(--accent)] leading-none">
               {biggestExpenseObj ? formatCurrency(biggestExpenseObj.amount) : '$0.00'}
             </div>
-            <span className="text-[11px] text-white/40 block truncate max-w-[220px]">
+            <span className="text-[11px] text-[var(--faint)] block truncate max-w-[220px]">
               {biggestExpenseObj ? biggestExpenseObj.description : 'No expenses logged yet'}
             </span>
           </div>
@@ -186,13 +186,15 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search merchant, gas, coffee..."
-            className="w-full min-w-0 h-11 rounded-2xl bg-[var(--surface-2)] border border-zinc-800 pl-10 pr-4 text-[14px] text-white placeholder-zinc-500 truncate focus:outline-none focus:border-[var(--accent)]"
+            aria-label="Search expenses"
+            className="w-full min-w-0 h-11 rounded-2xl bg-[var(--surface-2)] border border-zinc-800 pl-10 pr-4 text-[14px] text-white placeholder:text-[var(--faint)] truncate focus:outline-none focus:border-[var(--accent)]"
             />
           </div>
           <button
             onClick={() => setIsManageCategoriesModalOpen(true)}
             className="w-11 h-11 shrink-0 flex items-center justify-center rounded-2xl bg-[var(--surface-2)] border border-zinc-800 text-zinc-400 hover:text-white hover:border-[var(--accent)] transition-colors"
             title="Manage Categories"
+            aria-label="Manage categories"
           >
             <Settings className="w-5 h-5" />
           </button>
@@ -204,6 +206,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
           </span>
           <div className="flex-1 min-w-0 max-w-full relative">
             <select
+              aria-label="Filter by payday"
               value={selectedPaydayFilter}
               onChange={e => setSelectedPaydayFilter(e.target.value)}
               className="w-full min-w-0 max-w-full h-9 rounded-full bg-[var(--surface-2)] border border-zinc-800 pl-3 pr-8 text-[13px] font-bold text-white truncate appearance-none focus:outline-none cursor-pointer"
@@ -220,7 +223,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
           </div>
         </div>
         {selectedPaydayFilter === 'CURRENT' && currentPaydayDate && (
-          <p className="text-[11px] text-zinc-500 px-1 pt-0.5 truncate">
+          <p className="text-[11px] text-[var(--faint)] px-1 pt-0.5 truncate">
             Showing check: {formatDate(currentPaydayDate, 'medium')}
           </p>
         )}
@@ -232,11 +235,11 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
             <div className="w-8 h-8 rounded-lg bg-[#1E1B4B]/80 border border-[#3730A3]/30 text-[var(--accent)] flex items-center justify-center shrink-0">
               <ShoppingBag className="w-4.5 h-4.5 text-[var(--accent)]" />
             </div>
-            <h3 className="text-lg font-bold text-white">
+            <h2 className="text-lg font-bold text-white">
               Running Expenses ({filteredExpenses.length})
-            </h3>
+            </h2>
           </div>
-          <span className="text-xs text-white/40">
+          <span className="text-xs text-[var(--faint)]">
             Sorted newest first
           </span>
         </div>
@@ -259,7 +262,16 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
               return (
                 <div 
                   key={exp.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Open expense ${exp.description}`}
                   onClick={() => onOpenExpenseModal(exp.paydayDate, exp)}
+                  onKeyDown={(e) => {
+                    if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault();
+                      onOpenExpenseModal(exp.paydayDate, exp);
+                    }
+                  }}
                   className="p-5 rounded-[16px] bg-[var(--surface-2)] hover:bg-[var(--surface-2)] transition-colors border border-[var(--border)]/40 space-y-4 cursor-pointer"
                 >
                   <div className="flex items-start gap-3.5">
@@ -296,6 +308,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                         onClick={(e) => { e.stopPropagation(); onOpenExpenseModal(exp.paydayDate, exp); }}
                         className="p-2 rounded-xl text-white/40 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-colors cursor-pointer"
                         title="Edit expense"
+                        aria-label="Edit expense"
                       >
                         <Edit3 className="w-5 h-5" />
                       </button>
@@ -307,6 +320,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                           }}
                           className="p-2 rounded-xl text-white/40 hover:text-[#FF6B7A] hover:bg-[#2D161B] transition-colors cursor-pointer"
                           title="Delete expense"
+                          aria-label="Delete expense"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>

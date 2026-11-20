@@ -3,6 +3,7 @@ import { X, Calendar, Save } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
 import { toISODateString } from '../utils/dateUtils';
 import { useEscapeToClose } from '../utils/useEscapeToClose';
+import { useModalFocus } from '../utils/useModalFocus';
 
 interface PaydayModalProps {
   isOpen: boolean;
@@ -14,6 +15,8 @@ export const PaydayModal: React.FC<PaydayModalProps> = ({
   onClose,
 }) => {
   useEscapeToClose(isOpen, onClose);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  useModalFocus(panelRef, isOpen);
 
   const { addPayday } = usePayday();
 
@@ -44,7 +47,13 @@ export const PaydayModal: React.FC<PaydayModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-[var(--surface)] rounded-3xl shadow-2xl border border-[var(--border)] overflow-hidden">
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Payday estimate"
+        className="w-full max-w-md bg-[var(--surface)] rounded-3xl shadow-2xl border border-[var(--border)] overflow-hidden max-h-[90vh] overflow-y-auto">
         
         <div className="flex items-center justify-between p-6 border-b border-[var(--border)] bg-[var(--surface)]">
           <div className="flex items-center gap-3">
@@ -63,6 +72,7 @@ export const PaydayModal: React.FC<PaydayModalProps> = ({
 
           <button
             onClick={onClose}
+            aria-label="Close payday editor"
             className="p-2 rounded-xl text-white/40 hover:text-white hover:bg-[var(--surface-2)] transition-colors"
           >
             <X className="w-5 h-5" />
@@ -78,6 +88,7 @@ export const PaydayModal: React.FC<PaydayModalProps> = ({
             <input
               type="date"
               required
+              aria-label="Payday date"
               value={date}
               onChange={e => setDate(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"
@@ -93,6 +104,7 @@ export const PaydayModal: React.FC<PaydayModalProps> = ({
               <input
                 type="number"
                 step="0.01"
+                aria-label="Payday amount"
                 placeholder="1450.00"
                 value={estimatedAmount}
                 onChange={e => setEstimatedAmount(e.target.value)}
@@ -110,6 +122,7 @@ export const PaydayModal: React.FC<PaydayModalProps> = ({
             </label>
             <input
               type="text"
+              aria-label="Payday notes"
               placeholder="e.g. Mid-month check, Bonus deposit"
               value={notes}
               onChange={e => setNotes(e.target.value)}

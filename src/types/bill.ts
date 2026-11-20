@@ -26,4 +26,5 @@ export interface Bill {
   mySharePercentage?: number;
   customMyShare?: number;
   emoji?: string;
+  isDemo?: boolean;
 }

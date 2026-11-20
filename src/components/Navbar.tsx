@@ -13,8 +13,11 @@ import {
   Settings
 } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
+import type { ImportInspection } from '../utils/backup';
+import { downloadBackup } from '../utils/downloadBackup';
 import { ClearDataModal } from './ClearDataModal';
 import { SettingsModal } from './SettingsModal';
+import { ImportPreviewModal } from './ImportPreviewModal';
 import { NotificationCenter } from './NotificationCenter';
 
 export type TabType = 'dashboard' | 'bills' | 'paydays' | 'expenses' | 'reports' | 'history';
@@ -28,20 +31,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
 }) => {
-  const { exportData, importData } = usePayday();
+  const { exportData, inspectImport, applyImport } = usePayday();
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [importInspection, setImportInspection] = useState<ImportInspection | null>(null);
+  const [importFileName, setImportFileName] = useState('');
 
   const handleExport = () => {
-    const dataStr = exportData();
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `midnight_ledger_backup_${new Date().toISOString().slice(0, 10)}.json`;
-    link.click();
-    // Defer revocation so the WebView has a chance to start the download.
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    downloadBackup(exportData());
   };
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,18 +46,26 @@ export const Navbar: React.FC<NavbarProps> = ({
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
-      const content = event.target?.result as string;
-      if (content) {
-        const success = importData(content);
-        if (success) {
-          alert('Data imported successfully!');
-        } else {
-          alert('Failed to import data. Please check the JSON format.');
-        }
+      const content = event.target?.result;
+      if (typeof content === 'string') {
+        setImportFileName(file.name);
+        setImportInspection(inspectImport(content));
       }
     };
     reader.readAsText(file);
     e.target.value = '';
+  };
+
+  const closeImportPreview = () => {
+    setImportInspection(null);
+    setImportFileName('');
+  };
+
+  const confirmImport = () => {
+    if (importInspection?.ok === true) {
+      applyImport(importInspection.state);
+    }
+    closeImportPreview();
   };
 
   return (
@@ -69,19 +74,24 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="w-full px-[clamp(10px,3.2vw,32px)]">
           <div className="flex items-center justify-between h-[54px]">
           
-          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
+          <button
+            type="button"
+            aria-label="Go to dashboard"
+            onClick={() => setActiveTab('dashboard')}
+            className="flex items-center gap-2.5 cursor-pointer"
+          >
             <div className="w-7 h-7 rounded-[9px] border border-[var(--border-strong)] bg-[var(--surface-2)] flex items-center justify-center">
               <Moon className="w-4 h-4 text-[var(--accent)]" strokeWidth={2.2} fill="currentColor" />
             </div>
             <span className="text-[15px] font-semibold tracking-tight text-[var(--text)]">
               MidnightLedger
             </span>
-          </div>
+          </button>
 
-          <nav className="hidden md:flex items-center gap-1 bg-[var(--surface)] p-1 rounded-[10px] border border-[var(--border)]">
+          <nav aria-label="Primary navigation" className="hidden md:flex items-center gap-1 bg-[var(--surface)] p-1 rounded-[10px] border border-[var(--border)]">
             <button
               id="tab-dashboard"
-              onClick={() => setActiveTab('dashboard')}
+              onClick={() => setActiveTab('dashboard')} aria-current={activeTab === 'dashboard' ? 'page' : undefined}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                 activeTab === 'dashboard'
                   ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
@@ -93,7 +103,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <button
               id="tab-bills"
-              onClick={() => setActiveTab('bills')}
+              onClick={() => setActiveTab('bills')} aria-current={activeTab === 'bills' ? 'page' : undefined}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                 activeTab === 'bills'
                   ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
@@ -105,7 +115,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <button
               id="tab-paydays"
-              onClick={() => setActiveTab('paydays')}
+              onClick={() => setActiveTab('paydays')} aria-current={activeTab === 'paydays' ? 'page' : undefined}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                 activeTab === 'paydays'
                   ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
@@ -117,7 +127,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <button
               id="tab-expenses"
-              onClick={() => setActiveTab('expenses')}
+              onClick={() => setActiveTab('expenses')} aria-current={activeTab === 'expenses' ? 'page' : undefined}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                 activeTab === 'expenses'
                   ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
@@ -129,7 +139,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <button
               id="tab-reports"
-              onClick={() => setActiveTab('reports')}
+              onClick={() => setActiveTab('reports')} aria-current={activeTab === 'reports' ? 'page' : undefined}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                 activeTab === 'reports'
                   ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
@@ -141,7 +151,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <button
               id="tab-history"
-              onClick={() => setActiveTab('history')}
+              onClick={() => setActiveTab('history')} aria-current={activeTab === 'history' ? 'page' : undefined}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                 activeTab === 'history'
                   ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
@@ -174,22 +184,25 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={handleExport}
                 className="p-1.5 rounded-lg text-[var(--muted)] hover:text-[var(--text)] text-xs font-medium transition-colors"
                 title="Export Budget Backup (JSON)"
+                aria-label="Export budget backup (JSON)"
               >
                 <Download className="w-3.5 h-3.5" />
               </button>
 
               <label
-                className="p-1.5 rounded-lg text-[var(--muted)] hover:text-[var(--text)] text-xs font-medium cursor-pointer transition-colors"
+                className="p-1.5 rounded-lg text-[var(--muted)] hover:text-[var(--text)] text-xs font-medium cursor-pointer transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-[var(--accent)]"
                 title="Import Budget Backup"
               >
-                <Upload className="w-3.5 h-3.5" />
-                <input type="file" accept=".json" onChange={handleImport} className="hidden" />
+                <Upload className="w-3.5 h-3.5" aria-hidden="true" />
+                <span className="sr-only">Import budget backup</span>
+                <input type="file" accept=".json" aria-label="Import budget backup JSON file" onChange={handleImport} className="sr-only" />
               </label>
 
               <button
                 onClick={() => setIsClearModalOpen(true)}
                 className="btn-quiet h-8 w-8 !p-0 text-[var(--faint)] hover:text-[var(--danger)] hover:bg-transparent"
-                title="Clear Example Data / Start Fresh"
+                title="Wipe all data (factory reset)"
+                aria-label="Wipe all data (factory reset)"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
@@ -214,12 +227,21 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClose={() => setIsSettingsModalOpen(false)}
             />
 
+            <ImportPreviewModal
+              isOpen={importInspection !== null}
+              fileName={importFileName}
+              inspection={importInspection}
+              onClose={closeImportPreview}
+              onConfirm={confirmImport}
+              onExportCurrent={() => downloadBackup(exportData())}
+            />
+
       {/* Mobile Bottom Navigation Bar - sibling of header (fixed positioning must not live inside a backdrop-filter container) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 w-full z-50 bg-[var(--bg)]/95 border-t border-zinc-800/80 backdrop-blur-xl px-1 pt-1 pb-[calc(env(safe-area-inset-bottom)+4px)] flex justify-between items-center min-h-[56px]">
+      <nav aria-label="Mobile navigation" className="md:hidden fixed bottom-0 left-0 right-0 w-full z-50 bg-[var(--bg)]/95 border-t border-zinc-800/80 backdrop-blur-xl px-1 pt-1 pb-[calc(env(safe-area-inset-bottom)+4px)] flex justify-between items-center min-h-[56px]">
         <div className="grid grid-cols-6 text-center w-full gap-0.5">
           <button
             id="mobile-tab-dashboard"
-            onClick={() => setActiveTab('dashboard')}
+            onClick={() => setActiveTab('dashboard')} aria-current={activeTab === 'dashboard' ? 'page' : undefined}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'dashboard' 
                 ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-bold' 
@@ -232,7 +254,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             id="mobile-tab-bills"
-            onClick={() => setActiveTab('bills')}
+            onClick={() => setActiveTab('bills')} aria-current={activeTab === 'bills' ? 'page' : undefined}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'bills' 
                 ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-bold' 
@@ -245,7 +267,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             id="mobile-tab-paydays"
-            onClick={() => setActiveTab('paydays')}
+            onClick={() => setActiveTab('paydays')} aria-current={activeTab === 'paydays' ? 'page' : undefined}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'paydays' 
                 ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-bold' 
@@ -258,7 +280,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             id="mobile-tab-expenses"
-            onClick={() => setActiveTab('expenses')}
+            onClick={() => setActiveTab('expenses')} aria-current={activeTab === 'expenses' ? 'page' : undefined}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'expenses' 
                 ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-bold' 
@@ -271,7 +293,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             id="mobile-tab-reports"
-            onClick={() => setActiveTab('reports')}
+            onClick={() => setActiveTab('reports')} aria-current={activeTab === 'reports' ? 'page' : undefined}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'reports' 
                 ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-bold' 
@@ -284,7 +306,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             id="mobile-tab-history"
-            onClick={() => setActiveTab('history')}
+            onClick={() => setActiveTab('history')} aria-current={activeTab === 'history' ? 'page' : undefined}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-medium transition-all ${
               activeTab === 'history' 
                 ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-bold' 

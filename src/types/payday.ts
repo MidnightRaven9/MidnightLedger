@@ -15,4 +15,5 @@ export interface Payday {
   useTax?: boolean;
   gross?: number;
   taxPercent?: number;
+  isDemo?: boolean;
 }

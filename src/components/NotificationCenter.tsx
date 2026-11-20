@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Bell, AlertCircle, Clock3, Check, X, Settings2, Inbox } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
 import { formatCurrency, formatDate } from '../utils/dateUtils';
+import { useModalFocus } from '../utils/useModalFocus';
 import {
   BillAlert,
   describeAlert,
@@ -24,6 +25,8 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
 }) => {
   const { summaries, paidStatuses, toggleBillPaid } = usePayday();
   const [open, setOpen] = useState(false);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  useModalFocus(panelRef, open);
   const [settings, setSettings] = useState<NotificationSettings>(() => getNotificationSettings());
 
   // Settings are edited in a separate modal, so refresh when it saves as well
@@ -66,6 +69,8 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
         id="open-notifications"
         onClick={() => setOpen((v) => !v)}
         aria-label={`Reminders${alerts.length ? `, ${alerts.length} unpaid bills due soon` : ''}`}
+        aria-expanded={open}
+        aria-controls="notification-panel"
         title="Bill reminders"
         className="btn-quiet relative h-8 w-8 !p-0"
       >
@@ -84,7 +89,11 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} aria-hidden="true" />
           <div
+            id="notification-panel"
+            ref={panelRef}
+            tabIndex={-1}
             role="dialog"
+            aria-modal="true"
             aria-label="Bill reminders"
             className="fixed z-50 top-[58px] right-2 sm:right-4 w-[calc(100vw-16px)] sm:w-[360px] max-w-[360px] max-h-[min(520px,calc(100vh-72px))] flex flex-col rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] shadow-2xl overflow-hidden"
           >

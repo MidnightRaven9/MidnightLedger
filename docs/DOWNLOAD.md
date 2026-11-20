@@ -2,7 +2,7 @@
 
 ## Android
 
-Download the latest APK from [GitHub Releases](https://github.com/MidnightRaven9/MidnightLedger/releases/latest). Your browser or file manager will ask you to allow installation from unknown apps. The APK is debug-signed for sideloading and needs no internet connection at runtime.
+Download the latest APK from [GitHub Releases](https://github.com/MidnightRaven9/MidnightLedger/releases/latest). Your browser or file manager will ask you to allow installation from unknown apps. The APK is debug-signed for sideloading and needs no internet connection at runtime. Build/signing details are in [RELEASE.md](RELEASE.md).
 
 ## PWA
 

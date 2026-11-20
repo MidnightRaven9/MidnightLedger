@@ -4,6 +4,7 @@ import { ExtraExpense } from '../types';
 import { formatDate } from '../utils/dateUtils';
 import { getCategoryEmoji } from '../utils/emojis';
 import { useEscapeToClose } from '../utils/useEscapeToClose';
+import { useModalFocus } from '../utils/useModalFocus';
 
 interface DeleteExpenseModalProps {
   isOpen: boolean;
@@ -19,13 +20,20 @@ export const DeleteExpenseModal: React.FC<DeleteExpenseModalProps> = ({
   onConfirm,
 }) => {
   useEscapeToClose(isOpen, onClose);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  useModalFocus(panelRef, isOpen);
 
   if (!isOpen || !expense) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
-      <div 
-        className="w-full max-w-sm bg-[var(--surface-2)] rounded-[20px] border border-[var(--border)] shadow-2xl overflow-hidden p-6 relative flex flex-col"
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Delete expense"
+        className="w-full max-w-sm bg-[var(--surface-2)] rounded-[20px] border border-[var(--border)] shadow-2xl overflow-hidden p-6 relative flex flex-col max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
@@ -34,6 +42,7 @@ export const DeleteExpenseModal: React.FC<DeleteExpenseModalProps> = ({
           </div>
           <button
             onClick={onClose}
+            aria-label="Close delete confirmation"
             className="w-8 h-8 rounded-full bg-transparent flex items-center justify-center text-white/50 hover:bg-[var(--border)] hover:text-white transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />

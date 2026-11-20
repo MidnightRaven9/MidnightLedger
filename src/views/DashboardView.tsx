@@ -38,6 +38,11 @@ function useAnimatedNumber(value: number, duration: number = 200) {
     const change = value - startValue;
 
     if (change === 0) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      currentRef.current = value;
+      setDisplayValue(value);
+      return;
+    }
 
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
@@ -194,13 +199,19 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
   }, [allPaidNow, isInitialLoad, dateStr]);
 
   return (
-    <div 
-      onClick={() => setIsOpen(!isOpen)} 
-      className={`rounded-[20px] bg-[var(--surface)] border border-white/10 p-4 mb-3 w-full cursor-pointer select-none shadow-md transition-all min-h-0 ${
+    <div
+      className={`rounded-[20px] bg-[var(--surface)] border border-white/10 p-4 mb-3 w-full shadow-md transition-all min-h-0 ${
         isOpen ? 'overflow-visible border-[var(--accent)]/50' : 'overflow-hidden hover:border-[var(--border-strong)]'
       }`}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', minWidth: 0, width: '100%' }}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-label={`${isOpen ? 'Collapse' : 'Expand'} payday details for ${formatDate(dateStr, 'medium')}`}
+        className="w-full text-left"
+        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', minWidth: 0, width: '100%' }}
+      >
         <div className="flex flex-col items-center justify-center bg-[#1E1438] border border-[var(--accent)]/30 rounded-2xl w-[50px] h-[50px] shrink-0 leading-[1.4]">
           <span className="text-[10px] text-[var(--accent)] font-semibold uppercase tracking-wider leading-none mb-0.5">
             {monthAbbr}
@@ -208,6 +219,9 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
           <span className="text-[20px] text-white font-bold leading-none">
             {day}
           </span>
+          {summaryItem.payday.isDemo === true && (
+            <span className="mt-0.5 rounded bg-amber-500/15 px-1 text-[8px] font-bold uppercase text-amber-300">Example</span>
+          )}
         </div>
 
         <div className="payday-summary" style={{ flex: 1, minWidth: 0 }}>
@@ -227,9 +241,9 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
           <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--accent)' }}>
             {hasAmt && summaryItem.leftOver !== null ? formatCurrency(summaryItem.leftOver) : remainingStr}
           </span>
-          <ChevronDown className={`w-4 h-4 text-white/40 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown aria-hidden="true" className={`w-4 h-4 text-white/40 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
         </div>
-      </div>
+      </button>
 
       {isOpen && (
         <div 
@@ -259,7 +273,7 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
           )}
 
           {allItems.length === 0 ? (
-            <div className="text-xs text-white/40 italic py-2 leading-[1.4]">
+            <div className="text-xs text-[var(--faint)] italic py-2 leading-[1.4]">
               No items assigned to this paycheck.
             </div>
           ) : (
@@ -272,7 +286,16 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
                 return (
                   <div 
                     key={item.id} 
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Toggle paid status for ${item.name}`}
                     onClick={() => toggleBillPaid(item.id, item.originalItem?.originalAssignedPayday || dateStr)}
+                    onKeyDown={(e) => {
+                      if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                        e.preventDefault();
+                        toggleBillPaid(item.id, item.originalItem?.originalAssignedPayday || dateStr);
+                      }
+                    }}
                     className={`flex justify-between items-center rounded-2xl p-3 border cursor-pointer transition-all ${
                       isPaid 
                         ? item.isPaidWithOther 
@@ -291,16 +314,17 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
                           isPaid ? 'bg-[var(--accent)] border-[var(--accent)]' : 'border-zinc-600 hover:border-zinc-400'
                         }`}
                         title={isPaid ? "Mark as Unpaid" : "Mark as Paid"}
+                        aria-label={isPaid ? "Mark as Unpaid" : "Mark as Paid"}
                       >
                         {isPaid && <span className="text-white text-xs font-bold">✓</span>}
                       </button>
                       <div className="min-w-0">
                         <div className="text-sm font-semibold flex items-center gap-1.5">
-                          <span className={`bill-name break-words leading-tight ${isPaid ? 'line-through text-zinc-500' : 'text-white'}`}>
+                          <span className={`bill-name break-words leading-tight ${isPaid ? 'line-through text-[var(--faint)]' : 'text-white'}`}>
                             {isPaid && item.type === 'bill' && !item.isPaidWithOther ? '' : `${item.emoji} `}{item.name}
                           </span>
                         </div>
-                        <div className="text-zinc-500 text-xs leading-snug">
+                        <div className="text-[var(--faint)] text-xs leading-snug">
                           {item.isPaidWithOther 
                             ? `Paid early on ${formatDate(item.originalItem?.paidWithPaydayId || '', 'short')}`
                             : item.isPaidEarlyFuture
@@ -316,6 +340,7 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
                         <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                           <input 
                             type="number" 
+                            aria-label={`Amount for ${item.name}`}
                             className="bg-black border border-white/20 rounded px-2 py-1 text-white text-sm w-20 text-right font-bold"
                             value={tempAmount}
                             autoFocus
@@ -347,7 +372,7 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <div className={`text-sm font-bold ${isPaid ? 'line-through text-zinc-500' : 'text-white'}`}>
+                          <div className={`text-sm font-bold ${isPaid ? 'line-through text-[var(--faint)]' : 'text-white'}`}>
                             {item.isSplit ? `${myPortionStr} of ${totalStr}` : myPortionStr}
                           </div>
                           {item.type === 'bill' && item.isVariable && !isPaid && (
@@ -359,6 +384,7 @@ const PaycheckCard: React.FC<PaycheckCardProps> = ({
                               }}
                               className="text-zinc-400 hover:text-white p-1"
                               title="Edit Amount"
+                              aria-label="Edit amount"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
@@ -728,12 +754,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           <path d="M16 2v4M8 2v4M3 9h18"></path>
                         </svg>
                       </div>
-                      <h1 style={{ fontSize: 'clamp(19px, 5.8vw, 34px)', fontWeight: 800, lineHeight: 1.1, color: '#ffffff' }} className="tracking-tight break-words leading-tight">
+                      <h2 style={{ fontSize: 'clamp(19px, 5.8vw, 34px)', fontWeight: 800, lineHeight: 1.1, color: '#ffffff' }} className="tracking-tight break-words leading-tight">
                         {formatDate(sPayday.date, 'medium')}
-                      </h1>
+                      </h2>
                     </div>
                     {isCurrent && orderedSummaries.length > 1 && (
-                      <span className="text-zinc-500 text-[10px] font-medium tracking-wide animate-pulse pr-1 hidden sm:block shrink-0">
+                      <span className="text-[var(--faint)] text-[10px] font-medium tracking-wide animate-pulse pr-1 hidden sm:block shrink-0">
                         Swipe →
                       </span>
                     )}
@@ -808,6 +834,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             value={tempEstCheck}
                             onChange={e => setTempEstCheck(e.target.value)}
                             placeholder="0.00"
+                            aria-label="Estimated check amount"
                             className="w-16 pl-1.5 pr-1 py-0.5 rounded bg-[var(--surface)] border border-[var(--accent)] text-white text-xs focus:outline-none"
                             autoFocus
                           />
@@ -869,7 +896,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         {allocationPct}% allocated
                       </span>
                     </div>
-                    <div style={{ height: '8px', width: '100%', background: 'var(--surface-2)', borderRadius: '9999px', overflow: 'hidden' }}>
+                    <div 
+                      role="progressbar"
+                      aria-valuenow={allocationPct}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-label="Allocation progress"
+                      style={{ height: '8px', width: '100%', background: 'var(--surface-2)', borderRadius: '9999px', overflow: 'hidden' }}
+                    >
                       <div 
                         style={{ height: '100%', background: 'var(--accent)', borderRadius: '9999px', width: `${allocationPct}%` }}
                         className="transition-all"
@@ -882,7 +916,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     onClick={() => {
                       setExpandedTimelineDates({ [sPayday.date]: true });
                       const el = document.getElementById('timeline-section');
-                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      if (el) el.scrollIntoView({ behavior: (window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth') });
                     }}
                     style={{ color: 'var(--accent)', fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
                     className="hover:text-[var(--accent)] transition-colors mt-1"
@@ -900,8 +934,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {orderedSummaries.map((s, idx) => {
               const isActive = idx === currentPaydayIndex;
               return (
-                <div 
+                <button 
                   key={s.payday.date}
+                  type="button"
+                  aria-label={`Go to page ${idx + 1}`}
+                  aria-current={isActive ? 'page' : undefined}
                   style={{
                     height: '8px',
                     borderRadius: '9999px',
@@ -928,7 +965,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
               </svg>
             </span>
-            <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff' }}>Spending by Category This Check</h3>
+            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff' }}>Spending by Category This Check</h2>
           </div>
           <span style={{ fontSize: '14px', color: 'var(--muted)', marginTop: '6px', display: 'block' }}>
             Category breakdown for paycheck on {formatDate(payday.date, 'medium')}
@@ -951,27 +988,32 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <button 
             className="w-full flex items-center justify-between cursor-pointer focus:outline-none bg-transparent border-none p-0" 
             onClick={() => setShowCategoryList(!showCategoryList)}
+            aria-expanded={showCategoryList}
+            aria-controls="category-allocation-list"
             style={{ margin: '16px 0 12px' }}
           >
             <span style={{ fontSize: '12px', letterSpacing: '0.08em', fontWeight: 700, color: 'var(--faint)', textTransform: 'uppercase', textAlign: 'left', flex: 1, paddingRight: '12px' }}>
               CATEGORY ALLOCATION LIST ({categoriesList.length}) - Total {formatCurrency(totalPeriodAmount)}
             </span>
-            <span className="text-zinc-500" style={{ fontSize: '12px' }}>{showCategoryList ? '▲' : '▼'}</span>
+            <span className="text-[var(--faint)]" style={{ fontSize: '12px' }}>{showCategoryList ? '▲' : '▼'}</span>
           </button>
 
           {showCategoryList && (
-            <div>
+            <div id="category-allocation-list">
               {categoriesList.length === 0 ? (
-                <p className="text-xs text-zinc-500 italic">No spending in this period.</p>
+                <p className="text-xs text-[var(--faint)] italic">No spending in this period.</p>
               ) : (
                 categoriesList.map(cat => (
                   <div 
                     key={cat.name} 
                     className="mb-2.5 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] overflow-hidden"
                   >
-                    <div 
+                    <button
+                      type="button"
                       onClick={() => setExpandedCategories(prev => ({ ...prev, [cat.name]: !prev[cat.name] }))}
-                      className="p-4 flex items-center justify-between cursor-pointer hover:bg-[var(--surface-2)] transition-colors"
+                      aria-expanded={!!expandedCategories[cat.name]}
+                      aria-label={`${expandedCategories[cat.name] ? 'Hide' : 'Show'} items for ${cat.name}`}
+                      className="w-full p-4 flex items-center justify-between cursor-pointer hover:bg-[var(--surface-2)] transition-colors"
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: cat.color, flexShrink: 0 }} />
@@ -989,11 +1031,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             <span style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '2px', display: 'block' }}>(Full {formatCurrency(cat.fullAmount)})</span>
                           )}
                         </div>
-                        <div className="text-zinc-500 text-[10px]">
+                        <div aria-hidden="true" className="text-zinc-500 text-[10px]">
                           {expandedCategories[cat.name] ? '▼' : '▶'}
                         </div>
                       </div>
-                    </div>
+                    </button>
 
                     {expandedCategories[cat.name] && (
                       <div className="px-4 pb-4 pt-1">
@@ -1032,7 +1074,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </span>
           {categoriesList.length === 0 ? (
             <div className="py-4 text-center space-y-1">
-              <p className="text-zinc-500 text-[13px]">No bills or tracked expenses for this pay period.</p>
+              <p className="text-[var(--faint)] text-[13px]">No bills or tracked expenses for this pay period.</p>
             </div>
           ) : (
             <CategoryPieChart
@@ -1116,10 +1158,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
+              <h2 className="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
                 <Clock className="w-4.5 h-4.5 text-[var(--accent)]" />
                 Paycheck Timeline & Bill Checklists
-              </h3>
+              </h2>
               <span className="text-[11px] text-white/50 block mt-0.5">
                 Expand any payday to see assigned bills, adjust variable amounts, or mark bills paid.
               </span>

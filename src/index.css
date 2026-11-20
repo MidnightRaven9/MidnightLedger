@@ -14,7 +14,7 @@
   --border-strong: #2e2e36;
   --text: #ececf0;
   --muted: #9c9ca6;
-  --faint: #6b6b74;
+  --faint: #8b8b96;
   --accent: #a855f7;
   --accent-hover: #b97af9;
   --accent-press: #8d3ed1;
@@ -76,7 +76,7 @@ html, body, #root {
 
 /* Brand focus ring for keyboard navigation */
 :focus-visible {
-  outline: 2px solid var(--accent-ring);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -149,7 +149,7 @@ html, body, #root {
 
 /* Micro label — the one repeated uppercase label pattern */
 .label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -208,11 +208,10 @@ html, body, #root {
 
 /* Recharts Outline & Focus Fix */
 .recharts-wrapper, .recharts-surface, .recharts-responsive-container, .recharts-layer, .recharts-sector, .recharts-rectangle, .recharts-bar-rectangle {
-  outline: none !important;
   border: none !important;
   box-shadow: none !important;
 }
-.recharts-wrapper *:focus, .recharts-wrapper *:focus-visible { outline: none !important; border: none !important; }
+.recharts-wrapper *:focus-visible { outline: 2px solid var(--accent) !important; outline-offset: 2px !important; }
 /* Scrollable charts must be allowed to grow past the viewport so the indicator matches the drawn chart. */
 .chart-scroller * { max-width: none !important; }
 

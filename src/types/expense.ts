@@ -8,6 +8,7 @@ export interface Expense {
   date?: string; // Transaction date YYYY-MM-DD
   paymentMethod?: string;
   emoji?: string;
+  isDemo?: boolean;
 }
 
 export interface ExtraExpense {
@@ -20,6 +21,7 @@ export interface ExtraExpense {
   date?: string; // Transaction date YYYY-MM-DD
   paymentMethod?: string;
   emoji?: string;
+  isDemo?: boolean;
 }
 
 export interface ExtraIncome {

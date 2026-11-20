@@ -4,6 +4,7 @@ import { ScheduleFrequency } from '../types';
 import { usePayday } from '../context/PaydayContext';
 import { toISODateString } from '../utils/dateUtils';
 import { useEscapeToClose } from '../utils/useEscapeToClose';
+import { useModalFocus } from '../utils/useModalFocus';
 
 interface ScheduleModalProps {
   isOpen: boolean;
@@ -15,6 +16,8 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
   onClose,
 }) => {
   useEscapeToClose(isOpen, onClose);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  useModalFocus(panelRef, isOpen);
 
   const { schedule, updateSchedule } = usePayday();
 
@@ -50,7 +53,13 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-[var(--surface)] rounded-3xl shadow-2xl border border-[var(--border)] overflow-hidden">
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Pay schedule"
+        className="w-full max-w-lg bg-[var(--surface)] rounded-3xl shadow-2xl border border-[var(--border)] overflow-hidden max-h-[90vh] overflow-y-auto">
         
         <div className="flex items-center justify-between p-6 border-b border-[var(--border)] bg-[var(--surface)]">
           <div className="flex items-center gap-3">
@@ -69,6 +78,7 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
 
           <button
             onClick={onClose}
+            aria-label="Close schedule editor"
             className="p-2 rounded-xl text-white/40 hover:text-white hover:bg-[var(--surface-2)] transition-colors"
           >
             <X className="w-5 h-5" />
@@ -158,6 +168,7 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
               <input
                 type="date"
                 required
+                aria-label="Anchor or start payday date"
                 value={anchorDate}
                 onChange={e => setAnchorDate(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"
@@ -176,6 +187,7 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
                   type="number"
                   min="1"
                   max="31"
+                  aria-label="First payday of month"
                   value={firstDay}
                   onChange={e => setFirstDay(parseInt(e.target.value) || 1)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"
@@ -190,6 +202,7 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
                   type="number"
                   min="1"
                   max="31"
+                  aria-label="Second payday of month"
                   value={secondDay}
                   onChange={e => setSecondDay(parseInt(e.target.value) || 15)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"
@@ -205,6 +218,7 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
                 type="number"
                 min="1"
                 max="31"
+                aria-label="Monthly payday day of month"
                 value={monthlyDay}
                 onChange={e => setMonthlyDay(parseInt(e.target.value) || 15)}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"

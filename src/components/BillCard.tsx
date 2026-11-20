@@ -134,7 +134,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
             </div>
 
             {bill.notes && (
-              <span className="text-[10px] text-white/40 italic mt-0.5 block truncate">
+              <span className="text-[10px] text-[var(--faint)] italic mt-0.5 block truncate">
                 {bill.notes}
               </span>
             )}
@@ -143,7 +143,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
 
         <div className="flex items-center gap-3 shrink-0">
           <div className="text-right">
-            <span className={`text-xs font-extrabold block ${isPaid ? 'line-through text-white/40' : 'text-white'}`}>
+            <span className={`text-xs font-extrabold block ${isPaid ? 'line-through text-[var(--faint)]' : 'text-white'}`}>
               {formatCurrency(displayAmt)}
             </span>
             {bill.type === 'variable' && onAdjust && !isPaid && (
@@ -161,6 +161,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
               onClick={onSkip}
               className="p-1.5 rounded-lg text-white/40 hover:text-rose-400 hover:bg-rose-950/20 transition-all cursor-pointer"
               title="Skip this occurrence"
+              aria-label="Skip this occurrence"
             >
               <EyeOff className="w-3.5 h-3.5" />
             </button>
@@ -230,6 +231,11 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--accent)]">
                 {bill.type === 'fixed' || bill.type === 'Fixed' ? 'Fixed' : 'Variable'}
               </span>
+              {bill.isDemo === true && (
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/40">
+                  Example
+                </span>
+              )}
               {isPaid && (
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--accent)] inline-flex items-center gap-1">
                   Paid
@@ -250,7 +256,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
             <p className={`text-[18px] font-black ${isPaid ? 'line-through text-zinc-400' : 'text-white'}`}>
               {formatCurrency(displayAmt)}
             </p>
-            <p className="text-[12px] text-zinc-500 mt-0.5 truncate">
+            <p className="text-[12px] text-[var(--faint)] mt-0.5 truncate">
               Due {getOrdinalSuffix(bill.dueDay || bill.dueDate)} of every month
             </p>
           </div>
@@ -260,7 +266,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
               {viewMode === 'myShare' ? (
                 <>
                   <span className={`text-[14px] font-bold ${isPaid ? 'line-through text-zinc-400' : 'text-white'}`}>
-                    {formatCurrency(myShareVal)} <span className="text-zinc-500 font-normal text-[11px]">My Share</span>
+                    {formatCurrency(myShareVal)} <span className="text-[var(--faint)] font-normal text-[11px]">My Share</span>
                   </span>
                   <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent)]/20 text-[var(--accent)] text-[11px] font-bold border border-[var(--accent)]">
                     Full: {formatCurrency(fullTotalVal)}
@@ -269,7 +275,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
               ) : (
                 <>
                   <span className={`text-[14px] font-bold ${isPaid ? 'line-through text-zinc-400' : 'text-[#F59E0B]'}`}>
-                    {formatCurrency(fullTotalVal)} <span className="text-zinc-500 font-normal text-[11px]">Full Total</span>
+                    {formatCurrency(fullTotalVal)} <span className="text-[var(--faint)] font-normal text-[11px]">Full Total</span>
                   </span>
                   <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent)]/20 text-[var(--accent)] text-[11px] font-bold border border-[var(--accent)]">
                     My Share: {formatCurrency(myShareVal)}
@@ -282,7 +288,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
                 Split {splitWays} ways
               </span>
             </div>
-            <p className="text-[11px] text-zinc-500 truncate">
+            <p className="text-[11px] text-[var(--faint)] truncate">
               Due {getOrdinalSuffix(bill.dueDay || bill.dueDate)} • Full total {formatCurrency(fullTotalVal)} split
             </p>
           </div>
@@ -305,6 +311,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
                 onClick={onEdit}
                 className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors cursor-pointer"
                 title="Edit bill"
+                aria-label="Edit bill"
               >
                 <Edit2 className="w-4 h-4" />
               </button>
@@ -314,6 +321,7 @@ export const BillCard: React.FC<BillCardProps> = React.memo(({
                 onClick={onDelete}
                 className="p-1 rounded-lg text-zinc-400 hover:text-rose-400 hover:bg-rose-950/30 transition-colors cursor-pointer"
                 title="Delete bill"
+                aria-label="Delete bill"
               >
                 <Trash2 className="w-4 h-4" />
               </button>

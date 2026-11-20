@@ -9,7 +9,9 @@ import {
 } from '../types';
 import { toISODateString } from '../utils/dateUtils';
 import { generatePaydaysFromSchedule, calculatePaydaySummaries } from '../utils/paydayLogic';
-import { triggerConfetti, getCategoryEmoji } from '../utils/emojis';
+import { triggerConfetti } from '../utils/emojis';
+import { createBackup, inspectBackup, normalizePersistedState, parseBackup, type ImportInspection, type PersistedState } from '../utils/backup';
+import { downloadBackup } from '../utils/downloadBackup';
 
 const STORAGE_KEY = 'midnightledger_v1';
 
@@ -27,7 +29,6 @@ const parseKey = (k: string) => {
 
 function safeSave(key: string, value: string): boolean {
   try {
-    // Test quota first
     const testKey = '__quota_test__' + Date.now();
     localStorage.setItem(testKey, 'test');
     localStorage.removeItem(testKey);
@@ -45,7 +46,7 @@ function safeSave(key: string, value: string): boolean {
         localStorage.setItem(key, value);
         return true;
       } catch (e) {
-        alert('Storage full! Please export your data and clear some bills/history.');
+        console.error('Unable to persist ledger after freeing legacy keys', e);
         return false;
       }
     }
@@ -154,87 +155,67 @@ const DEFAULT_BILLS: Bill[] = [
 
 const DEFAULT_EXPENSES: ExtraExpense[] = SEED.expenses;
 
-const migrateBills = (loadedBills: Bill[]): Bill[] => {
-  if (!Array.isArray(loadedBills)) return DEFAULT_BILLS;
-  return loadedBills.map(b => {
-    const nameLower = (b.name || '').toLowerCase();
-    const isStreamingSub = nameLower.includes('streaming') && nameLower.includes('subscript');
-    const isOldName = b.name === 'Streaming Subscriptions' || isStreamingSub;
-    const catIsOld = (b.category as string) === 'Streaming Subscriptions';
-    
-    if (isOldName || catIsOld) {
-      return {
-        ...b,
-        name: isOldName ? 'Subscriptions' : b.name,
-        category: catIsOld ? 'Subscriptions' : b.category,
-      };
-    }
-    return b;
-  });
+interface StoredLoad {
+  state: PersistedState | null;
+  firstRun: boolean;
+  corrupt: boolean;
+}
+
+const EMPTY_STATE: PersistedState = {
+  schedule: { frequency: 'manual', anchorDate: '' },
+  paydays: [],
+  bills: [],
+  extraExpenses: [],
+  extraIncomes: [],
+  variableOverrides: {},
+  variableFullTotalOverrides: {},
+  paidStatuses: {},
+  excludedOccurrences: {},
+  lastSaved: null,
 };
 
-const getSavedState = () => {
+const createSampleState = (): PersistedState => ({
+  ...EMPTY_STATE,
+  schedule: DEFAULT_SCHEDULE,
+  paydays: DEFAULT_PAYDAYS.map(p => ({ ...p, isDemo: true })),
+  bills: DEFAULT_BILLS.map(b => ({ ...b, isDemo: true })),
+  extraExpenses: DEFAULT_EXPENSES.map(e => ({ ...e, isDemo: true })),
+});
+
+/**
+ * Reads localStorage once. A missing key means first run (samples may be
+ * shown); an unreadable key means corrupted data, which is preserved on disk
+ * and replaced in memory with an empty ledger rather than silently reseeded.
+ */
+function loadStoredState(): StoredLoad {
   try {
-    let saved = localStorage.getItem('midnightledger_v1');
-    if (!saved) {
-      // Fallback migration from previous key
-      saved = localStorage.getItem('payday_planner_data_v1');
+    let raw = localStorage.getItem('midnightledger_v1');
+    if (raw === null) {
+      raw = localStorage.getItem('payday_planner_data_v1');
+      if (raw === null) return { state: null, firstRun: true, corrupt: false };
     }
-    
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.isWiped) {
-        return {
-          schedule: { frequency: 'manual', anchorDate: '' } as PaydaySchedule,
-          paydays: [] as Payday[],
-          bills: [] as Bill[],
-          extraExpenses: [] as ExtraExpense[],
-          extraIncomes: [] as ExtraIncome[],
-          variableOverrides: {} as Record<string, number>,
-          variableFullTotalOverrides: {} as Record<string, number>,
-          paidStatuses: {} as Record<string, boolean | string>,
-          excludedOccurrences: {} as Record<string, boolean>,
-          lastSaved: parsed.lastSaved || null,
-        };
-      }
-      
-      let extraIncomes = parsed.extraIncomes || parsed.extraCash || [];
-      const extraIncSaved = localStorage.getItem('midnightledger_extra_income');
-      if (extraIncSaved) {
-        try {
-          const parsedInc = JSON.parse(extraIncSaved);
-          if (Array.isArray(parsedInc) && parsedInc.length > 0) {
-            extraIncomes = parsedInc;
-          }
-        } catch (_) {}
-      }
-
-      const rawBills = Array.isArray(parsed.bills) ? parsed.bills : DEFAULT_BILLS;
-
-      return {
-        schedule: parsed.schedule || DEFAULT_SCHEDULE,
-        paydays: Array.isArray(parsed.paydays) ? parsed.paydays : (Array.isArray(parsed.paychecks) ? parsed.paychecks : DEFAULT_PAYDAYS),
-        bills: migrateBills(rawBills),
-        extraExpenses: (Array.isArray(parsed.extraExpenses) ? parsed.extraExpenses : (Array.isArray(parsed.expenses) ? parsed.expenses : DEFAULT_EXPENSES)).map(e => {
-          if (e.emoji === '📌' || !e.emoji) {
-            const catEmoji = getCategoryEmoji(e.category);
-            if (catEmoji && catEmoji !== '📌') return { ...e, emoji: catEmoji };
-          }
-          return e;
-        }),
-        extraIncomes: extraIncomes,
-        variableOverrides: parsed.variableOverrides || {},
-        variableFullTotalOverrides: parsed.variableFullTotalOverrides || {},
-        paidStatuses: parsed.paidStatuses || {},
-        excludedOccurrences: parsed.excludedOccurrences || {},
-        lastSaved: parsed.lastSaved || null,
-      };
+    const parsed: unknown = JSON.parse(raw);
+    if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return { state: null, firstRun: false, corrupt: true };
     }
+    if ((parsed as { isWiped?: boolean }).isWiped === true) {
+      return { state: EMPTY_STATE, firstRun: false, corrupt: false };
+    }
+    return { state: normalizePersistedState(parsed), firstRun: false, corrupt: false };
   } catch (err) {
-    console.error('Failed to load initial state from local storage', err);
+    console.error('Stored ledger could not be read; leaving it untouched on disk', err);
+    return { state: null, firstRun: false, corrupt: true };
   }
-  return null;
-};
+}
+
+/** Raw persisted bytes, kept only so a corrupt value can be downloaded before recovery. */
+function readRawLedger(): string | null {
+  try {
+    return localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem('payday_planner_data_v1');
+  } catch (_) {
+    return null;
+  }
+}
 
 export interface CustomCategory {
   name: string;
@@ -258,6 +239,14 @@ interface PaydayContextType {
   paidStatuses: Record<string, boolean | string>;
   excludedOccurrences: Record<string, boolean>;
   toastMessage: string | null;
+  storageWarning: string | null;
+  dismissStorageWarning: () => void;
+  /** True while a corrupt stored value is awaiting an explicit recovery choice. */
+  recoveryLocked: boolean;
+  /** Explicitly replace the unreadable value with an empty ledger and resume saving. */
+  startFresh: () => void;
+  /** Download the original unreadable bytes without changing any data. */
+  downloadCorruptedData: () => void;
   lastSaved: string | null;
   viewMode: 'myShare' | 'fullTotal';
   setViewMode: (mode: 'myShare' | 'fullTotal') => void;
@@ -290,54 +279,37 @@ interface PaydayContextType {
   unmarkAllBillsPaidInPayday: (paydayDate: string) => void;
   
   clearAllData: () => void;
+  removeDemoData: () => void;
   exportData: () => string;
   importData: (jsonStr: string) => boolean;
+  inspectImport: (jsonStr: string) => ImportInspection;
+  applyImport: (state: PersistedState) => void;
 }
 
 const PaydayContext = createContext<PaydayContextType | undefined>(undefined);
 
 export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [schedule, setSchedule] = useState<PaydaySchedule>(() => {
-    const saved = getSavedState();
-    return saved ? saved.schedule : DEFAULT_SCHEDULE;
-  });
-  const [paydays, setPaydays] = useState<Payday[]>(() => {
-    const saved = getSavedState();
-    return saved ? saved.paydays : DEFAULT_PAYDAYS;
-  });
-  const [bills, setBills] = useState<Bill[]>(() => {
-    const saved = getSavedState();
-    return saved ? saved.bills : DEFAULT_BILLS;
-  });
-  const [extraExpenses, setExtraExpenses] = useState<ExtraExpense[]>(() => {
-    const saved = getSavedState();
-    return saved ? saved.extraExpenses : DEFAULT_EXPENSES;
-  });
-  const [extraIncomes, setExtraIncomes] = useState<ExtraIncome[]>(() => {
-    const saved = getSavedState();
-    return saved ? saved.extraIncomes : [];
-  });
-  const [variableOverrides, setVariableOverrides] = useState<Record<string, number>>(() => {
-    const saved = getSavedState();
-    return saved ? saved.variableOverrides : {};
-  });
-  const [variableFullTotalOverrides, setVariableFullTotalOverrides] = useState<Record<string, number>>(() => {
-    const saved = getSavedState();
-    return saved ? saved.variableFullTotalOverrides : {};
-  });
-  const [paidStatuses, setPaidStatuses] = useState<Record<string, boolean | string>>(() => {
-    const saved = getSavedState();
-    return saved ? saved.paidStatuses : {};
-  });
-  const [excludedOccurrences, setExcludedOccurrences] = useState<Record<string, boolean>>(() => {
-    const saved = getSavedState();
-    return saved ? saved.excludedOccurrences : {};
-  });
+  const [initialLoad] = useState(loadStoredState);
+  const initial = initialLoad.state ?? (initialLoad.firstRun ? createSampleState() : EMPTY_STATE);
+  // A corrupt stored value is preserved verbatim on disk until the user makes
+  // an explicit recovery choice. Until then, automatic persistence is locked.
+  const [recoveryLocked, setRecoveryLocked] = useState(initialLoad.corrupt);
+  const [corruptedRaw] = useState<string | null>(() => initialLoad.corrupt ? readRawLedger() : null);
+
+  const [schedule, setSchedule] = useState<PaydaySchedule>(initial.schedule);
+  const [paydays, setPaydays] = useState<Payday[]>(initial.paydays);
+  const [bills, setBills] = useState<Bill[]>(initial.bills);
+  const [extraExpenses, setExtraExpenses] = useState<ExtraExpense[]>(initial.extraExpenses);
+  const [extraIncomes, setExtraIncomes] = useState<ExtraIncome[]>(initial.extraIncomes);
+  const [variableOverrides, setVariableOverrides] = useState<Record<string, number>>(initial.variableOverrides);
+  const [variableFullTotalOverrides, setVariableFullTotalOverrides] = useState<Record<string, number>>(initial.variableFullTotalOverrides);
+  const [paidStatuses, setPaidStatuses] = useState<Record<string, boolean | string>>(initial.paidStatuses);
+  const [excludedOccurrences, setExcludedOccurrences] = useState<Record<string, boolean>>(initial.excludedOccurrences);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [lastSaved, setLastSaved] = useState<string | null>(() => {
-    const saved = getSavedState();
-    return saved ? saved.lastSaved : null;
-  });
+  const [lastSaved, setLastSaved] = useState<string | null>(initial.lastSaved);
+  const [storageWarning, setStorageWarning] = useState<string | null>(initialLoad.corrupt
+    ? 'Saved ledger data could not be read. Your original data is still on this device and has not been changed. Choose a recovery option to continue.'
+    : null);
 
   const [viewMode, setViewModeState] = useState<'myShare' | 'fullTotal'>(() => {
     try {
@@ -386,10 +358,13 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(prev => (prev === msg ? null : prev));
-    }, 2000);
+    }, 5000);
   };
 
   useEffect(() => {
+    // Never write over an unreadable stored value. The original bytes stay on
+    // disk until the user explicitly restores a backup or starts fresh.
+    if (recoveryLocked) return;
     try {
       const savedTime = new Date().toISOString();
       const stateToSave = {
@@ -407,13 +382,13 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         excludedOccurrences,
         lastSaved: savedTime,
       };
-      safeSave('midnightledger_v1', JSON.stringify(stateToSave));
-      safeSave('midnightledger_extra_income', JSON.stringify(extraIncomes));
+      const saved = safeSave('midnightledger_v1', JSON.stringify(stateToSave));
+      setStorageWarning(saved ? null : 'Could not save changes. Export a backup now to avoid losing them.');
       setLastSaved(savedTime);
     } catch (err) {
       console.error('Failed to save to local storage', err);
     }
-  }, [schedule, paydays, bills, extraExpenses, extraIncomes, variableOverrides, variableFullTotalOverrides, paidStatuses, excludedOccurrences]);
+  }, [schedule, paydays, bills, extraExpenses, extraIncomes, variableOverrides, variableFullTotalOverrides, paidStatuses, excludedOccurrences, recoveryLocked]);
 
   const activePaydays = useMemo(() => {
     return generatePaydaysFromSchedule(schedule, paydays, 10);
@@ -1014,70 +989,84 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
 
 
-  const exportData = () => {
-    return JSON.stringify({
-      version: '1.0',
-      exportedAt: new Date().toISOString(),
-      schedule,
-      paydays,
-      bills,
-      extraExpenses,
-      extraIncomes,
-      variableOverrides,
-      variableFullTotalOverrides,
-      paidStatuses,
-    }, null, 2);
+  const exportData = (): string => JSON.stringify(createBackup({
+    schedule,
+    paydays,
+    bills,
+    extraExpenses,
+    extraIncomes,
+    variableOverrides,
+    variableFullTotalOverrides,
+    paidStatuses,
+    excludedOccurrences,
+    lastSaved,
+  }), null, 2);
+
+  // Apply an already-inspected, validated state exactly as previewed. This is
+  // the only path that replaces ledger data and is called after explicit
+  // confirmation in the import preview dialog.
+  const applyImport = (state: PersistedState): void => {
+    setSchedule(state.schedule);
+    setPaydays(state.paydays);
+    setBills(state.bills);
+    setExtraExpenses(state.extraExpenses);
+    setExtraIncomes(state.extraIncomes);
+    setVariableOverrides(state.variableOverrides);
+    setVariableFullTotalOverrides(state.variableFullTotalOverrides);
+    setPaidStatuses(state.paidStatuses);
+    setExcludedOccurrences(state.excludedOccurrences);
+    setLastSaved(state.lastSaved);
+    setStorageWarning(null);
+    // Restoring a backup is an explicit recovery choice: the imported data now
+    // replaces the original stored value on the next persistence pass.
+    setRecoveryLocked(false);
+    showToast('Backup imported successfully.');
   };
 
+  // Explicit recovery choices. These are the only paths that unlock automatic
+  // persistence after a corrupt load; nothing else can overwrite the original.
+  const startFresh = (): void => {
+    setSchedule(EMPTY_STATE.schedule);
+    setPaydays(EMPTY_STATE.paydays);
+    setBills(EMPTY_STATE.bills);
+    setExtraExpenses(EMPTY_STATE.extraExpenses);
+    setExtraIncomes(EMPTY_STATE.extraIncomes);
+    setVariableOverrides(EMPTY_STATE.variableOverrides);
+    setVariableFullTotalOverrides(EMPTY_STATE.variableFullTotalOverrides);
+    setPaidStatuses(EMPTY_STATE.paidStatuses);
+    setExcludedOccurrences(EMPTY_STATE.excludedOccurrences);
+    setLastSaved(null);
+    setStorageWarning(null);
+    setRecoveryLocked(false);
+    showToast('Started fresh. The unreadable value was replaced with an empty ledger.');
+  };
+
+  const downloadCorruptedData = (): void => {
+    if (corruptedRaw !== null) {
+      downloadBackup(corruptedRaw, 'midnightledger-unreadable-data.txt', 'text/plain');
+    }
+  };
+
+  // Pure inspection used to populate the preview dialog; never mutates state.
+  const inspectImport = (jsonStr: string): ImportInspection => inspectBackup(jsonStr);
+
   const importData = (jsonStr: string): boolean => {
-    try {
-      const parsed = JSON.parse(jsonStr);
-      if (!parsed.version || parsed.version !== '1.0') {
-        console.error('Invalid import version');
-        return false;
-      }
-      if (!Array.isArray(parsed.bills)) return false;
-      if (parsed.bills.length > 500) return false; // DoS limit
-
-      const sanitizeBills = (bills: any[]) => bills.map(b => ({
-        ...b,
-        id: /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(b.id) ? b.id : crypto.randomUUID(),
-        name: String(b.name || '').slice(0, 100).replace(/[<>]/g, ''),
-        amount: Math.min(1000000, Math.max(0, Number(b.amount) || 0)),
-        due_day: Math.min(31, Math.max(1, parseInt(b.due_day || b.dueDay || 1))),
-        category: String(b.category || 'Other').slice(0, 50),
-        recurring: String(b.recurring || 'monthly').slice(0, 20)
-      }));
-
-      if (Array.isArray(parsed.bills)) setBills(sanitizeBills(parsed.bills));
-      if (Array.isArray(parsed.paychecks)) {
-        const cleanPays = parsed.paychecks.map((p: any) => ({
-          ...p,
-          id: /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(p.id) ? p.id : crypto.randomUUID(),
-          date: String(p.date || '').slice(0, 20),
-          amount: Math.min(1000000, Math.max(0, Number(p.amount || p.estimatedAmount || 0)))
-        }));
-        setPaydays(cleanPays);
-      } else if (Array.isArray(parsed.paydays)) {
-        const cleanPays = parsed.paydays.map((p: any) => ({
-          ...p,
-          id: /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(p.id) ? p.id : crypto.randomUUID(),
-          date: String(p.date || '').slice(0, 20),
-          amount: Math.min(1000000, Math.max(0, Number(p.amount || p.estimatedAmount || 0)))
-        }));
-        setPaydays(cleanPays);
-      }
-      if (parsed.schedule) setSchedule(parsed.schedule);
-      if (Array.isArray(parsed.extraExpenses)) setExtraExpenses(parsed.extraExpenses);
-      if (Array.isArray(parsed.extraIncomes)) setExtraIncomes(parsed.extraIncomes);
-      if (parsed.variableOverrides) setVariableOverrides(parsed.variableOverrides);
-      if (parsed.variableFullTotalOverrides) setVariableFullTotalOverrides(parsed.variableFullTotalOverrides);
-      if (parsed.paidStatuses) setPaidStatuses(parsed.paidStatuses);
-      return true;
-    } catch (e) {
-      console.error('Import failed', e);
+    const parsed = parseBackup(jsonStr);
+    if (parsed.ok === false) {
+      console.error('Import failed:', parsed.error);
+      showToast(parsed.error);
       return false;
     }
+    applyImport(parsed.state);
+    return true;
+  };
+
+  const removeDemoData = () => {
+    setBills(prev => prev.filter(b => b.isDemo !== true));
+    setPaydays(prev => prev.filter(p => p.isDemo !== true));
+    setExtraExpenses(prev => prev.filter(e => e.isDemo !== true));
+    setExtraIncomes(prev => prev.filter(i => i.isDemo !== true));
+    showToast('Example records removed. Your own records were kept.');
   };
 
   return (
@@ -1093,6 +1082,11 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         paidStatuses,
         excludedOccurrences,
         toastMessage,
+        storageWarning,
+        dismissStorageWarning: () => setStorageWarning(null),
+        recoveryLocked,
+        startFresh,
+        downloadCorruptedData,
         lastSaved,
         viewMode,
         setViewMode,
@@ -1124,8 +1118,11 @@ export const PaydayProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         addCustomBillCategory,
         deleteCustomBillCategory,
         clearAllData,
+        removeDemoData,
         exportData,
         importData,
+        inspectImport,
+        applyImport,
       }}
     >
       {children}

@@ -84,7 +84,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
         className="flex flex-col items-center justify-center p-6 bg-[var(--surface)] rounded-2xl border border-dashed border-[var(--border)] text-center text-xs text-white/50"
       >
         <p className="font-medium">No bills or tracked expenses for this pay period.</p>
-        <p className="text-[11px] mt-1 text-white/40">Add bills or log expenses to see category allocation.</p>
+        <p className="text-[11px] mt-1 text-[var(--faint)]">Add bills or log expenses to see category allocation.</p>
       </div>
     );
   }
@@ -116,7 +116,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
   if (!showLegend) {
     return (
       <div className="w-full flex items-center justify-center min-w-0 max-w-full overflow-hidden my-1">
-        <div className="w-full max-w-[280px] h-[220px] relative min-w-0 p-2">
+        <div role="img" aria-label="Spending by category donut chart" className="w-full max-w-[280px] h-[220px] relative min-w-0 p-2">
           <ResponsiveContainer width="100%" height={220} className="min-w-0 max-w-full" style={{ outline: 'none' }}>
             <PieChart style={{ outline: 'none' }}>
               <Pie
@@ -127,6 +127,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
                 outerRadius={90}
                 paddingAngle={3}
                 dataKey="value"
+                isAnimationActive={false}
                 stroke="none"
                 style={{ outline: 'none' }}
                 onMouseEnter={() => setIsPieActive(true)}
@@ -158,7 +159,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
 
   return (
     <div className="w-full flex flex-col md:flex-row items-center gap-4 min-w-0 max-w-full overflow-hidden">
-      <div className="w-full md:w-1/2 h-[240px] relative min-w-0 max-w-full p-2">
+      <div role="img" aria-label="Spending by category donut chart; category values are listed beside the chart" className="w-full md:w-1/2 h-[240px] relative min-w-0 max-w-full p-2">
         <ResponsiveContainer width="100%" height={220} className="min-w-0 max-w-full" style={{ outline: 'none' }}>
           <PieChart style={{ outline: 'none' }}>
             <Pie
@@ -169,6 +170,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
               outerRadius={90}
               paddingAngle={3}
               dataKey="value"
+              isAnimationActive={false}
               stroke="none"
               style={{ outline: 'none' }}
               onMouseEnter={() => setIsPieActive(true)}

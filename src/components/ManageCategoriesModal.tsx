@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Trash2 } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
 import { useEscapeToClose } from '../utils/useEscapeToClose';
+import { useModalFocus } from '../utils/useModalFocus';
 
 interface ManageCategoriesModalProps {
   isOpen: boolean;
@@ -15,6 +16,8 @@ export const ManageCategoriesModal: React.FC<ManageCategoriesModalProps> = ({
   type = 'expense',
 }) => {
   useEscapeToClose(isOpen, onClose);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  useModalFocus(panelRef, isOpen);
 
   const { 
     customExpenseCategories, 
@@ -32,14 +35,20 @@ export const ManageCategoriesModal: React.FC<ManageCategoriesModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
-      <div 
-        className="w-full max-w-sm bg-[var(--surface)] rounded-3xl border border-[var(--border)] shadow-2xl overflow-hidden flex flex-col"
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Manage categories"
+        className="w-full max-w-sm bg-[var(--surface)] rounded-3xl border border-[var(--border)] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
           <h3 className="text-lg font-bold text-white">Manage Categories</h3>
           <button
             onClick={onClose}
+            aria-label="Close manage categories"
             className="w-8 h-8 rounded-full bg-[var(--surface-2)] flex items-center justify-center text-white/50 hover:bg-[var(--border)] hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
@@ -79,6 +88,7 @@ export const ManageCategoriesModal: React.FC<ManageCategoriesModalProps> = ({
                   ) : (
                     <button
                       onClick={() => setConfirmDeleteName(cat.name)}
+                      aria-label={`Delete ${cat.name} category`}
                       className="p-2 rounded-lg text-white/40 hover:text-[#FF6B7A] hover:bg-[#2D161B] transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />

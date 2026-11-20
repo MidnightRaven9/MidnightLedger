@@ -264,15 +264,19 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
 
       <div className="rounded-[24px] border border-zinc-800/50 bg-[var(--surface)] p-5 sm:p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <h2 className="text-sm font-bold text-white flex items-center gap-2">
             <PieChart className="w-4 h-4 text-[var(--accent)]" />
             Monthly Category Allocation
-          </h3>
+          </h2>
           <span className="text-xs text-white/50 font-semibold">{bills.length} Total Bills</span>
         </div>
 
         {totalBaseMonthly > 0 && (
-          <div className="w-full h-3 rounded-full bg-[var(--surface-2)] overflow-hidden flex border border-[var(--border)]">
+          <div 
+            role="img"
+            aria-label="Category distribution; details in adjacent list"
+            className="w-full h-3 rounded-full bg-[var(--surface-2)] overflow-hidden flex border border-[var(--border)]"
+          >
             {Object.entries(categoryTotals).map(([cat, amt]) => {
               const pct = (amt / totalBaseMonthly) * 100;
               const colorClass = categoryColors[cat] || 'bg-[var(--accent)]';
@@ -315,15 +319,17 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
           <input
             type="text"
             placeholder="Search bills..."
+            aria-label="Search bills"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full h-11 rounded-2xl bg-[var(--surface-2)] border border-zinc-800 pl-10 pr-4 text-[14px] text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--accent)] box-border"
+            className="w-full h-11 rounded-2xl bg-[var(--surface-2)] border border-zinc-800 pl-10 pr-4 text-[14px] text-white placeholder:text-[var(--faint)] focus:outline-none focus:border-[var(--accent)] box-border"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-2 w-full max-w-full">
           <button
             onClick={() => setViewMode('myShare')}
+            aria-pressed={viewMode === 'myShare'}
             className={`h-10 rounded-full text-[13px] font-bold flex items-center justify-center gap-1.5 truncate transition-all cursor-pointer box-border px-2 ${
               viewMode === 'myShare'
                 ? 'bg-[var(--accent)] text-white shadow-lg shadow-none'
@@ -334,6 +340,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
           </button>
           <button
             onClick={() => setViewMode('fullTotal')}
+            aria-pressed={viewMode === 'fullTotal'}
             className={`h-10 rounded-full text-[13px] font-bold flex items-center justify-center gap-1.5 truncate transition-all cursor-pointer box-border px-2 ${
               viewMode === 'fullTotal'
                 ? 'bg-[var(--accent)] text-white shadow-lg shadow-none'
@@ -346,6 +353,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
 
         <div className="grid grid-cols-2 gap-2 w-full max-w-full">
           <select
+            aria-label="Category"
             value={selectedCategory}
             onChange={e => setSelectedCategory(e.target.value)}
             className="w-full min-w-0 h-10 rounded-full bg-[#1f1f1f] border border-zinc-800 px-3 text-[13px] text-white focus:outline-none focus:border-[var(--accent)] truncate cursor-pointer box-border"
@@ -357,6 +365,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
           </select>
 
           <select
+            aria-label="Type"
             value={selectedType}
             onChange={e => setSelectedType(e.target.value)}
             className="w-full min-w-0 h-10 rounded-full bg-[#1f1f1f] border border-zinc-800 px-3 text-[13px] text-white focus:outline-none focus:border-[var(--accent)] truncate cursor-pointer box-border"
@@ -371,6 +380,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <span className="text-[13px] text-zinc-400 font-medium shrink-0">Sort:</span>
             <select
+              aria-label="Sort"
               value={billSort}
               onChange={e => handleSortChange(e.target.value)}
               className="h-10 rounded-full bg-[#1f1f1f] border border-zinc-800 px-4 text-[13px] text-white focus:outline-none focus:border-[var(--accent)] cursor-pointer truncate"
@@ -384,6 +394,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
             onClick={() => setIsManageCategoriesModalOpen(true)}
             className="w-11 h-11 shrink-0 flex items-center justify-center rounded-2xl bg-[#1f1f1f] border border-zinc-800 text-zinc-400 hover:text-white hover:border-[var(--accent)] transition-colors cursor-pointer"
             title="Manage Categories"
+            aria-label="Manage categories"
           >
             <Settings className="w-5 h-5" />
           </button>
@@ -437,6 +448,8 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
                     return next;
                   });
                 }}
+                aria-expanded={showNextCycle}
+                aria-controls="next-cycle-bills"
                 style={{
                   width: '100%',
                   padding: '16px',
@@ -465,7 +478,7 @@ export const BillsView: React.FC<BillsViewProps> = ({ onOpenBillModal }) => {
               </button>
 
               {showNextCycle && (
-                <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '12px', opacity: 0.85 }}>
+                <div id="next-cycle-bills" style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '12px', opacity: 0.85 }}>
                   <div style={{ fontSize: '12px', color: 'var(--faint)', padding: '0 4px' }}>
                     These will cycle back to top when their due date comes around again next month.
                   </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { useEscapeToClose } from '../utils/useEscapeToClose';
+import { useModalFocus } from '../utils/useModalFocus';
 
 interface CustomCategoryModalProps {
   isOpen: boolean;
@@ -14,6 +15,8 @@ export const CustomCategoryModal: React.FC<CustomCategoryModalProps> = ({
   onSave,
 }) => {
   useEscapeToClose(isOpen, onClose);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  useModalFocus(panelRef, isOpen);
 
   const [name, setName] = useState('');
   const [emoji, setEmoji] = useState('🪶');
@@ -34,12 +37,19 @@ export const CustomCategoryModal: React.FC<CustomCategoryModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative w-full max-w-sm bg-[var(--bg)] border border-zinc-800 rounded-[28px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label="New category"
+        className="relative w-full max-w-sm bg-[var(--bg)] border border-zinc-800 rounded-[28px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         
         <div className="flex items-center justify-between p-5 border-b border-zinc-800">
           <h2 className="text-xl font-bold text-white tracking-tight">Create Custom Category</h2>
           <button
             onClick={onClose}
+            aria-label="Close category editor"
             className="p-2 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -54,6 +64,7 @@ export const CustomCategoryModal: React.FC<CustomCategoryModalProps> = ({
               </label>
               <input
                 type="text"
+                aria-label="Category icon"
                 value={emoji}
                 onChange={e => setEmoji(e.target.value)}
                 maxLength={2}
@@ -68,6 +79,7 @@ export const CustomCategoryModal: React.FC<CustomCategoryModalProps> = ({
               </label>
               <input
                 type="text"
+                aria-label="Category name"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="e.g. Kids, Pets, Side Hustle"

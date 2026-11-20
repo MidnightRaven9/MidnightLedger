@@ -279,6 +279,7 @@ export const ReportsView: React.FC = () => {
           <span className="text-[12px] text-[var(--accent)]">▽</span>
           <span className="text-[13px] text-[var(--muted)] font-medium">Filter:</span>
           <select
+            aria-label="Filter by category"
             value={selectedCategory}
             onChange={e => setSelectedCategory(e.target.value)}
             className="flex-1 sm:w-[200px] h-[40px] rounded-full bg-[var(--border)] border border-[#333333] px-4 text-[14px] font-semibold text-white cursor-pointer focus:outline-none"
@@ -311,6 +312,7 @@ export const ReportsView: React.FC = () => {
           <div className="flex items-center gap-2 min-w-0">
             <span className="shrink-0 text-[13px] text-[var(--muted)] font-medium">Check:</span>
             <select
+              aria-label="Check"
               value={selectedPaydayDate}
               onChange={e => setSelectedPaydayDate(e.target.value)}
               className="flex-1 h-[38px] rounded-full bg-[var(--border)] border border-[#333] px-3 text-[13px] font-semibold text-white truncate focus:outline-none cursor-pointer"
@@ -324,12 +326,14 @@ export const ReportsView: React.FC = () => {
           </div>
         </div>
 
-        <CategoryPieChart
-          assignedBills={filteredAssignedBills}
-          extraExpenses={activeSummary ? activeSummary.extraExpenses.filter(e => isSelectedCategoryMatch(e.category)) : []}
-          height={220}
-          showLegend={false}
-        />
+        <div role="img" aria-label="Category distribution donut chart; data is listed below">
+          <CategoryPieChart
+            assignedBills={filteredAssignedBills}
+            extraExpenses={activeSummary ? activeSummary.extraExpenses.filter(e => isSelectedCategoryMatch(e.category)) : []}
+            height={220}
+            showLegend={false}
+          />
+        </div>
 
         <div className="pt-2 border-t border-[var(--border)]">
           <div style={{ fontSize: '11px', letterSpacing: '0.08em', color: 'var(--faint)', margin: '14px 0 10px', fontWeight: 700, textTransform: 'uppercase' }}>
@@ -386,7 +390,7 @@ export const ReportsView: React.FC = () => {
 
         <div className="w-full bg-[var(--surface-2)] rounded-[16px] p-3">
           <HorizontalScroller className="w-full overflow-x-auto chart-scroller">
-          <div style={{ width: chartWidth(incomeVsExpensesData.length), height: 240, maxWidth: 'none' }}>
+          <div role="img" aria-label="Income versus expenses by paycheck; values are listed in the chart tooltip" style={{ width: chartWidth(incomeVsExpensesData.length), height: 240, maxWidth: 'none' }}>
             <ResponsiveContainer width="100%" height="100%" style={{ outline: 'none', maxWidth: 'none' }}>
               <BarChart
                 data={incomeVsExpensesData}
@@ -446,7 +450,7 @@ export const ReportsView: React.FC = () => {
 
         <div className="w-full bg-[var(--surface-2)] rounded-[16px] p-3">
           <HorizontalScroller className="w-full overflow-x-auto chart-scroller">
-          <div style={{ width: chartWidth(projectionData.length), height: 240, maxWidth: 'none' }}>
+          <div role="img" aria-label="Projected net left over and cumulative buffer across future paychecks; values are listed in the chart tooltip" style={{ width: chartWidth(projectionData.length), height: 240, maxWidth: 'none' }}>
             <ResponsiveContainer width="100%" height="100%" style={{ outline: 'none', maxWidth: 'none' }}>
               <LineChart
                 data={projectionData}

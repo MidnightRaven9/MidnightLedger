@@ -15,6 +15,8 @@ import {
   saveNotificationSettings,
 } from '../utils/notifications';
 import { useEscapeToClose } from '../utils/useEscapeToClose';
+import { useModalFocus } from '../utils/useModalFocus';
+import { usePayday } from '../context/PaydayContext';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -27,6 +29,9 @@ interface SettingsModalProps {
  */
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   useEscapeToClose(isOpen, onClose);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  useModalFocus(panelRef, isOpen);
+  const { removeDemoData } = usePayday();
   const [selected, setSelected] = useState<string>(DEFAULT_ACCENT);
   const [hexInput, setHexInput] = useState<string>(DEFAULT_ACCENT);
   const [hexError, setHexError] = useState(false);
@@ -100,6 +105,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       onClick={onClose}
     >
       <div
+        ref={panelRef}
+        tabIndex={-1}
         className="w-full max-w-md max-h-[92vh] overflow-y-auto bg-[var(--surface)] rounded-[22px] border border-[var(--border-strong)] shadow-2xl text-white"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
@@ -189,7 +196,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             <p className="label">Custom colour</p>
             <div className="flex flex-col sm:flex-row items-stretch gap-3">
               <label
-                className="relative w-full sm:w-14 h-12 rounded-xl cursor-pointer overflow-hidden shrink-0"
+                className="relative w-full sm:w-14 h-12 rounded-xl cursor-pointer overflow-hidden shrink-0 focus-within:ring-2 focus-within:ring-[var(--accent)] focus-within:rounded-lg"
                 style={{ background: selected, border: '1px solid var(--border-strong)' }}
                 title="Open colour wheel"
               >
@@ -274,6 +281,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         key={days}
                         type="button"
                         onClick={() => updateNotif({ daysAhead: days })}
+                        aria-pressed={active}
                         className="h-8 rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
                         style={active
                           ? { background: 'var(--accent)', color: 'var(--on-accent)' }
@@ -364,6 +372,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           </div>
 
           <div className="flex items-center justify-between gap-3 pt-1 border-t border-[var(--border)]">
+            <button
+              type="button"
+              onClick={removeDemoData}
+              className="flex items-center gap-1.5 text-[11px] font-semibold text-[var(--muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Remove example data
+            </button>
             <button
               type="button"
               onClick={() => chooseColor(DEFAULT_ACCENT)}

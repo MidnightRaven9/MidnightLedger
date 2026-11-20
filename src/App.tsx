@@ -14,6 +14,7 @@ import { PaydayModal } from './components/PaydayModal';
 import { ScheduleModal } from './components/ScheduleModal';
 import { AddExtraIncomeModal } from './components/AddExtraIncomeModal';
 import { Toast } from './components/Toast';
+import { RecoveryModal } from './components/RecoveryModal';
 import { Bill } from './types';
 
 function MainApp() {
@@ -56,12 +57,19 @@ function MainApp() {
   return (
     <div className="min-h-screen bg-[var(--bg)] text-white/90 transition-colors duration-200 selection:bg-[var(--accent-soft)] selection:text-[var(--text)]">
       
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[10000] focus:rounded-lg focus:bg-[var(--surface)] focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-[var(--text)] focus:outline focus:outline-2 focus:outline-[var(--accent)]"
+      >
+        Skip to content
+      </a>
+
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
 
-      <main className="w-full px-[clamp(10px,3.2vw,32px)] pt-4 pb-28">
+      <main id="main-content" tabIndex={-1} className="w-full px-[clamp(10px,3.2vw,32px)] pt-4 pb-28">
         {activeTab === 'dashboard' && (
           <DashboardView
             onOpenBillModal={handleOpenBillModal}
@@ -125,6 +133,7 @@ function MainApp() {
       />
 
       <Toast />
+      <RecoveryModal />
 
     </div>
   );

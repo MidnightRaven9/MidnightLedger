@@ -3,6 +3,7 @@ import { X, Calendar, Tag, Coins, Sparkles } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
 import { toISODateString, formatDate, formatCurrency } from '../utils/dateUtils';
 import { useEscapeToClose } from '../utils/useEscapeToClose';
+import { useModalFocus } from '../utils/useModalFocus';
 
 interface AddExtraIncomeModalProps {
   isOpen: boolean;
@@ -16,6 +17,8 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
   initialPaydayDate,
 }) => {
   useEscapeToClose(isOpen, onClose);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  useModalFocus(panelRef, isOpen);
 
   const { summaries, addExtraIncome } = usePayday();
 
@@ -79,8 +82,13 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div 
-        className="w-full max-w-md rounded-3xl bg-[var(--surface)] border border-[var(--accent)]/40 p-6 sm:p-7 text-white shadow-2xl relative overflow-hidden"
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Add extra income"
+        className="w-full max-w-md rounded-3xl bg-[var(--surface)] border border-[var(--accent)]/40 p-6 sm:p-7 text-white shadow-2xl relative overflow-hidden max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         <div className="absolute -top-20 -right-20 w-56 h-56 bg-[var(--accent-soft)] rounded-full blur-3xl pointer-events-none" />
@@ -102,6 +110,7 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
 
           <button
             onClick={onClose}
+            aria-label="Close extra income editor"
             className="p-2 rounded-xl text-white/50 hover:text-white hover:bg-[var(--surface-2)] transition-colors"
           >
             <X className="w-5 h-5" />
@@ -131,8 +140,9 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
                   setAmount(e.target.value);
                   if (error) setError(null);
                 }}
+                aria-label="Income amount"
                 placeholder="0.00"
-                className="w-full pl-8 pr-4 py-3 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] text-white font-bold text-lg focus:outline-none transition-all placeholder:text-white/20"
+                className="w-full pl-8 pr-4 py-3 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] text-white font-bold text-lg focus:outline-none transition-all placeholder:text-[var(--faint)]"
                 autoFocus
               />
             </div>
@@ -151,9 +161,10 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
                   setSource(e.target.value);
                   if (error) setError(null);
                 }}
+                aria-label="Income source"
                 placeholder="Ex: Friend paid me back, Sold PS5, Tips"
                 maxLength={50}
-                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] text-white text-sm focus:outline-none transition-all placeholder:text-white/30"
+                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] text-white text-sm focus:outline-none transition-all placeholder:text-[var(--faint)]"
               />
             </div>
           </div>
@@ -167,6 +178,7 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
                 <Calendar className="absolute left-3 top-3 w-4 h-4 text-white/40" />
                 <input
                   type="date"
+                  aria-label="Date received"
                   value={dateAdded}
                   onChange={e => setDateAdded(e.target.value)}
                   className="w-full pl-9 pr-3 py-2.5 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] focus:border-[var(--accent)] text-white text-xs focus:outline-none"
@@ -179,6 +191,7 @@ export const AddExtraIncomeModal: React.FC<AddExtraIncomeModalProps> = ({
                 Apply to Payday
               </label>
               <select
+                aria-label="Apply to payday"
                 value={targetPaydayDate}
                 onChange={e => setTargetPaydayDate(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] focus:border-[var(--accent)] text-white text-xs focus:outline-none"

@@ -7,6 +7,7 @@ import { getPaydayForDate } from '../utils/paydayLogic';
 import { CustomCategoryModal } from './CustomCategoryModal';
 import { getCategoryEmoji } from '../utils/emojis';
 import { useEscapeToClose } from '../utils/useEscapeToClose';
+import { useModalFocus } from '../utils/useModalFocus';
 import { HorizontalScroller } from './HorizontalScroller';
 
 interface ExpenseModalProps {
@@ -32,6 +33,8 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
   expenseToEdit,
 }) => {
   useEscapeToClose(isOpen, onClose);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  useModalFocus(panelRef, isOpen);
 
   const { summaries, addExtraExpense, updateExtraExpense, customExpenseCategories, addCustomExpenseCategory } = usePayday();
   const todayStr = toISODateString(new Date());
@@ -125,7 +128,13 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full min-w-0 max-w-lg bg-[var(--surface)] rounded-[24px] shadow-2xl border border-[var(--border)] overflow-hidden mx-2 sm:mx-auto max-h-[90vh] flex flex-col edit-expense-modal">
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Expense editor"
+        className="w-full min-w-0 max-w-lg bg-[var(--surface)] rounded-[24px] shadow-2xl border border-[var(--border)] overflow-hidden mx-2 sm:mx-auto max-h-[90vh] flex flex-col edit-expense-modal">
         
         <div className="flex items-center justify-between p-5 border-b border-[var(--border)] bg-[var(--surface)] shrink-0">
           <div className="flex items-center gap-3">
@@ -143,6 +152,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
           </div>
           <button
             onClick={onClose}
+            aria-label="Close expense editor"
             className="p-2 rounded-xl text-white/40 hover:text-white hover:bg-[var(--surface-2)] transition-colors"
           >
             <X className="w-5 h-5" />
@@ -162,12 +172,14 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                 onChange={e => setCustomEmoji(e.target.value)}
                 maxLength={2}
                 title="Expense Emoji"
+                aria-label="Expense emoji"
                 className="w-[56px] h-[56px] min-w-[56px] shrink-0 rounded-2xl bg-[#1f1f1f] border border-zinc-700 text-center text-[28px] leading-none text-white focus:outline-none focus:border-[var(--accent)] overflow-hidden box-border"
                 style={{ fontFamily: '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif' }}
               />
               <input
                 type="text"
                 required
+                aria-label="Expense description"
                 placeholder="e.g. Walmart, Gas, Coffee"
                 value={description}
                 onChange={e => handleDescriptionChange(e.target.value)}
@@ -235,6 +247,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                 type="number"
                 step="0.01"
                 required
+                aria-label="Expense amount"
                 placeholder="0.00"
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
@@ -251,6 +264,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
               <input
                 type="date"
                 required
+                aria-label="Transaction date"
                 value={date}
                 onChange={e => setDate(e.target.value)}
                 className="w-full px-3.5 py-2.5 h-[48px] rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] text-white text-sm focus:outline-none focus:border-[var(--accent)]"
@@ -264,6 +278,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
               <div className="relative w-full min-w-0 max-w-full mt-1.5">
                 <select
                   required
+                  aria-label="Pay period"
                   value={paydayDate}
                   onChange={e => setPaydayDate(e.target.value)}
                   className="w-full min-w-0 max-w-full h-[48px] rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] px-4 pr-10 text-[14px] text-white truncate appearance-none focus:outline-none focus:border-[var(--accent)]"
@@ -292,6 +307,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                   key={method}
                   type="button"
                   onClick={() => setPaymentMethod(method)}
+                  aria-pressed={paymentMethod === method}
                   className={`py-2 h-[40px] rounded-xl text-xs font-bold border transition-all ${
                     paymentMethod === method
                       ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-md'

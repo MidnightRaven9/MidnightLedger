@@ -7,6 +7,7 @@ import { formatCurrency } from '../utils/dateUtils';
 import { CustomCategoryModal } from './CustomCategoryModal';
 import { ManageCategoriesModal } from './ManageCategoriesModal';
 import { useEscapeToClose } from '../utils/useEscapeToClose';
+import { useModalFocus } from '../utils/useModalFocus';
 import { HorizontalScroller } from './HorizontalScroller';
 
 interface BillModalProps {
@@ -35,6 +36,8 @@ export const BillModal: React.FC<BillModalProps> = ({
   billToEdit,
 }) => {
   useEscapeToClose(isOpen, onClose);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  useModalFocus(panelRef, isOpen);
 
   const { addBill, updateBill, customBillCategories, addCustomBillCategory } = usePayday();
 
@@ -209,7 +212,13 @@ export const BillModal: React.FC<BillModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[9999] edit-modal-overlay flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-[var(--surface)] rounded-3xl shadow-2xl border border-[var(--border)] overflow-hidden max-h-[90vh] flex flex-col edit-bill-modal edit-modal-content z-[10000] relative">
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Bill editor"
+        className="w-full max-w-lg bg-[var(--surface)] rounded-3xl shadow-2xl border border-[var(--border)] overflow-hidden max-h-[90vh] flex flex-col edit-bill-modal edit-modal-content z-[10000] relative">
         
         <div className="flex items-center justify-between p-6 border-b border-[var(--border)] bg-[var(--surface)] shrink-0">
           <div className="flex items-center gap-3">
@@ -228,6 +237,7 @@ export const BillModal: React.FC<BillModalProps> = ({
 
           <button
             onClick={onClose}
+            aria-label="Close bill editor"
             className="p-2 rounded-xl text-white/40 hover:text-white hover:bg-[var(--surface-2)] transition-colors"
           >
             <X className="w-5 h-5" />
@@ -248,12 +258,14 @@ export const BillModal: React.FC<BillModalProps> = ({
                 onChange={e => setCustomEmoji(e.target.value)}
                 maxLength={2}
                 title="Bill Emoji"
+                aria-label="Bill emoji"
                 className="w-[56px] h-[56px] min-w-[56px] shrink-0 rounded-2xl bg-[#1f1f1f] border border-zinc-700 text-center text-[28px] leading-none text-white focus:outline-none focus:border-[var(--accent)] overflow-hidden box-border"
                 style={{ fontFamily: '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif' }}
               />
               <input
                 type="text"
                 required
+                aria-label="Bill name"
                 placeholder="Movie"
                 value={name}
                 onChange={e => handleNameChange(e.target.value)}
@@ -305,6 +317,7 @@ export const BillModal: React.FC<BillModalProps> = ({
               min="1"
               max="31"
               required
+              aria-label="Due date"
               placeholder="1"
               value={dueDate}
               onChange={e => setDueDate(e.target.value)}
@@ -321,6 +334,7 @@ export const BillModal: React.FC<BillModalProps> = ({
               <button
                 type="button"
                 onClick={() => setType('fixed')}
+                aria-pressed={type === 'fixed'}
                 className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all ${
                   type === 'fixed'
                     ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-white'
@@ -334,6 +348,7 @@ export const BillModal: React.FC<BillModalProps> = ({
               <button
                 type="button"
                 onClick={() => setType('variable')}
+                aria-pressed={type === 'variable'}
                 className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all ${
                   type === 'variable'
                     ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-white'
@@ -367,9 +382,10 @@ export const BillModal: React.FC<BillModalProps> = ({
                       setFullTotal(amount || '191.00');
                     }
                   }}
+                  aria-label="Split this bill"
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-[var(--border)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]" />
+                <div className="w-11 h-6 bg-[var(--border)] rounded-full peer peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--accent)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]" />
               </label>
             </div>
 
@@ -384,6 +400,7 @@ export const BillModal: React.FC<BillModalProps> = ({
                     type="number"
                     step="0.01"
                     required={!isSplit}
+                    aria-label="Monthly bill amount"
                     placeholder="0.00"
                     value={amount}
                     onChange={e => setAmount(e.target.value)}
@@ -421,6 +438,7 @@ export const BillModal: React.FC<BillModalProps> = ({
                       type="number"
                       step="0.01"
                       required={isSplit}
+                      aria-label="Full bill total"
                       placeholder="e.g. 191.00"
                       value={fullTotal}
                       onChange={e => setFullTotal(e.target.value)}
@@ -465,9 +483,10 @@ export const BillModal: React.FC<BillModalProps> = ({
                   type="checkbox"
                   checked={isDebt || category === 'Debt & Credit'}
                   onChange={e => setIsDebt(e.target.checked)}
+                  aria-label="Mark as debt or loan"
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-[var(--border)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]" />
+                <div className="w-11 h-6 bg-[var(--border)] rounded-full peer peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--accent)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]" />
               </label>
             </div>
 
@@ -482,6 +501,7 @@ export const BillModal: React.FC<BillModalProps> = ({
                     <input
                       type="number"
                       step="0.01"
+                      aria-label="Total balance owed"
                       placeholder="e.g. 1500.00"
                       value={totalBalance}
                       onChange={e => setTotalBalance(e.target.value)}
@@ -498,6 +518,7 @@ export const BillModal: React.FC<BillModalProps> = ({
                     <input
                       type="number"
                       step="0.1"
+                      aria-label="Interest rate"
                       placeholder="e.g. 19.9"
                       value={interestRate}
                       onChange={e => setInterestRate(e.target.value)}
@@ -516,6 +537,7 @@ export const BillModal: React.FC<BillModalProps> = ({
             </label>
             <input
               type="text"
+              aria-label="Bill notes"
               placeholder="e.g. Account #, Auto-debit on 15th"
               value={notes}
               onChange={e => setNotes(e.target.value)}

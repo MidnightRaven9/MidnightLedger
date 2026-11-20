@@ -15,6 +15,8 @@ import {
   Trash2
 } from 'lucide-react';
 import { usePayday } from '../context/PaydayContext';
+import type { ImportInspection } from '../utils/backup';
+import { downloadBackup } from '../utils/downloadBackup';
 import { 
   formatDate, 
   formatCurrency, 
@@ -24,16 +26,19 @@ import {
 } from '../utils/dateUtils';
 import { PaydaySummary } from '../types';
 import { ClearDataModal } from '../components/ClearDataModal';
+import { ImportPreviewModal } from '../components/ImportPreviewModal';
 import { BillCard } from '../components/BillCard';
 import { HorizontalScroller } from '../components/HorizontalScroller';
 
 type FilterMode = 'all' | 'month' | string; // 'all' | 'month' | '2026' | '2025' etc.
 
 export const HistoryView: React.FC = () => {
-  const { summaries, bills, exportData, importData, toggleBillPaid, showToast, lastSaved } = usePayday();
+  const { summaries, bills, exportData, inspectImport, applyImport, toggleBillPaid, showToast, lastSaved } = usePayday();
 
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
-  const [selectedMonth, setSelectedMonth] = useState<string>(''); // e.g. '2026-08'
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [importInspection, setImportInspection] = useState<ImportInspection | null>(null);
+  const [importFileName, setImportFileName] = useState(''); // e.g. '2026-08'
   const [expandedPaydayIds, setExpandedPaydayIds] = useState<Record<string, boolean>>({});
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState<number>(5);
@@ -148,14 +153,7 @@ export const HistoryView: React.FC = () => {
   };
 
   const handleExport = () => {
-    const dataStr = exportData();
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `midnightledger_backup_${new Date().toISOString().slice(0, 10)}.json`;
-    link.click();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    downloadBackup(exportData());
     showToast('Backup JSON exported successfully');
   };
 
@@ -164,15 +162,26 @@ export const HistoryView: React.FC = () => {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
-      const content = event.target?.result as string;
-      if (content) {
-        const success = importData(content);
-        if (success) showToast('Data imported successfully!');
-        else showToast('Failed to import budget data');
+      const content = event.target?.result;
+      if (typeof content === 'string') {
+        setImportFileName(file.name);
+        setImportInspection(inspectImport(content));
       }
     };
     reader.readAsText(file);
     e.target.value = '';
+  };
+
+  const closeImportPreview = () => {
+    setImportInspection(null);
+    setImportFileName('');
+  };
+
+  const confirmImport = () => {
+    if (importInspection?.ok === true) {
+      applyImport(importInspection.state);
+    }
+    closeImportPreview();
   };
 
   const togglePaydayExpand = (id: string) => {
@@ -210,13 +219,13 @@ export const HistoryView: React.FC = () => {
             Export JSON
           </button>
 
-          <label 
-            className="flex-1 h-[48px] flex items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] hover:bg-[var(--accent-press)] text-white font-bold text-xs cursor-pointer transition-all"
+          <label
+            className="flex-1 h-[48px] flex items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] hover:bg-[var(--accent-press)] text-white font-bold text-xs cursor-pointer transition-all focus-within:outline focus-within:outline-2 focus-within:outline-[var(--accent)]"
             title="Import budget backup JSON file"
           >
-            <Upload className="w-4 h-4 text-white" />
+            <Upload className="w-4 h-4 text-white" aria-hidden="true" />
             Import Backup
-            <input type="file" accept=".json" onChange={handleImport} className="hidden" />
+            <input type="file" accept=".json" aria-label="Import budget backup JSON file" onChange={handleImport} className="sr-only" />
           </label>
         </div>
       </div>
@@ -230,6 +239,7 @@ export const HistoryView: React.FC = () => {
         <div className="flex items-center p-1 rounded-2xl bg-[var(--surface-2)] border border-zinc-800 flex-wrap gap-1">
           <button
             onClick={() => setFilterMode('all')}
+            aria-pressed={filterMode === 'all'}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               filterMode === 'all'
                 ? 'bg-[var(--accent)] text-white shadow-md'
@@ -246,6 +256,7 @@ export const HistoryView: React.FC = () => {
                 setSelectedMonth(availableMonths[0]);
               }
             }}
+            aria-pressed={filterMode === 'month'}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               filterMode === 'month'
                 ? 'bg-[var(--accent)] text-white shadow-md'
@@ -259,6 +270,7 @@ export const HistoryView: React.FC = () => {
             <button
               key={year}
               onClick={() => setFilterMode(year)}
+              aria-pressed={filterMode === year}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 filterMode === year
                   ? 'bg-[var(--accent)] text-white shadow-md'
@@ -282,6 +294,7 @@ export const HistoryView: React.FC = () => {
               <button
                 key={moStr}
                 onClick={() => setSelectedMonth(moStr)}
+                aria-pressed={isSelected}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 border ${
                   isSelected
                     ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-md'
@@ -297,13 +310,13 @@ export const HistoryView: React.FC = () => {
 
       <div className="space-y-4" id="paycheck-history-top">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+          <h2 className="text-base font-extrabold text-white flex items-center gap-2">
             <Receipt className="w-5 h-5 text-[var(--accent)]" />
             Past Paycheck Allocations
             <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--accent-soft)] border border-[var(--border-strong)] text-[var(--accent)]">
               {filteredSummaries.length}
             </span>
-          </h3>
+          </h2>
         </div>
 
         {filteredSummaries.length === 0 ? (
@@ -342,7 +355,7 @@ export const HistoryView: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-2 flex-wrap leading-[1.4]">
                           {!hasCheckAmount ? (
-                            <span className="text-zinc-500 font-semibold text-[16px] leading-[1.4]">
+                            <span className="text-[var(--faint)] font-semibold text-[16px] leading-[1.4]">
                               No amount set
                             </span>
                           ) : (
@@ -389,12 +402,12 @@ export const HistoryView: React.FC = () => {
                     <div className="border-t border-[var(--border)]/60 bg-[var(--bg)] space-y-4 pt-4 mt-4 rounded-2xl p-3 overflow-visible">
                       
                       <div>
-                        <h4 className="text-xs font-extrabold text-white/70 uppercase tracking-wider mb-2">
+                        <h3 className="text-xs font-extrabold text-white/70 uppercase tracking-wider mb-2">
                           Assigned Bills & Status
-                        </h4>
+                        </h3>
 
                         {summary.assignedBills.length === 0 ? (
-                          <p className="text-xs text-white/40 italic">No bills assigned to this check.</p>
+                          <p className="text-xs text-[var(--faint)] italic">No bills assigned to this check.</p>
                         ) : (
                           <div className="space-y-2">
                             {summary.assignedBills.map(item => (
@@ -415,9 +428,9 @@ export const HistoryView: React.FC = () => {
 
                       {summary.extraExpenses.length > 0 && (
                         <div>
-                          <h4 className="text-xs font-extrabold text-white/70 uppercase tracking-wider mb-2">
+                          <h3 className="text-xs font-extrabold text-white/70 uppercase tracking-wider mb-2">
                             Tracked Extra Expenses
-                          </h4>
+                          </h3>
                           <div className="space-y-1.5">
                             {summary.extraExpenses.map(expense => (
                               <div key={expense.id} className="p-2.5 rounded-xl bg-[var(--surface)] border border-[var(--border)] flex items-center justify-between text-xs">
@@ -447,7 +460,7 @@ export const HistoryView: React.FC = () => {
                         <div>
                           <span className="text-[10px] text-white/50 block">Net Left Over</span>
                           <span className={`text-xs font-extrabold ${
-                            !hasCheckAmount ? 'text-zinc-500' : (summary.leftOver ?? 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                            !hasCheckAmount ? 'text-[var(--faint)]' : (summary.leftOver ?? 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
                           }`}>
                             {hasCheckAmount ? formatCurrency(summary.leftOver) : 'N/A'}
                           </span>
@@ -484,10 +497,10 @@ export const HistoryView: React.FC = () => {
 
       <div className="mt-6 space-y-4">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+          <h2 className="text-base font-extrabold text-white flex items-center gap-2">
             <Activity className="w-5 h-5 text-[var(--accent)]" />
             Bill Payment History & Timeline
-          </h3>
+          </h2>
         </div>
 
         {bills.length === 0 ? (
@@ -541,7 +554,7 @@ export const HistoryView: React.FC = () => {
                         Last paid: {formatDate(lastPaidOccurrence.paydayDate)}
                       </span>
                     ) : (
-                      <span className="text-white/40 text-[11px]">Unpaid</span>
+                      <span className="text-[var(--faint)] text-[11px]">Unpaid</span>
                     )}
                   </div>
 
@@ -552,7 +565,7 @@ export const HistoryView: React.FC = () => {
                       </div>
                     ) : (
                       <>
-                        <span className="text-[10px] font-bold text-white/40 block mb-1.5">
+                        <span className="text-[10px] font-bold text-[var(--faint)] block mb-1.5">
                           Paycheck Timeline History:
                         </span>
                         <HorizontalScroller className="flex items-center gap-[6px] overflow-x-auto pb-1">
@@ -564,7 +577,7 @@ export const HistoryView: React.FC = () => {
                               <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
                                 occ.isPaid 
                                   ? 'bg-emerald-500/20 border border-emerald-500 text-emerald-400 shadow-sm shadow-emerald-950' 
-                                  : 'bg-[var(--surface-2)] border border-[var(--border-strong)] text-white/30'
+                                  : 'bg-[var(--surface-2)] border border-[var(--border-strong)] text-[var(--faint)]'
                               }`}>
                                 {occ.isPaid ? (
                                   <Check className="w-2.5 h-2.5 stroke-[3]" />
@@ -597,10 +610,10 @@ export const HistoryView: React.FC = () => {
         style={{ backgroundColor: '#1A1010', border: '1px solid #EF444440' }}
       >
         <div>
-          <h3 className="text-base font-extrabold text-[#F87171] flex items-center gap-2">
+          <h2 className="text-base font-extrabold text-[#F87171] flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-rose-500" />
             Danger Zone
-          </h3>
+          </h2>
           <p className="text-xs text-white/60 mt-1">
             Permanent actions that wipe your data.
           </p>
@@ -618,7 +631,7 @@ export const HistoryView: React.FC = () => {
           <p className="text-[11px] text-white/50 text-center font-medium mt-2">
             This will wipe ALL data to share a clean app - bills, paydays, expenses, history, everything. You will start at 0.
           </p>
-          <div className="text-[11px] text-[var(--accent)] text-center font-semibold mt-2.5">
+          <div aria-live="polite" aria-atomic="true" className="text-[11px] text-[var(--accent)] text-center font-semibold mt-2.5">
             {saveStatusText}
           </div>
         </div>
@@ -627,6 +640,18 @@ export const HistoryView: React.FC = () => {
       <ClearDataModal
         isOpen={isClearModalOpen}
         onClose={() => setIsClearModalOpen(false)}
+      />
+
+      <ImportPreviewModal
+        isOpen={importInspection !== null}
+        fileName={importFileName}
+        inspection={importInspection}
+        onClose={closeImportPreview}
+        onConfirm={confirmImport}
+        onExportCurrent={() => {
+          downloadBackup(exportData());
+          showToast('Backup JSON exported successfully');
+        }}
       />
 
     </div>

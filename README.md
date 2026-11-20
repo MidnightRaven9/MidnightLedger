@@ -28,7 +28,7 @@ Offline-first budgeting for people who live paycheck to paycheck. Plan irregular
 3. Open the APK and install it.
 4. If sample data appears, open **History**, scroll to the bottom, and tap **Wipe All Data**.
 
-The APK is debug-signed for sideloading. It needs no internet connection at runtime.
+The APK is debug-signed for sideloading. It needs no internet connection at runtime. For the exact signing, versioning, permission and manual-verification steps for a future signed release, see [docs/RELEASE.md](docs/RELEASE.md).
 
 ### Web / PWA
 

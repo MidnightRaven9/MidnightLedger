@@ -4,6 +4,12 @@ const config: CapacitorConfig = {
   appId: 'com.midnightledger.app',
   appName: 'MidnightLedger',
   webDir: 'dist',
+  loggingBehavior: 'none',
+  android: {
+    allowMixedContent: false,
+    webContentsDebuggingEnabled: false,
+    loggingBehavior: 'none',
+  },
   plugins: {
     LocalNotifications: {
       smallIcon: 'ic_stat_bell',

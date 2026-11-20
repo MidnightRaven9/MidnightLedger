@@ -15,7 +15,7 @@ import {
   getDaysInMonth, 
   compareDates 
 } from './dateUtils';
-import { getMyShare } from './calculations';
+import { getMyShare, roundCents } from './calculations';
 
 /**
  * Generate a sequence of projected paydays based on schedule parameters
@@ -418,11 +418,11 @@ export function calculatePaydaySummaries(
     const totalBills = combinedAssigned.reduce((sum, item) => {
       // If the bill was paid with ANOTHER paycheck, it shouldn't deduct from THIS paycheck's available money.
       const isPaidWithOther = item.paidWithPaydayId && item.paidWithPaydayId !== payday.date;
-      return sum + (isPaidWithOther ? 0 : item.effectiveAmount);
+      return sum + (isPaidWithOther ? 0 : roundCents(item.effectiveAmount));
     }, 0);
-    const totalExtraExpenses = assignedExpenses.reduce((sum, item) => sum + item.amount, 0);
-    const totalExtraIncome = assignedIncomes.reduce((sum, item) => sum + item.amount, 0);
-    const totalOutflow = totalBills + totalExtraExpenses;
+    const totalExtraExpenses = roundCents(assignedExpenses.reduce((sum, item) => sum + item.amount, 0));
+    const totalExtraIncome = roundCents(assignedIncomes.reduce((sum, item) => sum + item.amount, 0));
+    const totalOutflow = roundCents(totalBills + totalExtraExpenses);
 
     const estimatedCheck = payday.estimatedAmount;
     const hasBaseCheck = estimatedCheck !== null && !isNaN(estimatedCheck) && estimatedCheck > 0;
@@ -436,7 +436,7 @@ export function calculatePaydaySummaries(
     let status: 'positive' | 'negative' | 'neutral' = 'neutral';
 
     if (hasValidAvailable && totalAvailable !== null) {
-      leftOver = totalAvailable - totalOutflow;
+      leftOver = roundCents(totalAvailable - totalOutflow);
       if (leftOver >= 0) {
         status = 'positive';
       } else {
