@@ -379,38 +379,44 @@ export const ReportsView: React.FC = () => {
             <span className="w-3 h-3 bg-[var(--accent)] rounded-xs shrink-0" /> Income
           </span>
           <span className="flex items-center gap-1.5 text-zinc-300">
-            <span className="w-3 h-3 bg-[var(--accent)] rounded-xs shrink-0" /> Bills
+            <span className="w-3 h-3 bg-[#fbbf24] rounded-xs shrink-0" /> Bills
           </span>
         </div>
 
-        <div className="w-full bg-[var(--surface-2)] rounded-[16px] p-4 h-[220px]">
-          <ResponsiveContainer width="100%" height={188} style={{ outline: 'none' }}>
-            <BarChart
-              data={incomeVsExpensesData}
-              margin={{ top: 10, right: 8, left: -10, bottom: 20 }}
-              style={{ outline: 'none' }}
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.6} />
-              <XAxis 
-                dataKey="label" 
-                tick={{ fill: '#71717a', fontSize: 10 }}
-                axisLine={{ stroke: 'var(--border)' }}
-                interval={0}
-                angle={-25}
-                textAnchor="end"
-                height={35}
-              />
-              <YAxis 
-                tick={{ fill: '#71717a', fontSize: 10 }}
-                axisLine={{ stroke: 'var(--border)' }}
-                tickFormatter={(val) => `$${val}`}
-              />
-              <Tooltip content={<BarTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-              <Bar dataKey="Income" fill="var(--accent)" barSize={12} radius={[4, 4, 0, 0]} name="Expected Check Income" />
-              <Bar dataKey="Expenses" fill="var(--accent)" barSize={12} radius={[4, 4, 0, 0]} name="Total Bills & Expenses" />
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="w-full bg-[var(--surface-2)] rounded-[16px] p-3 overflow-x-auto">
+          <div style={{ width: '100%', minWidth: Math.max(320, incomeVsExpensesData.length * 72), height: 240 }}>
+            <ResponsiveContainer width="100%" height="100%" style={{ outline: 'none' }}>
+              <BarChart
+                data={incomeVsExpensesData}
+                margin={{ top: 16, right: 12, left: 0, bottom: 8 }}
+                barGap={6}
+                barCategoryGap="25%"
+                style={{ outline: 'none' }}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.6} />
+                <XAxis 
+                  dataKey="label" 
+                  tick={{ fill: '#a1a1aa', fontSize: 11 }}
+                  axisLine={{ stroke: 'var(--border)' }}
+                  interval={0}
+                  height={28}
+                />
+                <YAxis 
+                  tick={{ fill: '#a1a1aa', fontSize: 11 }}
+                  axisLine={{ stroke: 'var(--border)' }}
+                  tickFormatter={(val) => `$${val}`}
+                  width={52}
+                />
+                <Tooltip content={<BarTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                <Bar dataKey="Income" fill="var(--accent)" barSize={16} radius={[4, 4, 0, 0]} name="Expected Check Income" />
+                <Bar dataKey="Expenses" fill="#fbbf24" barSize={16} radius={[4, 4, 0, 0]} name="Total Bills & Expenses" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
+        {incomeVsExpensesData.length > 5 && (
+          <p className="text-[11px] text-[var(--faint)] -mt-2">Swipe sideways to see every pay period</p>
+        )}
       </div>
 
       <div className="p-5 rounded-[20px] bg-[var(--surface-2)] border border-[var(--border)] mb-4 flex flex-col gap-4">
@@ -426,7 +432,7 @@ export const ReportsView: React.FC = () => {
 
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[12px] font-semibold select-none py-1">
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 border-2 border-dashed border-[#00FF94] bg-transparent shrink-0" />
+            <span className="w-3 h-3 border-2 border-dashed border-[#38bdf8] bg-transparent shrink-0" />
             <span className="text-zinc-300 text-[12px]">Cumulative Buffer</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -435,51 +441,55 @@ export const ReportsView: React.FC = () => {
           </div>
         </div>
 
-        <div className="w-full bg-[var(--surface-2)] rounded-[16px] p-4 h-[220px]">
-          <ResponsiveContainer width="100%" height={188} style={{ outline: 'none' }}>
-            <LineChart
-              data={projectionData}
-              margin={{ top: 10, right: 8, left: -10, bottom: 20 }}
-              style={{ outline: 'none' }}
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.25} />
-              <XAxis 
-                dataKey="shortLabel" 
-                tick={{ fill: '#71717a', fontSize: 10 }}
-                axisLine={{ stroke: 'var(--border)' }}
-                interval={1}
-                angle={-25}
-                textAnchor="end"
-                height={35}
-              />
-              <YAxis 
-                tick={{ fill: '#71717a', fontSize: 10 }}
-                axisLine={{ stroke: 'var(--border)' }}
-                tickFormatter={(val) => val < 0 ? `-$${Math.abs(val)}` : `$${val}`}
-              />
-              <Tooltip content={<LineTooltip />} offset={15} cursor={{ stroke: 'rgba(255,255,255,0.1)' }} />
-              <ReferenceLine y={0} stroke="#FFFFFF" strokeWidth={1} opacity={0.4} />
-              <Line 
-                type="monotone" 
-                dataKey="Net Left Over" 
-                stroke="var(--accent)" 
-                strokeWidth={3}
-                dot={<CustomDot />}
-                activeDot={<CustomActiveDot />}
-                name="Net Left Over Per Check"
-              />
-              <Line 
-                type="monotone" 
-                dataKey="Cumulative Buffer" 
-                stroke="#00FF94" 
-                strokeWidth={2}
-                strokeDasharray="5 5"
-                dot={{ r: 4, fill: '#00FF94', stroke: '#00FF94' }}
-                name="Cumulative Buffer Growth"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="w-full bg-[var(--surface-2)] rounded-[16px] p-3 overflow-x-auto">
+          <div style={{ width: '100%', minWidth: Math.max(320, projectionData.length * 72), height: 240 }}>
+            <ResponsiveContainer width="100%" height="100%" style={{ outline: 'none' }}>
+              <LineChart
+                data={projectionData}
+                margin={{ top: 16, right: 12, left: 0, bottom: 8 }}
+                style={{ outline: 'none' }}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.25} />
+                <XAxis 
+                  dataKey="shortLabel" 
+                  tick={{ fill: '#a1a1aa', fontSize: 11 }}
+                  axisLine={{ stroke: 'var(--border)' }}
+                  interval={0}
+                  height={28}
+                />
+                <YAxis 
+                  tick={{ fill: '#a1a1aa', fontSize: 11 }}
+                  axisLine={{ stroke: 'var(--border)' }}
+                  tickFormatter={(val) => val < 0 ? `-$${Math.abs(val)}` : `$${val}`}
+                  width={52}
+                />
+                <Tooltip content={<LineTooltip />} offset={15} cursor={{ stroke: 'rgba(255,255,255,0.1)' }} />
+                <ReferenceLine y={0} stroke="#a1a1aa" strokeWidth={1} opacity={0.5} />
+                <Line 
+                  type="monotone" 
+                  dataKey="Net Left Over" 
+                  stroke="var(--accent)" 
+                  strokeWidth={3}
+                  dot={<CustomDot />}
+                  activeDot={<CustomActiveDot />}
+                  name="Net Left Over Per Check"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="Cumulative Buffer" 
+                  stroke="#38bdf8" 
+                  strokeWidth={3}
+                  strokeDasharray="6 4"
+                  dot={{ r: 5, fill: '#38bdf8', stroke: '#38bdf8' }}
+                  name="Cumulative Buffer Growth"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
+        {projectionData.length > 5 && (
+          <p className="text-[11px] text-[var(--faint)] -mt-2">Swipe sideways to see every pay period</p>
+        )}
       </div>
 
     </div>

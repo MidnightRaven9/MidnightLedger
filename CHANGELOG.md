@@ -2,6 +2,13 @@
 
 All notable changes to MidnightLedger.
 
+## [3.2.2] - 2026-11-20
+
+### Fixed
+- Visual Donut Allocation legend rows no longer feel cramped on phones: amounts and percentages stack beside the category name, long names wrap naturally, and the colour dot stays aligned to the first line
+- Reports charts are readable on phones: income and bills now use distinct colours, axis labels are larger and brighter, and crowded charts scroll sideways instead of squeezing bars together
+- Future Net Left Over line uses a clearer second colour, thicker lines and larger data points
+
 ## [3.2.1] - 2026-11-20
 
 Security hardening, correctness fixes and UI polish from a full end-to-end audit. No new features; existing data and layouts are unchanged.

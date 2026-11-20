@@ -1,6 +1,6 @@
 {
   "name": "midnight-ledger",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "private": true,
   "type": "module",
   "description": "Offline-first budgeting for paycheck-to-paycheck planning, split bills and tax estimates.",

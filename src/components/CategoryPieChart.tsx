@@ -199,24 +199,24 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({
         {chartData.map((item) => (
           <div
             key={item.name}
-            className="flex justify-between items-center gap-2 w-full min-w-0 px-4 py-3.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] text-[14px] min-h-[56px] mb-2"
+            className="flex items-start justify-between gap-3 w-full min-w-0 px-3.5 py-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] mb-2"
             title={item.bills.map(b => b.isSplit ? `${b.name}: ${formatCurrency(b.myShare)} (Full: ${formatCurrency(b.fullTotal)})` : `${b.name}: ${formatCurrency(b.myShare)}`).join(', ')}
           >
-            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="flex items-start gap-2.5 min-w-0 flex-1">
               <span
-                className="w-3 h-3 rounded-full shrink-0"
+                className="w-3 h-3 rounded-full shrink-0 mt-1"
                 style={{ backgroundColor: item.color }}
               />
-              <span className="font-semibold text-[13px] text-white break-words leading-tight">
+              <span className="font-semibold text-[13px] text-white break-words leading-snug">
                 {item.name}
               </span>
             </div>
 
-            <div className="text-right flex items-center gap-3 shrink-0">
-              <span className="font-bold text-[13px] text-white">
+            <div className="flex flex-col items-end shrink-0 gap-0.5">
+              <span className="font-bold text-[13px] text-white whitespace-nowrap">
                 {formatCurrency(item.value)}
               </span>
-              <span className="text-[13px] text-zinc-400 min-w-10 text-right font-mono">
+              <span className="text-[11px] text-zinc-400 min-w-10 text-right font-mono">
                 {item.percentage}%
               </span>
             </div>
