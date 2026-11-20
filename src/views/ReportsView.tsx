@@ -40,17 +40,15 @@ const CATEGORIES_LIST: BillCategory[] = [
 const CustomDot = (props: any) => {
   const { cx, cy, value } = props;
   if (cx === undefined || cy === undefined) return null;
-  const isNegative = value < 0;
-  const dotColor = isNegative ? '#FF4D6A' : '#FFFFFF';
-  const strokeColor = isNegative ? '#FF4D6A' : 'var(--accent)';
+  const isNegative = Number(value) < 0;
   return (
-    <circle 
-      cx={cx} 
-      cy={cy} 
-      r={5} 
-      fill={dotColor} 
-      stroke={strokeColor} 
-      strokeWidth={2} 
+    <circle
+      cx={cx}
+      cy={cy}
+      r={4}
+      fill={isNegative ? '#fb7185' : 'var(--accent)'}
+      stroke="var(--surface-2)"
+      strokeWidth={2}
     />
   );
 };
@@ -58,20 +56,22 @@ const CustomDot = (props: any) => {
 const CustomActiveDot = (props: any) => {
   const { cx, cy, value } = props;
   if (cx === undefined || cy === undefined) return null;
-  const isNegative = value < 0;
-  const dotColor = isNegative ? '#FF4D6A' : '#FFFFFF';
-  const strokeColor = isNegative ? '#FF4D6A' : 'var(--accent)';
+  const isNegative = Number(value) < 0;
   return (
-    <circle 
-      cx={cx} 
-      cy={cy} 
-      r={7} 
-      fill={dotColor} 
-      stroke={strokeColor} 
-      strokeWidth={3} 
+    <circle
+      cx={cx}
+      cy={cy}
+      r={6}
+      fill={isNegative ? '#fb7185' : 'var(--accent)'}
+      stroke="#ffffff"
+      strokeWidth={2}
     />
   );
 };
+
+const CHART_MIN_WIDTH = 320;
+const CHART_POINT_WIDTH = 72;
+const chartWidth = (points: number) => Math.max(CHART_MIN_WIDTH, points * CHART_POINT_WIDTH);
 
 export const ReportsView: React.FC = () => {
   const { summaries, nextPaydaySummary, customBillCategories, customExpenseCategories } = usePayday();
@@ -385,9 +385,9 @@ export const ReportsView: React.FC = () => {
         </div>
 
         <div className="w-full bg-[var(--surface-2)] rounded-[16px] p-3">
-          <HorizontalScroller className="w-full overflow-x-auto">
-          <div style={{ width: '100%', minWidth: Math.max(320, incomeVsExpensesData.length * 72), height: 240 }}>
-            <ResponsiveContainer width="100%" height="100%" style={{ outline: 'none' }}>
+          <HorizontalScroller className="w-full overflow-x-auto chart-scroller">
+          <div style={{ width: chartWidth(incomeVsExpensesData.length), height: 240, maxWidth: 'none' }}>
+            <ResponsiveContainer width="100%" height="100%" style={{ outline: 'none', maxWidth: 'none' }}>
               <BarChart
                 data={incomeVsExpensesData}
                 margin={{ top: 16, right: 12, left: 0, bottom: 8 }}
@@ -410,8 +410,8 @@ export const ReportsView: React.FC = () => {
                   width={52}
                 />
                 <Tooltip content={<BarTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-                <Bar dataKey="Income" fill="var(--accent)" barSize={16} radius={[4, 4, 0, 0]} name="Expected Check Income" />
-                <Bar dataKey="Expenses" fill="#2dd4bf" barSize={16} radius={[4, 4, 0, 0]} name="Total Bills & Expenses" />
+                <Bar dataKey="Income" fill="var(--accent)" barSize={16} radius={[4, 4, 0, 0]} name="Expected Check Income" isAnimationActive={false} />
+                <Bar dataKey="Expenses" fill="#2dd4bf" barSize={16} radius={[4, 4, 0, 0]} name="Total Bills & Expenses" isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -435,7 +435,7 @@ export const ReportsView: React.FC = () => {
 
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[12px] font-semibold select-none py-1">
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 border-2 border-dashed border-[#38bdf8] bg-transparent shrink-0" />
+            <span className="w-3 h-3 bg-[#38bdf8] rounded-xs shrink-0" />
             <span className="text-zinc-300 text-[12px]">Cumulative Buffer</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -445,15 +445,15 @@ export const ReportsView: React.FC = () => {
         </div>
 
         <div className="w-full bg-[var(--surface-2)] rounded-[16px] p-3">
-          <HorizontalScroller className="w-full overflow-x-auto">
-          <div style={{ width: '100%', minWidth: Math.max(320, projectionData.length * 72), height: 240 }}>
-            <ResponsiveContainer width="100%" height="100%" style={{ outline: 'none' }}>
+          <HorizontalScroller className="w-full overflow-x-auto chart-scroller">
+          <div style={{ width: chartWidth(projectionData.length), height: 240, maxWidth: 'none' }}>
+            <ResponsiveContainer width="100%" height="100%" style={{ outline: 'none', maxWidth: 'none' }}>
               <LineChart
                 data={projectionData}
                 margin={{ top: 16, right: 12, left: 0, bottom: 8 }}
                 style={{ outline: 'none' }}
               >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.25} />
+                <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="var(--border)" opacity={0.4} />
                 <XAxis 
                   dataKey="shortLabel" 
                   tick={{ fill: '#a1a1aa', fontSize: 11 }}
@@ -469,22 +469,28 @@ export const ReportsView: React.FC = () => {
                 />
                 <Tooltip content={<LineTooltip />} offset={15} cursor={{ stroke: 'rgba(255,255,255,0.1)' }} />
                 <ReferenceLine y={0} stroke="#a1a1aa" strokeWidth={1} opacity={0.5} />
-                <Line 
-                  type="monotone" 
-                  dataKey="Net Left Over" 
-                  stroke="var(--accent)" 
-                  strokeWidth={3}
+                <Line
+                  type="monotone"
+                  dataKey="Net Left Over"
+                  stroke="var(--accent)"
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   dot={<CustomDot />}
                   activeDot={<CustomActiveDot />}
+                  isAnimationActive={false}
                   name="Net Left Over Per Check"
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="Cumulative Buffer" 
-                  stroke="#38bdf8" 
-                  strokeWidth={3}
-                  strokeDasharray="6 4"
-                  dot={{ r: 5, fill: '#38bdf8', stroke: '#38bdf8' }}
+                <Line
+                  type="monotone"
+                  dataKey="Cumulative Buffer"
+                  stroke="#38bdf8"
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  dot={{ r: 3.5, fill: '#38bdf8', stroke: 'var(--surface-2)', strokeWidth: 1.5 }}
+                  activeDot={{ r: 5, fill: '#38bdf8', stroke: '#ffffff', strokeWidth: 1.5 }}
+                  isAnimationActive={false}
                   name="Cumulative Buffer Growth"
                 />
               </LineChart>

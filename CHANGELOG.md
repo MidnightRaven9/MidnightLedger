@@ -2,6 +2,12 @@
 
 All notable changes to MidnightLedger.
 
+## [3.2.4] - 2026-11-20
+
+### Fixed
+- Chart B and C scroll indicators now stop at the exact end of the drawn chart instead of scrolling past it
+- Chart C line work is smoother and cleaner: solid lines, refined markers, clearer grid and no animation flicker
+
 ## [3.2.3] - 2026-11-20
 
 ### Changed

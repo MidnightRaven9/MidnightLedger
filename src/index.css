@@ -213,6 +213,8 @@ html, body, #root {
   box-shadow: none !important;
 }
 .recharts-wrapper *:focus, .recharts-wrapper *:focus-visible { outline: none !important; border: none !important; }
+/* Scrollable charts must be allowed to grow past the viewport so the indicator matches the drawn chart. */
+.chart-scroller * { max-width: none !important; }
 
 @keyframes fall {
   to { transform: translateY(100vh) rotate(360deg); opacity: 0; }
